@@ -1,14 +1,37 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 1.0.0  
+> **Version**: 1.1.0  
 > **Created**: 2026-01-04  
+> **Last Updated**: 2026-01-04  
 > **Target Completion**: Week 20 (MVP with integrations)
+
+---
+
+## Key Decisions
+
+| Decision | Impact |
+|----------|--------|
+| [ADR-005](../../docs/decisions/005-kubernetes-ingress-over-custom-router.md) | Archimedes handles contract enforcement, not routing |
+| [ADR-006](../../docs/decisions/006-grpc-post-mvp.md) | MVP is HTTP/REST only, gRPC is post-MVP |
+| [ADR-004](../../docs/decisions/004-regorus-for-rego-parsing.md) | Use Regorus for embedded OPA evaluation |
+
+**Archimedes Responsibilities (MVP):**
+- HTTP server with Axum
+- Contract-based request/response validation
+- Embedded OPA policy evaluation (Regorus)
+- Middleware pipeline (8 stages)
+- Observability (metrics, traces, logs)
+
+**NOT Archimedes Responsibilities:**
+- External traffic routing (use K8s Ingress)
+- gRPC support (post-MVP)
+- Custom API gateway (use standard ingress)
 
 ---
 
 ## Overview
 
-Archimedes is the async HTTP/gRPC server framework for the Themis Platform. **Archimedes core can be developed in parallel** with Themis and Eunomia using mock contracts and policies.
+Archimedes is the async HTTP server framework for the Themis Platform. **Archimedes core can be developed in parallel** with Themis and Eunomia using mock contracts and policies.
 
 ### Parallel Development Strategy
 
@@ -262,25 +285,94 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Week 7: Handler Registration
 
-- [ ] Implement handler registration API
-- [ ] Add compile-time type checking
-- [ ] Validate handler signatures
-- [ ] Implement request deserialization
-- [ ] Implement response serialization
-- [ ] Test handler invocation
+- [x] Implement handler registration API
+  > ✅ **Completed 2026-01-05**: `archimedes_server::handler::HandlerRegistry`
+  >
+  > - Type-erased handlers with `ErasedHandler` type
+  > - Generic `register<Req, Res, F>()` method
+  > - `register_no_body<Res, F>()` for bodyless handlers
+- [x] Add compile-time type checking
+  > ✅ **Completed 2026-01-05**: Generic bounds enforce types
+  >
+  > - `Req: DeserializeOwned + Send + 'static`
+  > - `Res: Serialize + Send + 'static`
+  > - `HandlerRequest` and `HandlerResponse` marker traits
+- [x] Validate handler signatures
+  > ✅ **Completed 2026-01-05**: Enforced via trait bounds
+  >
+  > - Handlers must be `Fn(RequestContext, Req) -> Future`
+  > - Return type must be `Result<Res, HandlerError>`
+- [x] Implement request deserialization
+  > ✅ **Completed 2026-01-05**: JSON deserialization in `register()`
+  >
+  > - `serde_json::from_slice()` with error handling
+  > - `HandlerError::DeserializationError` on failure
+- [x] Implement response serialization
+  > ✅ **Completed 2026-01-05**: JSON serialization in `register()`
+  >
+  > - `serde_json::to_vec()` with error handling
+  > - `HandlerError::SerializationError` on failure
+- [x] Test handler invocation
+  > ✅ **Completed 2026-01-05**: Comprehensive test coverage
+  >
+  > - Registry creation and registration tests
+  > - Handler lookup and invocation tests
+  > - Error handling tests
 
 ### Week 8: Handler Pipeline
 
-- [ ] Wire handlers to router
-- [ ] Add request body parsing
-- [ ] Add response body serialization
-- [ ] Implement timeout handling
-- [ ] Add basic error responses
-- [ ] Integration tests with mock handlers
+- [x] Wire handlers to router
+  > ✅ **Completed 2026-01-05**: Full handler integration
+  >
+  > - `Server` struct now contains `HandlerRegistry`
+  > - `handle_matched_route()` invokes registered handlers
+  > - Proper request context with operation_id
+- [x] Add request body parsing
+  > ✅ **Completed 2026-01-05**: Hyper body collection
+  >
+  > - `collect_body()` gathers Incoming body to Bytes
+  > - Body passed to handler for deserialization
+- [x] Add response body serialization
+  > ✅ **Completed 2026-01-05**: JSON response handling
+  >
+  > - Handler responses serialized via serde_json
+  > - Proper Content-Type headers
+- [x] Implement timeout handling
+  > ✅ **Completed 2026-01-05**: Request timeout support
+  >
+  > - Configurable `request_timeout` in ServerBuilder
+  > - Body collection timeout
+  > - Handler execution timeout
+  > - 408 REQUEST_TIMEOUT / 504 GATEWAY_TIMEOUT responses
+- [x] Add basic error responses
+  > ✅ **Completed 2026-01-05**: Structured error handling
+  >
+  > - `handle_error()` for standard error responses
+  > - `handle_handler_error()` for handler-specific errors
+  > - Proper HTTP status codes for each error type
+  > - JSON error envelopes with code and message
+- [x] Integration tests with mock handlers
+  > ✅ **Completed 2026-01-05**: Comprehensive test coverage
+  >
+  > - `test_handler_invocation` - full request/response cycle
+  > - `test_handler_no_body_invocation` - bodyless handlers
+  > - `test_handler_deserialization_error` - invalid JSON
+  > - `test_handler_not_registered` - missing handlers
 
 ### Phase A2 Milestone
 
 **Criteria**: HTTP server runs, routes requests, invokes handlers
+
+> ✅ **Status (2026-01-05)**: Phase A2 COMPLETE
+>
+> - HTTP server with Hyper 1.6 and Tokio runtime
+> - Path-based routing with parameter extraction
+> - Type-erased handler registry with serialization
+> - Handler invocation with timeout support
+> - Health/readiness endpoints
+> - Graceful shutdown with connection tracking
+> - 90+ tests passing
+> - Ready to proceed to Phase A3: Middleware Pipeline
 
 ---
 

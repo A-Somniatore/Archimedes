@@ -70,6 +70,6 @@ mod identity;
 
 pub use context::{RequestContext, RequestId};
 pub use contract::{Contract, MockSchema, Operation, ValidationError};
-pub use error::{ErrorCategory, ThemisError, ThemisResult};
+pub use error::{ErrorCategory, ErrorDetail, ErrorEnvelope, ThemisError, ThemisResult};
 pub use handler::Handler;
 pub use identity::CallerIdentity;

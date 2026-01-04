@@ -205,8 +205,12 @@ impl Future for ShutdownReceiver {
             return Poll::Ready(());
         }
 
-        // Wait for broadcast
-        match Pin::new(&mut self.receiver).poll_recv(cx) {
+        // Use recv() and poll the future manually
+        // We need to create a pinned future for recv
+        let recv_future = self.receiver.recv();
+        tokio::pin!(recv_future);
+
+        match recv_future.poll(cx) {
             Poll::Ready(_) => Poll::Ready(()),
             Poll::Pending => Poll::Pending,
         }

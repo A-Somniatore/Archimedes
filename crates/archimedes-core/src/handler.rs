@@ -110,7 +110,7 @@ pub trait ErasedHandler: Send + Sync + 'static {
 ///
 /// let handler = FnHandler::new(get_user);
 /// ```
-pub struct FnHandler<F, Req, Res>
+pub struct FnHandler<F, Req, Res, Fut>
 where
     F: Fn(&RequestContext, Req) -> Fut + Send + Sync + 'static,
     Fut: Future<Output = Result<Res, ThemisError>> + Send,
@@ -118,15 +118,13 @@ where
     Res: Serialize + Send + 'static,
 {
     func: F,
-    _phantom: std::marker::PhantomData<(Req, Res)>,
+    _phantom: std::marker::PhantomData<fn(Req) -> (Res, Fut)>,
 }
 
-// Workaround for the Fut type parameter
-type Fut<Res> = std::pin::Pin<Box<dyn Future<Output = Result<Res, ThemisError>> + Send>>;
-
-impl<F, Req, Res> FnHandler<F, Req, Res>
+impl<F, Req, Res, Fut> FnHandler<F, Req, Res, Fut>
 where
-    F: Fn(&RequestContext, Req) -> Fut<Res> + Send + Sync + 'static,
+    F: Fn(&RequestContext, Req) -> Fut + Send + Sync + 'static,
+    Fut: Future<Output = Result<Res, ThemisError>> + Send,
     Req: DeserializeOwned + Send + 'static,
     Res: Serialize + Send + 'static,
 {
@@ -140,9 +138,10 @@ where
     }
 }
 
-impl<F, Req, Res> Handler<Req, Res> for FnHandler<F, Req, Res>
+impl<F, Req, Res, Fut> Handler<Req, Res> for FnHandler<F, Req, Res, Fut>
 where
-    F: Fn(&RequestContext, Req) -> Fut<Res> + Send + Sync + 'static,
+    F: Fn(&RequestContext, Req) -> Fut + Send + Sync + 'static,
+    Fut: Future<Output = Result<Res, ThemisError>> + Send + 'static,
     Req: DeserializeOwned + Send + 'static,
     Res: Serialize + Send + 'static,
 {

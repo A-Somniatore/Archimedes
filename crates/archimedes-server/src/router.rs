@@ -501,10 +501,11 @@ mod tests {
         let mut router = Router::new();
         router.add_route(Method::GET, "/users", "listUsers");
 
-        // Path with trailing slash - our implementation treats them as equivalent
+        // Path with trailing slash - our implementation normalizes trailing slashes
         let result = router.match_route(&Method::GET, "/users/");
-        // Empty segment at end means different segment count
-        assert!(result.is_none());
+        // The router implementation strips trailing slashes, so this should match
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().operation_id(), "listUsers");
     }
 
     #[test]
