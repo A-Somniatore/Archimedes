@@ -48,13 +48,15 @@
 #![forbid(unsafe_code)]
 
 mod config;
+pub mod handler;
 mod health;
 mod router;
 mod server;
-mod shutdown;
+pub mod shutdown;
 
 pub use config::{ServerConfig, ServerConfigBuilder};
-pub use health::{HealthCheck, HealthStatus, ReadinessCheck};
-pub use router::{Router, RouteMatch};
-pub use server::Server;
+pub use handler::{HandlerError, HandlerRegistry, InvokeError};
+pub use health::{HealthCheck, HealthStatus, ReadinessCheck, ReadinessStatus};
+pub use router::{RouteMatch, Router};
+pub use server::{Server, ServerBuilder, ServerError};
 pub use shutdown::ShutdownSignal;
