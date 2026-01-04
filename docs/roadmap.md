@@ -39,6 +39,21 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 **Total**: 20 weeks (16 weeks parallel, 4 weeks integration)
 
+### Cross-Component Timeline Alignment
+
+```
+         Week: 1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20
+ Themis:      [T0][---T1---][--T2--][------T3------][--T4--][--T5--]
+ Eunomia:     [E0][---E1---][------E2------][------E3------]        (gap)        [------E4------]
+ Archimedes:  [A0][---A1---][----------A2----------][----------A3----------][A4][------A5------]
+```
+
+**Key Integration Points**:
+- Week 1: Shared types crate created (blocks all components)
+- Week 14: Themis T5 ready → can start A5 integration
+- Week 12: Eunomia E3 ready → bundles available for A5
+- Weeks 17-20: All components integrate together
+
 ---
 
 ## Phase A0: Shared Platform Types (Week 1) ⭐ COORDINATION
@@ -127,15 +142,43 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Week 4: Mock Contract Support
 
-- [ ] Create mock `Contract` type for testing
-- [ ] Create mock `Operation` type
-- [ ] Implement mock schema validation
-- [ ] Write test fixtures
-- [ ] Document mock usage for parallel development
+- [x] Create mock `Contract` type for testing
+  > ✅ **Completed 2026-01-04**: `archimedes_core::contract::Contract`
+  > - Builder pattern for fluent construction
+  > - Operation lookup by ID
+  > - Path matching with parameter extraction
+- [x] Create mock `Operation` type
+  > ✅ **Completed 2026-01-04**: `archimedes_core::contract::Operation`
+  > - HTTP method, path pattern, request/response schemas
+  > - Path parameter parsing ({userId} -> params map)
+  > - Auth requirement flag, tags, descriptions
+- [x] Implement mock schema validation
+  > ✅ **Completed 2026-01-04**: `archimedes_core::contract::MockSchema`
+  > - String, Integer, Number, Boolean, Array, Object types
+  > - Required field support with .required() modifier
+  > - Min/max constraints for strings, numbers, arrays
+  > - Nested object validation with JSON path error reporting
+- [x] Write test fixtures
+  > ✅ **Completed 2026-01-04**: `archimedes_core::fixtures` module
+  > - `user_service_contract()` - 5 CRUD operations
+  > - `health_contract()` - health/readiness (no auth)
+  > - `order_service_contract()` - nested resources
+  > - Reusable schema helpers (user_schema, address_schema, etc.)
+- [x] Document mock usage for parallel development
+  > ✅ **Completed 2026-01-04**: Crate-level docs with examples
+  > - Contract builder usage
+  > - Path matching examples
+  > - Schema validation examples
+  > - Fixtures usage guide
 
 ### Phase A1 Milestone
 
 **Criteria**: Core types defined using shared crate, mock contracts work
+> ✅ **Status (2026-01-04)**: Phase A1 COMPLETE
+> - All core types implemented (RequestContext, RequestId, CallerIdentity, ThemisError)
+> - Mock contracts fully functional with path matching and validation
+> - Comprehensive test fixtures available
+> - Ready to proceed to Phase A2: Server & Routing
 
 ---
 
