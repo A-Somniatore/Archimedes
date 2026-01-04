@@ -409,7 +409,7 @@ The middleware pipeline is **immutable**. Services cannot:
 ```rust
 // Internal implementation - not configurable by users
 pub(crate) struct MiddlewarePipeline {
-    stages: [MiddlewareStage; 9],
+    stages: [MiddlewareStage; 8],
 }
 
 impl MiddlewarePipeline {
@@ -421,7 +421,7 @@ impl MiddlewarePipeline {
                 MiddlewareStage::Identity(IdentityMiddleware::new()),
                 MiddlewareStage::Authorization(AuthorizationMiddleware::new()),
                 MiddlewareStage::RequestValidation(RequestValidationMiddleware::new()),
-                // --- Handler invocation happens here ---
+                // --- Handler invocation happens here (not a middleware stage) ---
                 MiddlewareStage::ResponseValidation(ResponseValidationMiddleware::new()),
                 MiddlewareStage::Telemetry(TelemetryMiddleware::new()),
                 MiddlewareStage::ErrorNormalization(ErrorNormalizationMiddleware::new()),
