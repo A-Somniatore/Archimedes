@@ -154,14 +154,14 @@ where
 ///
 /// Use this for operations like health checks or operations where all
 /// parameters come from the URL path or query string.
-#[derive(Debug, Clone, Default, serde::Deserialize)]
-pub struct Empty;
+#[derive(Debug, Clone, Default, serde::Deserialize, serde::Serialize)]
+pub struct Empty {}
 
 /// Unit response type for handlers that don't return a body.
 ///
 /// Use this for operations that return only a status code (e.g., 204 No Content).
-#[derive(Debug, Clone, Default, serde::Serialize)]
-pub struct NoContent;
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+pub struct NoContent {}
 
 #[cfg(test)]
 mod tests {
@@ -226,7 +226,7 @@ mod tests {
         let handler = FailingHandler;
         let ctx = RequestContext::mock();
 
-        let response = handler.handle(&ctx, Empty).await;
+        let response = handler.handle(&ctx, Empty {}).await;
         assert!(response.is_err());
     }
 
@@ -238,7 +238,7 @@ mod tests {
 
     #[test]
     fn test_no_content_serialize() {
-        let no_content = NoContent;
+        let no_content = NoContent {};
         let json = serde_json::to_string(&no_content).expect("should serialize");
         assert_eq!(json, "{}");
     }

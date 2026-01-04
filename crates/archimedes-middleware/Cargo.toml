@@ -14,9 +14,12 @@ tokio.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
+http.workspace = true
+http-body-util.workspace = true
+bytes.workspace = true
 
 [dev-dependencies]
-tokio-test.workspace = true
+tokio = { workspace = true, features = ["test-util", "macros", "rt-multi-thread"] }
 
 [lints]
 workspace = true
