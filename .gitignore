@@ -1,0 +1,34 @@
+# Build artifacts
+target/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cargo
+Cargo.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+*.profraw
+*.profdata
+coverage/
+lcov.info
+
+# Documentation build
+doc/
+
+# Backup files
+*.bak
+*.orig

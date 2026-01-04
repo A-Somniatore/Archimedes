@@ -1,0 +1,25 @@
+[package]
+name = "archimedes-core"
+description = "Core types and traits for the Archimedes server framework"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+tracing.workspace = true
+http.workspace = true
+
+[dev-dependencies]
+tokio-test.workspace = true
+proptest.workspace = true
+
+[lints]
+workspace = true

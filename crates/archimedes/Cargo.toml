@@ -1,0 +1,19 @@
+[package]
+name = "archimedes"
+description = "Async HTTP/gRPC server framework for the Themis Platform - main facade crate"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+archimedes-core.workspace = true
+archimedes-server.workspace = true
+archimedes-middleware.workspace = true
+
+[lints]
+workspace = true
