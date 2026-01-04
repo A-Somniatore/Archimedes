@@ -73,6 +73,7 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 ### Phase A0 Milestone
 
 **Criteria**: Archimedes uses `themis-platform-types` for all shared types
+
 > 🔄 **Status**: Partially complete. Local implementations ready for migration.
 
 ---
@@ -95,14 +96,17 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
   > Used Rust 2024 edition, workspace dependencies, and workspace lints.
 - [x] Configure CI pipeline (GitHub Actions)
   > ✅ **Completed 2026-01-04** (Week 1): `.github/workflows/ci.yml` with:
+  >
   > - Format checking, Clippy linting, tests, docs build
   > - Security audit, code coverage
 - [x] Implement `RequestContext` struct (uses shared types)
   > ✅ **Completed 2026-01-04** (Week 1): Full implementation in `archimedes-core`:
+  >
   > - RequestId (UUID v7), CallerIdentity, trace/span IDs
   > - Operation ID, timing, builder pattern
 - [x] Implement `Handler` trait
   > ✅ **Completed 2026-01-04** (Week 1): Async handler trait with:
+  >
   > - Generic over Req/Res with Serde bounds
   > - FnHandler wrapper, Empty/NoContent unit types
 - [x] Write initial documentation

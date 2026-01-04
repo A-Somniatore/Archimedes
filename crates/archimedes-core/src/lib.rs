@@ -14,12 +14,15 @@
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
 
+pub mod contract;
 mod context;
 mod error;
+pub mod fixtures;
 mod handler;
 mod identity;
 
 pub use context::{RequestContext, RequestId};
+pub use contract::{Contract, MockSchema, Operation, ValidationError};
 pub use error::{ErrorCategory, ThemisError, ThemisResult};
 pub use handler::Handler;
 pub use identity::CallerIdentity;
