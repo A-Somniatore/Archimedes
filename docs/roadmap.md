@@ -186,21 +186,62 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Week 5: HTTP Server
 
-- [ ] Create `archimedes-server` crate
-- [ ] Implement basic Hyper server
-- [ ] Add Tokio runtime setup
-- [ ] Implement graceful shutdown
-- [ ] Add health check endpoint (`/health`)
-- [ ] Test server starts and accepts connections
+- [x] Create `archimedes-server` crate
+  > ✅ **Completed 2026-01-05**: Full server infrastructure
+- [x] Implement basic Hyper server
+  > ✅ **Completed 2026-01-05**: `archimedes_server::Server`
+  > - Hyper 1.6 HTTP/1.1 server with Tokio runtime
+  > - Connection handling with per-connection tasks
+  > - Service-based request handling
+- [x] Add Tokio runtime setup
+  > ✅ **Completed 2026-01-05**: Uses tokio::main and TcpListener
+- [x] Implement graceful shutdown
+  > ✅ **Completed 2026-01-05**: `archimedes_server::shutdown` module
+  > - ShutdownSignal for SIGTERM/SIGINT handling
+  > - ConnectionTracker for in-flight request tracking
+  > - Configurable shutdown timeout
+  > - OS signal handling (Unix + Windows)
+- [x] Add health check endpoint (`/health`)
+  > ✅ **Completed 2026-01-05**: `archimedes_server::health` module
+  > - HealthCheck with service name, version, uptime
+  > - ReadinessCheck with custom check functions
+  > - /health and /ready built-in endpoints
+  > - JSON response with proper content-type
+- [x] Test server starts and accepts connections
+  > ✅ **Completed 2026-01-05**: Comprehensive test coverage
+  > - Config builder tests
+  > - Router path matching tests
+  > - Shutdown signal tests
+  > - Health/readiness endpoint tests
+  > - Server start/shutdown integration tests
 
 ### Week 6: Request Routing
 
-- [ ] Implement `Router` struct
-- [ ] Add `operationId` → handler mapping
-- [ ] Implement path → operationId resolution
-- [ ] Add method matching
-- [ ] Handle 404 for unknown routes
-- [ ] Test routing scenarios
+- [x] Implement `Router` struct
+  > ✅ **Completed 2026-01-05**: `archimedes_server::Router`
+  > - Path segment parsing (literal and parameter)
+  > - Route matching with parameter extraction
+  > - Operation ID lookup
+- [x] Add `operationId` → handler mapping
+  > ✅ **Completed 2026-01-05**: Route stores operation_id
+  > - RouteMatch contains operation_id and params
+  > - Server routes to matched handler (placeholder)
+- [x] Implement path → operationId resolution
+  > ✅ **Completed 2026-01-05**: PathSegment enum
+  > - Literal segment matching
+  > - Parameter segment extraction ({userId})
+  > - Multi-parameter path support
+- [x] Add method matching
+  > ✅ **Completed 2026-01-05**: Method stored per route
+  > - Same path, different methods = different routes
+- [x] Handle 404 for unknown routes
+  > ✅ **Completed 2026-01-05**: handle_not_found()
+  > - JSON error response with path
+- [x] Test routing scenarios
+  > ✅ **Completed 2026-01-05**: 20+ routing tests
+  > - Simple paths, parameter paths
+  > - Method matching, path mismatch
+  > - Multiple parameters, complex paths
 
 ### Week 7: Handler Registration
 
