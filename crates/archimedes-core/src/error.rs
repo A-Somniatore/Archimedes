@@ -247,7 +247,10 @@ impl ThemisError {
     }
 
     /// Creates an internal error with a source error.
-    pub fn internal_with_source(message: impl Into<String>, source: impl Into<anyhow::Error>) -> Self {
+    pub fn internal_with_source(
+        message: impl Into<String>,
+        source: impl Into<anyhow::Error>,
+    ) -> Self {
         Self::Internal {
             message: message.into(),
             source: Some(source.into()),

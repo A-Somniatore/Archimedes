@@ -31,7 +31,7 @@
 
 use std::convert::Infallible;
 use std::net::SocketAddr;
-use std::sync::Arc;
+use std::sync::Arc;``
 use std::time::Duration;
 
 use bytes::Bytes;

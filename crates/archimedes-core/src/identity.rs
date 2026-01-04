@@ -253,10 +253,7 @@ mod tests {
         assert!(identity.is_user());
         assert!(!identity.is_anonymous());
 
-        if let CallerIdentity::User {
-            user_id, email, ..
-        } = &identity
-        {
+        if let CallerIdentity::User { user_id, email, .. } = &identity {
             assert_eq!(user_id, "user-123");
             assert_eq!(email.as_deref(), Some("alice@example.com"));
         } else {

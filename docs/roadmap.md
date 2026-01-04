@@ -49,6 +49,7 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 ```
 
 **Key Integration Points**:
+
 - Week 1: Shared types crate created (blocks all components)
 - Week 14: Themis T5 ready → can start A5 integration
 - Week 12: Eunomia E3 ready → bundles available for A5
@@ -63,33 +64,32 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Week 1: Integrate Shared Types
 
-> ⚠️ **Note (2026-01-04)**: `themis-platform-types` crate not yet available.
-> Proceeding with local type definitions that will be migrated to shared types later.
-> Local types are designed to match the integration spec for easy migration.
+> ✅ **Update (2026-01-04)**: `themis-platform-types` crate is now available!
+> Local type implementations are ready for migration to shared crate.
 
 - [ ] Add `themis-platform-types` dependency to `archimedes-core`
-  > 🔄 **Deferred**: Waiting for shared crate creation. Local types implemented.
+  > ⏳ **Ready**: Shared crate available, migration pending
 - [x] Use shared `CallerIdentity` (not duplicate definition)
   > ✅ **Completed 2026-01-04**: Implemented locally in `archimedes-core::CallerIdentity`
-  > Supports SPIFFE, User, ApiKey, Anonymous variants per spec.
+  > Supports SPIFFE, User, ApiKey, Anonymous variants per spec. Ready for migration.
 - [ ] Use shared `PolicyInput` for OPA evaluation
-  > 🔄 **Deferred**: To be implemented in Phase A3 (middleware)
+  > ⏳ **Ready**: To be implemented in Phase A3 (middleware)
 - [ ] Use shared `PolicyDecision` from OPA response
-  > 🔄 **Deferred**: To be implemented in Phase A3 (middleware)
+  > ⏳ **Ready**: To be implemented in Phase A3 (middleware)
 - [x] Use shared `ThemisErrorEnvelope` for error responses
   > ✅ **Completed 2026-01-04**: Implemented as `archimedes-core::ErrorEnvelope`
-  > with ErrorDetail, ErrorCategory, and field-level errors.
+  > with ErrorDetail, ErrorCategory, and field-level errors. Ready for migration.
 - [x] Use shared `RequestId` type
   > ✅ **Completed 2026-01-04**: Implemented as `archimedes-core::RequestId`
-  > using UUID v7 for time-ordered IDs.
+  > using UUID v7 for time-ordered IDs. Ready for migration.
 - [ ] Verify JSON serialization matches integration spec
-  > 🔄 **In Progress**: Unit tests written, needs cross-crate verification.
+  > ⏳ **Ready**: Unit tests written, needs cross-crate verification.
 
 ### Phase A0 Milestone
 
 **Criteria**: Archimedes uses `themis-platform-types` for all shared types
 
-> 🔄 **Status**: Partially complete. Local implementations ready for migration.
+> ⏳ **Status**: Local implementations complete and tested. Migration to shared crate pending.
 
 ---
 
@@ -144,28 +144,33 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 - [x] Create mock `Contract` type for testing
   > ✅ **Completed 2026-01-04**: `archimedes_core::contract::Contract`
+  >
   > - Builder pattern for fluent construction
   > - Operation lookup by ID
   > - Path matching with parameter extraction
 - [x] Create mock `Operation` type
   > ✅ **Completed 2026-01-04**: `archimedes_core::contract::Operation`
+  >
   > - HTTP method, path pattern, request/response schemas
   > - Path parameter parsing ({userId} -> params map)
   > - Auth requirement flag, tags, descriptions
 - [x] Implement mock schema validation
   > ✅ **Completed 2026-01-04**: `archimedes_core::contract::MockSchema`
+  >
   > - String, Integer, Number, Boolean, Array, Object types
   > - Required field support with .required() modifier
   > - Min/max constraints for strings, numbers, arrays
   > - Nested object validation with JSON path error reporting
 - [x] Write test fixtures
   > ✅ **Completed 2026-01-04**: `archimedes_core::fixtures` module
+  >
   > - `user_service_contract()` - 5 CRUD operations
   > - `health_contract()` - health/readiness (no auth)
   > - `order_service_contract()` - nested resources
   > - Reusable schema helpers (user_schema, address_schema, etc.)
 - [x] Document mock usage for parallel development
   > ✅ **Completed 2026-01-04**: Crate-level docs with examples
+  >
   > - Contract builder usage
   > - Path matching examples
   > - Schema validation examples
@@ -174,7 +179,9 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 ### Phase A1 Milestone
 
 **Criteria**: Core types defined using shared crate, mock contracts work
+
 > ✅ **Status (2026-01-04)**: Phase A1 COMPLETE
+>
 > - All core types implemented (RequestContext, RequestId, CallerIdentity, ThemisError)
 > - Mock contracts fully functional with path matching and validation
 > - Comprehensive test fixtures available
@@ -190,6 +197,7 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
   > ✅ **Completed 2026-01-05**: Full server infrastructure
 - [x] Implement basic Hyper server
   > ✅ **Completed 2026-01-05**: `archimedes_server::Server`
+  >
   > - Hyper 1.6 HTTP/1.1 server with Tokio runtime
   > - Connection handling with per-connection tasks
   > - Service-based request handling
@@ -197,18 +205,21 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
   > ✅ **Completed 2026-01-05**: Uses tokio::main and TcpListener
 - [x] Implement graceful shutdown
   > ✅ **Completed 2026-01-05**: `archimedes_server::shutdown` module
+  >
   > - ShutdownSignal for SIGTERM/SIGINT handling
   > - ConnectionTracker for in-flight request tracking
   > - Configurable shutdown timeout
   > - OS signal handling (Unix + Windows)
 - [x] Add health check endpoint (`/health`)
   > ✅ **Completed 2026-01-05**: `archimedes_server::health` module
+  >
   > - HealthCheck with service name, version, uptime
   > - ReadinessCheck with custom check functions
   > - /health and /ready built-in endpoints
   > - JSON response with proper content-type
 - [x] Test server starts and accepts connections
   > ✅ **Completed 2026-01-05**: Comprehensive test coverage
+  >
   > - Config builder tests
   > - Router path matching tests
   > - Shutdown signal tests
@@ -219,26 +230,32 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 - [x] Implement `Router` struct
   > ✅ **Completed 2026-01-05**: `archimedes_server::Router`
+  >
   > - Path segment parsing (literal and parameter)
   > - Route matching with parameter extraction
   > - Operation ID lookup
 - [x] Add `operationId` → handler mapping
   > ✅ **Completed 2026-01-05**: Route stores operation_id
+  >
   > - RouteMatch contains operation_id and params
   > - Server routes to matched handler (placeholder)
 - [x] Implement path → operationId resolution
   > ✅ **Completed 2026-01-05**: PathSegment enum
+  >
   > - Literal segment matching
   > - Parameter segment extraction ({userId})
   > - Multi-parameter path support
 - [x] Add method matching
   > ✅ **Completed 2026-01-05**: Method stored per route
+  >
   > - Same path, different methods = different routes
 - [x] Handle 404 for unknown routes
   > ✅ **Completed 2026-01-05**: handle_not_found()
+  >
   > - JSON error response with path
 - [x] Test routing scenarios
   > ✅ **Completed 2026-01-05**: 20+ routing tests
+  >
   > - Simple paths, parameter paths
   > - Method matching, path mismatch
   > - Multiple parameters, complex paths

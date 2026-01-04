@@ -61,8 +61,8 @@
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
 
-pub mod contract;
 mod context;
+pub mod contract;
 mod error;
 pub mod fixtures;
 mod handler;
