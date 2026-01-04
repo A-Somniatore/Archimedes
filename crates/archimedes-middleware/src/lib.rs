@@ -63,6 +63,7 @@
 pub mod context;
 pub mod middleware;
 pub mod pipeline;
+pub mod stages;
 pub mod types;
 
 // Re-export main types at crate root
@@ -70,3 +71,6 @@ pub use context::MiddlewareContext;
 pub use middleware::{BoxFuture, FnMiddleware, Middleware, Next};
 pub use pipeline::{HookError, Pipeline, PipelineBuilder, Stage};
 pub use types::{Request, Response, ResponseExt};
+
+// Re-export stage middleware
+pub use stages::{IdentityMiddleware, RequestIdMiddleware, TracingMiddleware};

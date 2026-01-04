@@ -14,6 +14,7 @@
 | [ADR-005](../../docs/decisions/005-kubernetes-ingress-over-custom-router.md) | Archimedes handles contract enforcement, not routing |
 | [ADR-006](../../docs/decisions/006-grpc-post-mvp.md) | MVP is HTTP/REST only, gRPC is post-MVP |
 | [ADR-004](../../docs/decisions/004-regorus-for-rego-parsing.md) | Use Regorus for embedded OPA evaluation |
+| [ADR-007](../../docs/decisions/007-apache-2-license.md) | Apache 2.0 license |
 
 **Archimedes Responsibilities (MVP):**
 - HTTP server with Axum
