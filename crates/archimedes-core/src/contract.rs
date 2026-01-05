@@ -215,6 +215,7 @@ impl ContractBuilder {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
     /// Unique identifier for this operation (e.g., "getUser", "createOrder").
+    #[allow(clippy::struct_field_names)]
     operation_id: String,
     /// HTTP method for this operation.
     #[serde(with = "http_method_serde")]
@@ -238,7 +239,7 @@ pub struct Operation {
     requires_auth: bool,
 }
 
-fn default_true() -> bool {
+const fn default_true() -> bool {
     true
 }
 
@@ -274,7 +275,7 @@ impl Operation {
 
     /// Returns the HTTP method.
     #[must_use]
-    pub fn method(&self) -> &Method {
+    pub const fn method(&self) -> &Method {
         &self.method
     }
 
@@ -286,13 +287,13 @@ impl Operation {
 
     /// Returns the request schema if defined.
     #[must_use]
-    pub fn request_schema(&self) -> Option<&MockSchema> {
+    pub const fn request_schema(&self) -> Option<&MockSchema> {
         self.request_schema.as_ref()
     }
 
     /// Returns the response schema if defined.
     #[must_use]
-    pub fn response_schema(&self) -> Option<&MockSchema> {
+    pub const fn response_schema(&self) -> Option<&MockSchema> {
         self.response_schema.as_ref()
     }
 
@@ -310,7 +311,7 @@ impl Operation {
 
     /// Returns whether this operation requires authentication.
     #[must_use]
-    pub fn requires_auth(&self) -> bool {
+    pub const fn requires_auth(&self) -> bool {
         self.requires_auth
     }
 
@@ -444,14 +445,14 @@ impl OperationBuilder {
 
     /// Sets whether authentication is required.
     #[must_use]
-    pub fn requires_auth(mut self, requires: bool) -> Self {
+    pub const fn requires_auth(mut self, requires: bool) -> Self {
         self.requires_auth = requires;
         self
     }
 
     /// Marks this operation as not requiring authentication.
     #[must_use]
-    pub fn no_auth(mut self) -> Self {
+    pub const fn no_auth(mut self) -> Self {
         self.requires_auth = false;
         self
     }
@@ -557,7 +558,7 @@ pub enum MockSchema {
         #[serde(default)]
         required: bool,
         /// Schema for array items.
-        items: Box<MockSchema>,
+        items: Box<Self>,
         /// Minimum number of items.
         min_items: Option<usize>,
         /// Maximum number of items.
@@ -569,7 +570,7 @@ pub enum MockSchema {
         #[serde(default)]
         required: bool,
         /// Properties and their schemas.
-        properties: HashMap<String, MockSchema>,
+        properties: HashMap<String, Self>,
         /// List of required property names.
         #[serde(default)]
         required_properties: Vec<String>,
@@ -587,7 +588,7 @@ pub enum MockSchema {
 impl MockSchema {
     /// Creates a string schema.
     #[must_use]
-    pub fn string() -> Self {
+    pub const fn string() -> Self {
         Self::String {
             required: false,
             min_length: None,
@@ -598,7 +599,7 @@ impl MockSchema {
 
     /// Creates an integer schema.
     #[must_use]
-    pub fn integer() -> Self {
+    pub const fn integer() -> Self {
         Self::Integer {
             required: false,
             minimum: None,
@@ -608,7 +609,7 @@ impl MockSchema {
 
     /// Creates a number schema.
     #[must_use]
-    pub fn number() -> Self {
+    pub const fn number() -> Self {
         Self::Number {
             required: false,
             minimum: None,
@@ -618,13 +619,13 @@ impl MockSchema {
 
     /// Creates a boolean schema.
     #[must_use]
-    pub fn boolean() -> Self {
+    pub const fn boolean() -> Self {
         Self::Boolean { required: false }
     }
 
     /// Creates an array schema.
     #[must_use]
-    pub fn array(items: MockSchema) -> Self {
+    pub fn array(items: Self) -> Self {
         Self::Array {
             required: false,
             items: Box::new(items),
@@ -639,14 +640,14 @@ impl MockSchema {
     ///
     /// * `properties` - List of (name, schema) pairs
     #[must_use]
-    pub fn object(properties: Vec<(&str, MockSchema)>) -> Self {
+    pub fn object(properties: Vec<(&str, Self)>) -> Self {
         let required_properties: Vec<String> = properties
             .iter()
             .filter(|(_, schema)| schema.is_required())
             .map(|(name, _)| (*name).to_string())
             .collect();
 
-        let props: HashMap<String, MockSchema> = properties
+        let props: HashMap<String, Self> = properties
             .into_iter()
             .map(|(name, schema)| (name.to_string(), schema))
             .collect();
@@ -660,13 +661,13 @@ impl MockSchema {
 
     /// Creates an "any" schema that accepts any value.
     #[must_use]
-    pub fn any() -> Self {
+    pub const fn any() -> Self {
         Self::Any { required: false }
     }
 
     /// Creates a null schema.
     #[must_use]
-    pub fn null() -> Self {
+    pub const fn null() -> Self {
         Self::Null
     }
 
@@ -727,7 +728,7 @@ impl MockSchema {
 
     /// Returns whether this schema is marked as required.
     #[must_use]
-    pub fn is_required(&self) -> bool {
+    pub const fn is_required(&self) -> bool {
         match self {
             Self::String { required, .. }
             | Self::Integer { required, .. }
@@ -866,10 +867,12 @@ impl MockSchema {
     /// assert!(schema.validate(&serde_json::json!("")).is_err());
     /// assert!(schema.validate(&serde_json::json!(null)).is_err());
     /// ```
+    #[allow(clippy::missing_errors_doc)]
     pub fn validate(&self, value: &serde_json::Value) -> Result<(), ValidationError> {
         self.validate_at_path(value, "$")
     }
 
+    #[allow(clippy::too_many_lines)]
     fn validate_at_path(
         &self,
         value: &serde_json::Value,
@@ -905,9 +908,8 @@ impl MockSchema {
                         return Err(ValidationError {
                             path: path.to_string(),
                             message: format!(
-                                "string length {} is less than minimum {}",
+                                "string length {} is less than minimum {min}",
                                 s.len(),
-                                min
                             ),
                         });
                     }
@@ -918,9 +920,8 @@ impl MockSchema {
                         return Err(ValidationError {
                             path: path.to_string(),
                             message: format!(
-                                "string length {} is greater than maximum {}",
+                                "string length {} is greater than maximum {max}",
                                 s.len(),
-                                max
                             ),
                         });
                     }
@@ -941,7 +942,7 @@ impl MockSchema {
                     if n < *min {
                         return Err(ValidationError {
                             path: path.to_string(),
-                            message: format!("value {} is less than minimum {}", n, min),
+                            message: format!("value {n} is less than minimum {min}"),
                         });
                     }
                 }
@@ -950,7 +951,7 @@ impl MockSchema {
                     if n > *max {
                         return Err(ValidationError {
                             path: path.to_string(),
-                            message: format!("value {} is greater than maximum {}", n, max),
+                            message: format!("value {n} is greater than maximum {max}"),
                         });
                     }
                 }
@@ -970,7 +971,7 @@ impl MockSchema {
                     if n < *min {
                         return Err(ValidationError {
                             path: path.to_string(),
-                            message: format!("value {} is less than minimum {}", n, min),
+                            message: format!("value {n} is less than minimum {min}"),
                         });
                     }
                 }
@@ -979,7 +980,7 @@ impl MockSchema {
                     if n > *max {
                         return Err(ValidationError {
                             path: path.to_string(),
-                            message: format!("value {} is greater than maximum {}", n, max),
+                            message: format!("value {n} is greater than maximum {max}"),
                         });
                     }
                 }
@@ -1013,9 +1014,8 @@ impl MockSchema {
                         return Err(ValidationError {
                             path: path.to_string(),
                             message: format!(
-                                "array length {} is less than minimum {}",
+                                "array length {} is less than minimum {min}",
                                 arr.len(),
-                                min
                             ),
                         });
                     }
@@ -1026,16 +1026,15 @@ impl MockSchema {
                         return Err(ValidationError {
                             path: path.to_string(),
                             message: format!(
-                                "array length {} is greater than maximum {}",
+                                "array length {} is greater than maximum {max}",
                                 arr.len(),
-                                max
                             ),
                         });
                     }
                 }
 
                 for (idx, item) in arr.iter().enumerate() {
-                    let item_path = format!("{}[{}]", path, idx);
+                    let item_path = format!("{path}[{idx}]");
                     items.validate_at_path(item, &item_path)?;
                 }
 
@@ -1056,8 +1055,8 @@ impl MockSchema {
                 for required in required_properties {
                     if !obj.contains_key(required) {
                         return Err(ValidationError {
-                            path: format!("{}.{}", path, required),
-                            message: format!("missing required property '{}'", required),
+                            path: format!("{path}.{required}"),
+                            message: format!("missing required property '{required}'"),
                         });
                     }
                 }
@@ -1065,7 +1064,7 @@ impl MockSchema {
                 // Validate present properties
                 for (key, prop_schema) in properties {
                     if let Some(prop_value) = obj.get(key) {
-                        let prop_path = format!("{}.{}", path, key);
+                        let prop_path = format!("{path}.{key}");
                         prop_schema.validate_at_path(prop_value, &prop_path)?;
                     }
                 }
@@ -1089,7 +1088,7 @@ impl MockSchema {
 }
 
 /// Returns a human-readable name for a JSON value type.
-fn value_type_name(value: &serde_json::Value) -> &'static str {
+const fn value_type_name(value: &serde_json::Value) -> &'static str {
     match value {
         serde_json::Value::Null => "null",
         serde_json::Value::Bool(_) => "boolean",

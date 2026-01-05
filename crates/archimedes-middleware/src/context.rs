@@ -97,7 +97,7 @@ impl MiddlewareContext {
 
     /// Sets the request ID.
     ///
-    /// This should only be called by the RequestId middleware.
+    /// This should only be called by the `RequestId` middleware.
     pub fn set_request_id(&mut self, request_id: RequestId) {
         self.request_id = request_id;
     }

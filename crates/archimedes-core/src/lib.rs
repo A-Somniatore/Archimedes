@@ -6,7 +6,7 @@
 //!
 //! - [`RequestContext`] - Per-request context carrying identity, tracing, and metadata
 //! - [`RequestId`] - UUID v7 request identifier
-//! - [`CallerIdentity`] - Authenticated caller identity (SPIFFE, User, ApiKey, Anonymous)
+//! - [`CallerIdentity`] - Authenticated caller identity (SPIFFE, User, `ApiKey`, Anonymous)
 //! - [`ThemisError`] - Standard error types
 //! - [`Handler`] - Core handler trait
 //! - [`Contract`] - Mock contract type for parallel development

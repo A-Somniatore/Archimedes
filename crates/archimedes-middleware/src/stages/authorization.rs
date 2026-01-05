@@ -195,8 +195,7 @@ impl AuthorizationMiddleware {
 
         PolicyDecision::Deny {
             reason: format!(
-                "No permission for operation '{}' with roles {:?}",
-                operation_id, roles
+                "No permission for operation '{operation_id}' with roles {roles:?}"
             ),
         }
     }

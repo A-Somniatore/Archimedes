@@ -48,12 +48,6 @@ impl RequestId {
     pub const fn as_uuid(&self) -> &Uuid {
         &self.0
     }
-
-    /// Returns the UUID as a hyphenated string.
-    #[must_use]
-    pub fn to_string(&self) -> String {
-        self.0.to_string()
-    }
 }
 
 impl Default for RequestId {
@@ -155,11 +149,8 @@ impl RequestContext {
     /// ```
     /// use archimedes_core::RequestContext;
     ///
-    /// #[test]
-    /// fn test_handler() {
-    ///     let ctx = RequestContext::mock();
-    ///     // Use ctx in tests...
-    /// }
+    /// let ctx = RequestContext::mock();
+    /// // Use ctx in tests...
     /// ```
     #[must_use]
     pub fn mock() -> Self {

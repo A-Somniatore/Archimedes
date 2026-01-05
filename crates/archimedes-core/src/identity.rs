@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// Archimedes supports multiple identity types:
 /// - **SPIFFE**: Service identity from mTLS (for service-to-service calls)
 /// - **User**: Human user identity (from JWT or session)
-/// - **ApiKey**: API key-based identity
+/// - **`ApiKey`**: API key-based identity
 /// - **Anonymous**: No identity established
 ///
 /// # Example
@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize};
 /// // Anonymous caller
 /// let anon = CallerIdentity::Anonymous;
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CallerIdentity {
     /// SPIFFE identity from mTLS certificate.
@@ -37,7 +37,7 @@ pub enum CallerIdentity {
     /// Used for service-to-service authentication within the platform.
     /// The SPIFFE ID follows the format: `spiffe://<trust-domain>/<path>`
     Spiffe {
-        /// The SPIFFE ID (e.g., "spiffe://example.org/service/users")
+        /// The SPIFFE ID (e.g., `spiffe://example.org/service/users`)
         spiffe_id: String,
     },
 
@@ -72,6 +72,7 @@ pub enum CallerIdentity {
     /// Anonymous caller with no established identity.
     ///
     /// Used when no authentication credentials are provided.
+    #[default]
     Anonymous,
 }
 
@@ -194,12 +195,6 @@ impl CallerIdentity {
             Self::ApiKey { key_id, .. } => format!("apikey:{key_id}"),
             Self::Anonymous => "anonymous".to_string(),
         }
-    }
-}
-
-impl Default for CallerIdentity {
-    fn default() -> Self {
-        Self::Anonymous
     }
 }
 

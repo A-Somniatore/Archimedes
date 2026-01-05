@@ -253,7 +253,7 @@ pub fn record_response_size(operation: &str, size_bytes: u64) {
 /// # Arguments
 ///
 /// * `allowed` - Whether the request was allowed
-/// * `reason` - Reason for the decision (e.g., "policy_allow", "policy_deny")
+/// * `reason` - Reason for the decision (e.g., `policy_allow`, `policy_deny`)
 pub fn record_authz_decision(allowed: bool, reason: &str) {
     counter!(
         "archimedes_authz_decisions_total",
@@ -268,7 +268,7 @@ pub fn record_authz_decision(allowed: bool, reason: &str) {
 /// # Arguments
 ///
 /// * `validation_type` - Type of validation ("request", "response")
-/// * `error_type` - Type of error (e.g., "missing_field", "type_mismatch")
+/// * `error_type` - Type of error (e.g., `missing_field`, `type_mismatch`)
 pub fn record_validation_failure(validation_type: &str, error_type: &str) {
     counter!(
         "archimedes_validation_failures_total",

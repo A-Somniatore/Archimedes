@@ -32,7 +32,7 @@ pub struct TracingConfig {
     /// Whether tracing is enabled.
     pub enabled: bool,
 
-    /// OTLP endpoint (e.g., "http://localhost:4317").
+    /// OTLP endpoint (e.g., `http://localhost:4317`).
     pub otlp_endpoint: String,
 
     /// Service name for spans.
