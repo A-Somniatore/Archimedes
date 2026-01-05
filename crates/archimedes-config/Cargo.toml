@@ -1,0 +1,33 @@
+[package]
+name = "archimedes-config"
+description = "Typed configuration system for Archimedes server framework"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["config", "configuration", "settings", "server"]
+categories = ["config"]
+
+[dependencies]
+archimedes-core = { workspace = true }
+archimedes-telemetry = { workspace = true }
+
+# Configuration
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = "0.8"
+
+# Environment
+dotenvy = "0.15"
+
+# Error handling
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+tempfile = "3.14"
+
+[lints]
+workspace = true
