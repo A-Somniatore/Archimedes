@@ -1,12 +1,28 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.4.0  
+> **Version**: 2.5.0  
 > **Created**: 2026-01-04  
-> **Last Updated**: 2026-01-05  
+> **Last Updated**: 2025-01-06  
 > **Target Completion**: Week 48 (includes 4-week buffer)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!  
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
+> **UPDATE (2025-01-06)**: Phase A6 complete with full server integration.
+
+---
+
+## 🎉 Recent Progress (Phase A6 Integration Complete)
+
+### Router Integration (v2.6.0) - COMPLETE
+- **archimedes-server** now uses **archimedes-router** internally
+- O(k) radix tree matching replaces O(n) linear scan
+- `MethodRouter::merge()` enables incremental route registration
+- Backward-compatible API maintained
+
+### Extract Integration (v2.6.0) - COMPLETE  
+- Main `archimedes` crate re-exports `router` and `extract`
+- Prelude includes common extractors and responses
+- 561 tests passing across all crates
 
 ---
 
@@ -946,9 +962,18 @@ async fn create_user(
 
 ### A6 Deliverables
 
-- ✅ `archimedes-router` - High-performance radix tree router (54 tests)
-- ✅ `archimedes-extract` - Request extractors and response builders (85 tests)
-- 🔜 Benchmark suite vs Axum/Actix
+- ✅ `archimedes-router` - High-performance radix tree router (57 tests)
+- ✅ `archimedes-extract` - Request extractors and response builders (104 tests)
+- ✅ Server integration - archimedes-server now uses radix tree internally
+- ✅ MethodRouter::merge() for incremental route registration
+- ✅ Main crate re-exports router and extract modules
+- 🔜 Benchmark suite vs Axum/Actix (deferred to post-A7)
+
+**Integration Notes (2025-01-06)**:
+- Server router replaced Vec<Route> O(n) with archimedes_router O(k)
+- Path normalization handles leading/trailing slashes
+- Multiple methods per path via merge semantics
+- 561 tests passing across all crates
 
 ---
 
