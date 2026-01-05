@@ -1,7 +1,7 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.2.0  
-> **Status**: Implementation Phase (Phase A4 Complete)  
+> **Version**: 2.3.0  
+> **Status**: Implementation Phase (Phase A4 Complete, A0 Migration Complete)  
 > **Last Updated**: 2026-01-06  
 > **Component**: archimedes
 
@@ -12,7 +12,7 @@
 | Crate | Status | Tests | Description |
 |-------|--------|-------|-------------|
 | `archimedes` | ✅ Complete | - | Main facade crate (re-exports) |
-| `archimedes-core` | ✅ Complete | 52 | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract |
+| `archimedes-core` | ✅ Complete | 55 | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract |
 | `archimedes-server` | ✅ Complete | 90 | HTTP server, routing, handler registry, graceful shutdown |
 | `archimedes-middleware` | ✅ Complete | 104 | All 8 middleware stages + pipeline |
 | `archimedes-telemetry` | ✅ Complete | 25 | Prometheus metrics, OpenTelemetry tracing, structured logging |
@@ -20,7 +20,7 @@
 | `archimedes-sentinel` | 🔜 Phase A5 | - | Themis contract integration |
 | `archimedes-authz` | 🔜 Phase A5 | - | Eunomia/OPA integration |
 
-**Total Tests**: 323 passing
+**Total Tests**: 326 passing
 
 ---
 
@@ -154,6 +154,63 @@ Unlike general-purpose frameworks (Axum, Actix, FastAPI), Archimedes is **opinio
 ---
 
 ## 4. Core Components
+
+### 4.0 Shared Platform Types
+
+Archimedes integrates with `themis-platform-types` to ensure type compatibility across the Themis Platform. This was a CTO-mandated requirement to avoid type definition duplication.
+
+**Imported Types (from `themis-platform-types`)**:
+
+| Type | Purpose | Usage in Archimedes |
+|------|---------|---------------------|
+| `CallerIdentity` | Enum representing authenticated caller | Used in `RequestContext`, authorization |
+| `RequestId` | UUID v7 wrapper for request correlation | Generated in Request ID middleware |
+| `SpiffeIdentity` | SPIFFE identity with service URI | Service-to-service auth |
+| `UserIdentity` | Human user with roles/tenant | User authentication |
+| `ApiKeyIdentity` | API key with scopes | Machine-to-machine auth |
+| `PolicyInput` | OPA evaluation input | Phase A5: Authorization |
+| `PolicyDecision` | OPA evaluation result | Phase A5: Authorization |
+| `ThemisErrorEnvelope` | Standard error response | Phase A5: Themis integration |
+
+**Extension Traits**:
+
+Archimedes provides extension traits for Archimedes-specific functionality:
+
+```rust
+/// Extension trait adding Archimedes-specific methods to CallerIdentity
+pub trait CallerIdentityExt {
+    /// Returns a log-safe identifier (no secrets)
+    fn log_id(&self) -> String;
+
+    /// Returns roles for authorization
+    fn roles(&self) -> Vec<&str>;
+}
+
+impl CallerIdentityExt for CallerIdentity {
+    fn log_id(&self) -> String {
+        match self {
+            CallerIdentity::Spiffe(s) => s.spiffe_id.clone(),
+            CallerIdentity::User(u) => format!("user:{}", u.user_id),
+            CallerIdentity::ApiKey(a) => format!("apikey:{}", a.key_id),
+            CallerIdentity::Anonymous => "anonymous".to_string(),
+        }
+    }
+    // ...
+}
+```
+
+**Re-exports**:
+
+For convenience, shared types are re-exported through `archimedes-core`:
+
+```rust
+// In archimedes-core/src/lib.rs
+pub use themis_platform_types::{
+    CallerIdentity, RequestId,
+    SpiffeIdentity, UserIdentity, ApiKeyIdentity,
+};
+pub use crate::identity::CallerIdentityExt;
+```
 
 ### 4.1 Transport Layer
 

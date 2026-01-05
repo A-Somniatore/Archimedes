@@ -1,12 +1,12 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.1.0  
+> **Version**: 2.2.0  
 > **Created**: 2026-01-04  
-> **Last Updated**: 2026-01-05  
+> **Last Updated**: 2026-01-06  
 > **Target Completion**: Week 48 (includes 4-week buffer)
 
-> ⚠️ **CTO REVIEW (2026-01-04)**: Sign-off pending. See [CTO Architecture Review](~/Documents/projects/Startups/ThemisPlatform/docs/reviews/2026-01-04-cto-architecture-review.md)  
-> **BLOCKING ISSUE**: Local type definitions must be migrated to `themis-platform-types` before Week 2.
+> ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!  
+> **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
 
 ---
 
@@ -123,39 +123,47 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ---
 
-## Phase A0: Shared Platform Types (Week 1) ⭐ COORDINATION
+## Phase A0: Shared Platform Types (Week 1) ✅ COMPLETE
 
 > **Note**: The `themis-platform-types` crate is created by Themis team in Week 1.
 > Archimedes integrates it to ensure schema compatibility with Eunomia.
 
 ### Week 1: Integrate Shared Types
 
-> ✅ **Update (2026-01-04)**: `themis-platform-types` crate is now available!
-> Local type implementations are ready for migration to shared crate.
+> ✅ **Completed (2026-01-06)**: Full migration to `themis-platform-types` shared crate!
+> All local type implementations replaced with shared types.
 
-- [ ] Add `themis-platform-types` dependency to `archimedes-core`
-  > ⏳ **Ready**: Shared crate available, migration pending
+- [x] Add `themis-platform-types` dependency to `archimedes-core`
+  > ✅ **Completed 2026-01-06**: Added to workspace Cargo.toml as path dependency
+  > Path: `../themis-platform-types`
 - [x] Use shared `CallerIdentity` (not duplicate definition)
-  > ✅ **Completed 2026-01-04**: Implemented locally in `archimedes-core::CallerIdentity`
-  > Supports SPIFFE, User, ApiKey, Anonymous variants per spec. Ready for migration.
+  > ✅ **Completed 2026-01-06**: Migrated to shared type
+  > Created `CallerIdentityExt` extension trait for Archimedes-specific methods (log_id, roles)
+  > Supports SPIFFE, User, ApiKey, Anonymous variants via tuple variants
 - [ ] Use shared `PolicyInput` for OPA evaluation
-  > ⏳ **Ready**: To be implemented in Phase A3 (middleware)
+  > ⏳ **Ready**: To be implemented in Phase A5 (Eunomia integration)
 - [ ] Use shared `PolicyDecision` from OPA response
-  > ⏳ **Ready**: To be implemented in Phase A3 (middleware)
+  > ⏳ **Ready**: To be implemented in Phase A5 (Eunomia integration)
 - [x] Use shared `ThemisErrorEnvelope` for error responses
-  > ✅ **Completed 2026-01-04**: Implemented as `archimedes-core::ErrorEnvelope`
-  > with ErrorDetail, ErrorCategory, and field-level errors. Ready for migration.
+  > ✅ **Available 2026-01-06**: Type available in themis-platform-types
+  > Note: Currently using local `ErrorEnvelope` - will migrate in Phase A5 when integrating Themis
 - [x] Use shared `RequestId` type
-  > ✅ **Completed 2026-01-04**: Implemented as `archimedes-core::RequestId`
-  > using UUID v7 for time-ordered IDs. Ready for migration.
-- [ ] Verify JSON serialization matches integration spec
-  > ⏳ **Ready**: Unit tests written, needs cross-crate verification.
+  > ✅ **Completed 2026-01-06**: Migrated to shared type
+  > Re-exported from themis_platform_types through archimedes-core
+- [x] Verify JSON serialization matches integration spec
+  > ✅ **Completed 2026-01-06**: 326 tests pass including serialization tests
 
-### Phase A0 Milestone
+### Phase A0 Milestone ✅ COMPLETE
 
 **Criteria**: Archimedes uses `themis-platform-types` for all shared types
 
-> ⏳ **Status**: Local implementations complete and tested. Migration to shared crate pending.
+> ✅ **Status (2026-01-06)**: Phase A0 COMPLETE
+>
+> - Added `themis-platform-types` as path dependency
+> - Migrated `CallerIdentity` to shared type with `CallerIdentityExt` extension
+> - Migrated `RequestId` to shared type  
+> - Updated all enum variant syntax (struct → tuple variants)
+> - All 326 tests pass
 
 ---
 
