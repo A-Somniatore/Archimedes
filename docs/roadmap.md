@@ -751,25 +751,39 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ---
 
-## Phase A6: Core Framework (Weeks 21-24) 🚀 NEW
+## Phase A6: Core Framework (Weeks 21-24) 🚀 IN PROGRESS
 
 > **Goal**: Replace Axum as HTTP layer, own routing and extractors directly
+> **Note**: Started in parallel while Phase A5 awaits Themis/Eunomia readiness.
 
 ### Week 21-22: Custom Router
 
 - [ ] Remove Axum dependency, use Hyper directly
-- [ ] Implement radix tree router for path matching
-- [ ] Support path parameters (`/users/{id}`)
-- [ ] Support wildcards (`/files/*path`)
-- [ ] Support method-based routing (GET, POST, etc.)
+- [x] Implement radix tree router for path matching
+  > ✅ **Completed 2026-01-05**: `archimedes-router` crate created
+  > Radix tree with O(k) path matching where k = path length
+- [x] Support path parameters (`/users/{id}`)
+  > ✅ **Completed 2026-01-05**: Named parameters with extraction
+  > e.g., `/users/{userId}` extracts `userId` from path
+- [x] Support wildcards (`/files/*path`)
+  > ✅ **Completed 2026-01-05**: Catch-all wildcards for static files
+  > e.g., `/files/*path` captures `images/logo.png`
+- [x] Support method-based routing (GET, POST, etc.)
+  > ✅ **Completed 2026-01-05**: `MethodRouter` with fluent API
+  > All HTTP methods supported with per-path routing
 - [ ] Benchmark: Match Axum's routing performance
+  > ⏳ **In Progress**: Criterion benchmark suite created
+- [ ] Integrate with archimedes-server
 
 ```rust
-// Target API
-let router = Router::new()
-    .route("/users", get(list_users).post(create_user))
-    .route("/users/{id}", get(get_user).put(update_user).delete(delete_user))
-    .route("/files/*path", get(serve_file));
+// Current API (archimedes-router)
+let mut router = Router::new();
+router.insert("/users", MethodRouter::new().get("listUsers").post("createUser"));
+router.insert("/users/{id}", MethodRouter::new().get("getUser").delete("deleteUser"));
+router.insert("/files/*path", MethodRouter::new().get("serveFile"));
+
+let result = router.match_route(&Method::GET, "/users/123");
+// RouteMatch { operation_id: "getUser", params: {"id": "123"} }
 ```
 
 ### Week 23-24: Extractors and Response Building
