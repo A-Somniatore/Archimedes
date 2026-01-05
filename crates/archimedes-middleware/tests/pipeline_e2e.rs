@@ -265,7 +265,7 @@ async fn test_full_pipeline_with_spiffe_identity() {
         .process(ctx, request, |ctx, _req| {
             // Verify identity was extracted
             let identity = ctx.identity();
-            assert!(matches!(identity, CallerIdentity::Spiffe { .. }));
+            assert!(matches!(identity, CallerIdentity::Spiffe(_)));
             Box::pin(async { success_response() })
         })
         .await;

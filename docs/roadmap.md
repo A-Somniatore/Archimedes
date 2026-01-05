@@ -5,7 +5,7 @@
 > **Last Updated**: 2026-01-05  
 > **Target Completion**: Week 48 (includes 4-week buffer)
 
-> ⚠️ **CTO REVIEW (2026-01-04)**: Sign-off pending. See [CTO Architecture Review](/docs/reviews/2026-01-04-cto-architecture-review.md)  
+> ⚠️ **CTO REVIEW (2026-01-04)**: Sign-off pending. See [CTO Architecture Review](~/Documents/projects/Startups/ThemisPlatform/docs/reviews/2026-01-04-cto-architecture-review.md)  
 > **BLOCKING ISSUE**: Local type definitions must be migrated to `themis-platform-types` before Week 2.
 
 ---

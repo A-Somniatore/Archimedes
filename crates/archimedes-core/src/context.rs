@@ -3,76 +3,10 @@
 //! The [`RequestContext`] carries all per-request state through the middleware
 //! pipeline and into handlers.
 
-use crate::identity::CallerIdentity;
-use serde::{Deserialize, Serialize};
 use std::time::Instant;
-use uuid::Uuid;
 
-/// A unique identifier for each request, using UUID v7.
-///
-/// UUID v7 is time-ordered, which makes it ideal for request tracking
-/// and log correlation.
-///
-/// # Example
-///
-/// ```
-/// use archimedes_core::RequestId;
-///
-/// let id = RequestId::new();
-/// println!("Request ID: {}", id);
-/// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct RequestId(Uuid);
-
-impl RequestId {
-    /// Creates a new unique request ID using UUID v7.
-    ///
-    /// UUID v7 incorporates a Unix timestamp, making IDs time-ordered
-    /// and suitable for distributed systems.
-    #[must_use]
-    pub fn new() -> Self {
-        Self(Uuid::now_v7())
-    }
-
-    /// Creates a `RequestId` from an existing UUID.
-    ///
-    /// This is useful when parsing request IDs from headers or other sources.
-    #[must_use]
-    pub const fn from_uuid(uuid: Uuid) -> Self {
-        Self(uuid)
-    }
-
-    /// Returns the underlying UUID.
-    #[must_use]
-    pub const fn as_uuid(&self) -> &Uuid {
-        &self.0
-    }
-}
-
-impl Default for RequestId {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl std::fmt::Display for RequestId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl From<Uuid> for RequestId {
-    fn from(uuid: Uuid) -> Self {
-        Self(uuid)
-    }
-}
-
-impl From<RequestId> for Uuid {
-    fn from(id: RequestId) -> Self {
-        id.0
-    }
-}
+// Re-export from shared platform types
+pub use themis_platform_types::{CallerIdentity, RequestId};
 
 /// Per-request context that flows through the middleware pipeline.
 ///
@@ -251,6 +185,7 @@ impl Default for RequestContext {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use uuid::Uuid;
 
     #[test]
     fn test_request_id_new_generates_unique_ids() {
@@ -272,7 +207,7 @@ mod tests {
     fn test_request_id_from_uuid() {
         let uuid = Uuid::now_v7();
         let id = RequestId::from_uuid(uuid);
-        assert_eq!(*id.as_uuid(), uuid);
+        assert_eq!(id.as_uuid(), uuid);
     }
 
     #[test]
@@ -286,7 +221,7 @@ mod tests {
     #[test]
     fn test_request_context_new() {
         let ctx = RequestContext::new();
-        assert!(matches!(ctx.identity(), CallerIdentity::Anonymous));
+        assert!(ctx.identity().is_anonymous());
         assert!(ctx.trace_id().is_none());
         assert!(ctx.operation_id().is_none());
     }

@@ -20,6 +20,9 @@ keywords = ["server", "http", "grpc", "middleware", "themis"]
 categories = ["web-programming::http-server", "asynchronous"]
 
 [workspace.dependencies]
+# Shared platform types (from themis-platform-types crate)
+themis-platform-types = { path = "../themis-platform-types" }
+
 # Internal crates
 archimedes = { path = "crates/archimedes" }
 archimedes-core = { path = "crates/archimedes-core" }

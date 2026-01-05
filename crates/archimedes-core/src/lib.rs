@@ -5,13 +5,22 @@
 //! This crate provides the foundational types used throughout Archimedes:
 //!
 //! - [`RequestContext`] - Per-request context carrying identity, tracing, and metadata
-//! - [`RequestId`] - UUID v7 request identifier
-//! - [`CallerIdentity`] - Authenticated caller identity (SPIFFE, User, `ApiKey`, Anonymous)
+//! - [`RequestId`] - UUID v7 request identifier (from `themis-platform-types`)
+//! - [`CallerIdentity`] - Authenticated caller identity (from `themis-platform-types`)
 //! - [`ThemisError`] - Standard error types
 //! - [`Handler`] - Core handler trait
 //! - [`Contract`] - Mock contract type for parallel development
 //! - [`Operation`] - API operation definition
 //! - [`MockSchema`] - Request/response schema validation
+//!
+//! ## Shared Platform Types
+//!
+//! Archimedes uses types from `themis-platform-types` for cross-component compatibility:
+//!
+//! - `CallerIdentity` - Shared caller identity type
+//! - `RequestId` - Shared request identifier
+//! - `ThemisErrorEnvelope` - Shared error response format
+//! - `PolicyInput` / `PolicyDecision` - Policy evaluation types (Phase A5)
 //!
 //! ## Mock Contracts for Parallel Development
 //!
@@ -68,8 +77,19 @@ pub mod fixtures;
 mod handler;
 mod identity;
 
-pub use context::{RequestContext, RequestId};
+// Re-export shared types from themis-platform-types
+pub use themis_platform_types::{
+    CallerIdentity,
+    RequestId,
+    // Re-export sub-types for convenience
+    identity::{SpiffeIdentity, UserIdentity, ApiKeyIdentity},
+};
+
+// Re-export local types
+pub use context::RequestContext;
 pub use contract::{Contract, MockSchema, Operation, ValidationError};
 pub use error::{ErrorCategory, ErrorDetail, ErrorEnvelope, ThemisError, ThemisResult};
 pub use handler::Handler;
-pub use identity::CallerIdentity;
+
+// Keep local identity module for Archimedes-specific extensions
+pub use identity::CallerIdentityExt;

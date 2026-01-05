@@ -38,15 +38,6 @@
 //!     .allow_role("user", vec!["getUser", "listUsers"])
 //!     .build();
 //! ```
-//!
-//! # Production Integration
-//!
-//! In production, this middleware will:
-//!
-//! 1. Build `PolicyInput` from request context
-//! 2. Call Eunomia's OPA sidecar
-//! 3. Parse `PolicyDecision` response
-//! 4. Allow or deny based on decision
 
 use crate::{
     context::MiddlewareContext,
@@ -201,25 +192,27 @@ impl AuthorizationMiddleware {
     }
 
     /// Extracts roles from a caller identity.
+    ///
+    /// Uses the `CallerIdentityExt` trait from `archimedes-core`.
     fn extract_roles(identity: &CallerIdentity) -> Vec<String> {
         match identity {
-            CallerIdentity::Spiffe { spiffe_id } => {
+            CallerIdentity::Spiffe(s) => {
                 // SPIFFE identities get a role based on trust domain
                 // Extract trust domain from spiffe://trust-domain/path
-                if let Some(rest) = spiffe_id.strip_prefix("spiffe://") {
+                if let Some(rest) = s.spiffe_id.strip_prefix("spiffe://") {
                     if let Some(trust_domain) = rest.split('/').next() {
-                        return vec![format!("spiffe:{}", trust_domain)];
+                        return vec![format!("spiffe:{trust_domain}")];
                     }
                 }
                 vec![]
             }
-            CallerIdentity::User { roles, .. } => {
+            CallerIdentity::User(u) => {
                 // Users have explicit roles
-                roles.clone()
+                u.roles.clone()
             }
-            CallerIdentity::ApiKey { key_id, .. } => {
+            CallerIdentity::ApiKey(k) => {
                 // API keys get a role based on key ID
-                vec![format!("api_key:{}", key_id)]
+                vec![format!("api_key:{}", k.key_id)]
             }
             CallerIdentity::Anonymous => {
                 // Anonymous has no roles
@@ -348,6 +341,7 @@ mod tests {
     use bytes::Bytes;
     use http::{Request as HttpRequest, Response as HttpResponse, StatusCode};
     use http_body_util::Full;
+    use themis_platform_types::identity::UserIdentity;
 
     fn make_test_request() -> Request {
         HttpRequest::builder()
@@ -417,12 +411,14 @@ mod tests {
 
         let mut ctx = MiddlewareContext::new();
         ctx.set_operation_id("getUser".to_string());
-        ctx.set_identity(CallerIdentity::User {
+        ctx.set_identity(CallerIdentity::User(UserIdentity {
             user_id: "user123".to_string(),
             email: Some("admin@example.com".to_string()),
             name: Some("Admin".to_string()),
             roles: vec!["admin".to_string()],
-        });
+            groups: vec![],
+            tenant_id: None,
+        }));
 
         let request = make_test_request();
         let next = Next::handler(create_handler());
@@ -440,12 +436,14 @@ mod tests {
 
         let mut ctx = MiddlewareContext::new();
         ctx.set_operation_id("deleteUser".to_string());
-        ctx.set_identity(CallerIdentity::User {
+        ctx.set_identity(CallerIdentity::User(UserIdentity {
             user_id: "user123".to_string(),
             email: Some("user@example.com".to_string()),
             name: Some("User".to_string()),
             roles: vec!["user".to_string()],
-        });
+            groups: vec![],
+            tenant_id: None,
+        }));
 
         let request = make_test_request();
         let next = Next::handler(create_handler());
@@ -462,12 +460,14 @@ mod tests {
 
         let mut ctx = MiddlewareContext::new();
         ctx.set_operation_id("anyOperation".to_string());
-        ctx.set_identity(CallerIdentity::User {
+        ctx.set_identity(CallerIdentity::User(UserIdentity {
             user_id: "user123".to_string(),
             email: None,
             name: None,
             roles: vec!["superadmin".to_string()],
-        });
+            groups: vec![],
+            tenant_id: None,
+        }));
 
         let request = make_test_request();
         let next = Next::handler(create_handler());
@@ -533,9 +533,7 @@ mod tests {
 
         let mut ctx = MiddlewareContext::new();
         ctx.set_operation_id("serviceCall".to_string());
-        ctx.set_identity(CallerIdentity::Spiffe {
-            spiffe_id: "spiffe://example.com/service".to_string(),
-        });
+        ctx.set_identity(CallerIdentity::spiffe("spiffe://example.com/service"));
 
         let request = make_test_request();
         let next = Next::handler(create_handler());
@@ -552,11 +550,7 @@ mod tests {
 
         let mut ctx = MiddlewareContext::new();
         ctx.set_operation_id("apiCall".to_string());
-        ctx.set_identity(CallerIdentity::ApiKey {
-            key_id: "key-12345".to_string(),
-            name: Some("Test Key".to_string()),
-            scopes: vec![],
-        });
+        ctx.set_identity(CallerIdentity::api_key("key-12345", "Test Key"));
 
         let request = make_test_request();
         let next = Next::handler(create_handler());

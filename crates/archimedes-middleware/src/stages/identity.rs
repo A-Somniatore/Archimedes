@@ -25,6 +25,7 @@ use crate::context::MiddlewareContext;
 use crate::middleware::{BoxFuture, Middleware, Next};
 use crate::types::{Request, Response};
 use archimedes_core::CallerIdentity;
+use themis_platform_types::identity::{ApiKeyIdentity, UserIdentity};
 
 /// Header for SPIFFE ID (set by ingress/sidecar).
 pub const SPIFFE_ID_HEADER: &str = "x-spiffe-id";
@@ -127,12 +128,14 @@ impl IdentityMiddleware {
     fn parse_mock_jwt(&self, token: &str) -> CallerIdentity {
         // For mock implementation, use token as user ID
         // Real implementation would decode and validate the JWT
-        CallerIdentity::User {
+        CallerIdentity::User(UserIdentity {
             user_id: format!("jwt:{}", &token[..std::cmp::min(16, token.len())]),
             email: None,
             name: None,
             roles: vec![],
-        }
+            groups: vec![],
+            tenant_id: None,
+        })
     }
 
     /// Extracts API key identity from headers.
@@ -144,11 +147,12 @@ impl IdentityMiddleware {
         // 2. Get associated scopes and metadata
         // For mock implementation, use the key as the ID
 
-        Some(CallerIdentity::ApiKey {
+        Some(CallerIdentity::ApiKey(ApiKeyIdentity {
             key_id: api_key.to_string(),
-            name: None,
+            name: "Unknown".to_string(),
             scopes: vec![],
-        })
+            owner_id: None,
+        }))
     }
 }
 
@@ -252,8 +256,8 @@ mod tests {
         let _response = middleware.process(&mut ctx, request, next).await;
 
         match ctx.identity() {
-            CallerIdentity::Spiffe { spiffe_id } => {
-                assert_eq!(spiffe_id, "spiffe://example.org/service/users");
+            CallerIdentity::Spiffe(s) => {
+                assert_eq!(s.spiffe_id, "spiffe://example.org/service/users");
             }
             _ => panic!("Expected SPIFFE identity"),
         }
@@ -282,8 +286,8 @@ mod tests {
         let _response = middleware.process(&mut ctx, request, next).await;
 
         match ctx.identity() {
-            CallerIdentity::Spiffe { spiffe_id } => {
-                assert_eq!(spiffe_id, "spiffe://trusted.org/service/good");
+            CallerIdentity::Spiffe(s) => {
+                assert_eq!(s.spiffe_id, "spiffe://trusted.org/service/good");
             }
             _ => panic!("Expected SPIFFE identity"),
         }
@@ -299,8 +303,8 @@ mod tests {
         let _response = middleware.process(&mut ctx, request, next).await;
 
         match ctx.identity() {
-            CallerIdentity::User { user_id, .. } => {
-                assert!(user_id.starts_with("jwt:"));
+            CallerIdentity::User(u) => {
+                assert!(u.user_id.starts_with("jwt:"));
             }
             _ => panic!("Expected User identity"),
         }
@@ -316,8 +320,8 @@ mod tests {
         let _response = middleware.process(&mut ctx, request, next).await;
 
         match ctx.identity() {
-            CallerIdentity::ApiKey { key_id, .. } => {
-                assert_eq!(key_id, "ak_test_12345");
+            CallerIdentity::ApiKey(k) => {
+                assert_eq!(k.key_id, "ak_test_12345");
             }
             _ => panic!("Expected ApiKey identity"),
         }
@@ -340,7 +344,7 @@ mod tests {
         let _response = middleware.process(&mut ctx, request, next).await;
 
         // Should use SPIFFE (higher precedence)
-        assert!(matches!(ctx.identity(), CallerIdentity::Spiffe { .. }));
+        assert!(matches!(ctx.identity(), CallerIdentity::Spiffe(_)));
     }
 
     #[tokio::test]
@@ -360,7 +364,7 @@ mod tests {
         let _response = middleware.process(&mut ctx, request, next).await;
 
         // Should use JWT (higher precedence)
-        assert!(matches!(ctx.identity(), CallerIdentity::User { .. }));
+        assert!(matches!(ctx.identity(), CallerIdentity::User(_)));
     }
 
     #[tokio::test]

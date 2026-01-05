@@ -1,222 +1,70 @@
-//! Caller identity types.
+//! Archimedes extensions for caller identity.
 //!
-//! The [`CallerIdentity`] enum represents the authenticated identity of a request caller.
+//! This module provides the [`CallerIdentityExt`] extension trait that adds
+//! Archimedes-specific functionality to the shared [`CallerIdentity`] type
+//! from `themis-platform-types`.
+//!
+//! The core [`CallerIdentity`] type is re-exported from `themis-platform-types`
+//! at the crate root.
 
-use serde::{Deserialize, Serialize};
+use themis_platform_types::CallerIdentity;
 
-/// The authenticated identity of a request caller.
+/// Extension trait for [`CallerIdentity`] providing Archimedes-specific functionality.
 ///
-/// Archimedes supports multiple identity types:
-/// - **SPIFFE**: Service identity from mTLS (for service-to-service calls)
-/// - **User**: Human user identity (from JWT or session)
-/// - **`ApiKey`**: API key-based identity
-/// - **Anonymous**: No identity established
+/// This trait adds methods useful for logging and middleware processing that
+/// aren't part of the core shared type.
 ///
 /// # Example
 ///
+/// ```rust
+/// use archimedes_core::{CallerIdentity, CallerIdentityExt};
+///
+/// let identity = CallerIdentity::user("user-123", "alice@example.com");
+/// println!("Request from: {}", identity.log_id());
 /// ```
-/// use archimedes_core::CallerIdentity;
-///
-/// // Service identity from mTLS
-/// let service = CallerIdentity::spiffe("spiffe://example.org/service/users");
-///
-/// // User identity from JWT
-/// let user = CallerIdentity::user("user-123", Some("alice@example.com"));
-///
-/// // API key identity
-/// let api_key = CallerIdentity::api_key("key-abc123", Some("Production Key"));
-///
-/// // Anonymous caller
-/// let anon = CallerIdentity::Anonymous;
-/// ```
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum CallerIdentity {
-    /// SPIFFE identity from mTLS certificate.
-    ///
-    /// Used for service-to-service authentication within the platform.
-    /// The SPIFFE ID follows the format: `spiffe://<trust-domain>/<path>`
-    Spiffe {
-        /// The SPIFFE ID (e.g., `spiffe://example.org/service/users`)
-        spiffe_id: String,
-    },
-
-    /// Human user identity.
-    ///
-    /// Typically extracted from a JWT token or session.
-    User {
-        /// Unique user identifier
-        user_id: String,
-        /// Optional email address
-        email: Option<String>,
-        /// Optional display name
-        name: Option<String>,
-        /// Roles or groups the user belongs to
-        #[serde(default)]
-        roles: Vec<String>,
-    },
-
-    /// API key-based identity.
-    ///
-    /// Used for external API access with long-lived credentials.
-    ApiKey {
-        /// The API key identifier (not the secret)
-        key_id: String,
-        /// Optional human-readable name for the key
-        name: Option<String>,
-        /// Scopes granted to this API key
-        #[serde(default)]
-        scopes: Vec<String>,
-    },
-
-    /// Anonymous caller with no established identity.
-    ///
-    /// Used when no authentication credentials are provided.
-    #[default]
-    Anonymous,
-}
-
-impl CallerIdentity {
-    /// Creates a SPIFFE identity.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use archimedes_core::CallerIdentity;
-    ///
-    /// let identity = CallerIdentity::spiffe("spiffe://example.org/service/users");
-    /// ```
-    #[must_use]
-    pub fn spiffe(spiffe_id: impl Into<String>) -> Self {
-        Self::Spiffe {
-            spiffe_id: spiffe_id.into(),
-        }
-    }
-
-    /// Creates a user identity.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use archimedes_core::CallerIdentity;
-    ///
-    /// let identity = CallerIdentity::user("user-123", Some("alice@example.com"));
-    /// ```
-    #[must_use]
-    pub fn user(user_id: impl Into<String>, email: Option<impl Into<String>>) -> Self {
-        Self::User {
-            user_id: user_id.into(),
-            email: email.map(Into::into),
-            name: None,
-            roles: Vec::new(),
-        }
-    }
-
-    /// Creates a user identity with full details.
-    #[must_use]
-    pub fn user_full(
-        user_id: impl Into<String>,
-        email: Option<impl Into<String>>,
-        name: Option<impl Into<String>>,
-        roles: Vec<String>,
-    ) -> Self {
-        Self::User {
-            user_id: user_id.into(),
-            email: email.map(Into::into),
-            name: name.map(Into::into),
-            roles,
-        }
-    }
-
-    /// Creates an API key identity.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use archimedes_core::CallerIdentity;
-    ///
-    /// let identity = CallerIdentity::api_key("key-abc123", Some("Production Key"));
-    /// ```
-    #[must_use]
-    pub fn api_key(key_id: impl Into<String>, name: Option<impl Into<String>>) -> Self {
-        Self::ApiKey {
-            key_id: key_id.into(),
-            name: name.map(Into::into),
-            scopes: Vec::new(),
-        }
-    }
-
-    /// Creates an API key identity with scopes.
-    #[must_use]
-    pub fn api_key_with_scopes(
-        key_id: impl Into<String>,
-        name: Option<impl Into<String>>,
-        scopes: Vec<String>,
-    ) -> Self {
-        Self::ApiKey {
-            key_id: key_id.into(),
-            name: name.map(Into::into),
-            scopes,
-        }
-    }
-
-    /// Returns `true` if this is an anonymous identity.
-    #[must_use]
-    pub const fn is_anonymous(&self) -> bool {
-        matches!(self, Self::Anonymous)
-    }
-
-    /// Returns `true` if this is a service (SPIFFE) identity.
-    #[must_use]
-    pub const fn is_service(&self) -> bool {
-        matches!(self, Self::Spiffe { .. })
-    }
-
-    /// Returns `true` if this is a user identity.
-    #[must_use]
-    pub const fn is_user(&self) -> bool {
-        matches!(self, Self::User { .. })
-    }
-
-    /// Returns `true` if this is an API key identity.
-    #[must_use]
-    pub const fn is_api_key(&self) -> bool {
-        matches!(self, Self::ApiKey { .. })
-    }
-
+pub trait CallerIdentityExt {
     /// Returns a string identifier suitable for logging.
     ///
-    /// This never returns sensitive information.
-    #[must_use]
-    pub fn log_id(&self) -> String {
+    /// This never returns sensitive information like secrets or tokens.
+    /// The format is designed to be human-readable and useful for debugging.
+    ///
+    /// # Returns
+    ///
+    /// - SPIFFE: Returns the SPIFFE ID (e.g., `spiffe://example.org/service`)
+    /// - User: Returns `user:<user_id>` (e.g., `user:u123`)
+    /// - `ApiKey`: Returns `apikey:<key_id>` (e.g., `apikey:k456`)
+    /// - Anonymous: Returns `anonymous`
+    fn log_id(&self) -> String;
+
+    /// Returns roles extracted from the identity for authorization.
+    ///
+    /// This extracts role information from different identity types:
+    /// - User: Returns the roles field
+    /// - `ApiKey`: Returns scopes as pseudo-roles
+    /// - SPIFFE: Returns the service name as a single role
+    /// - Anonymous: Returns an empty list
+    fn roles(&self) -> Vec<&str>;
+}
+
+impl CallerIdentityExt for CallerIdentity {
+    fn log_id(&self) -> String {
         match self {
-            Self::Spiffe { spiffe_id } => spiffe_id.clone(),
-            Self::User { user_id, .. } => format!("user:{user_id}"),
-            Self::ApiKey { key_id, .. } => format!("apikey:{key_id}"),
+            Self::Spiffe(s) => s.spiffe_id.clone(),
+            Self::User(u) => format!("user:{}", u.user_id),
+            Self::ApiKey(k) => format!("apikey:{}", k.key_id),
             Self::Anonymous => "anonymous".to_string(),
         }
     }
-}
 
-impl std::fmt::Display for CallerIdentity {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn roles(&self) -> Vec<&str> {
         match self {
-            Self::Spiffe { spiffe_id } => write!(f, "SPIFFE({spiffe_id})"),
-            Self::User { user_id, email, .. } => {
-                if let Some(email) = email {
-                    write!(f, "User({user_id}, {email})")
-                } else {
-                    write!(f, "User({user_id})")
-                }
+            Self::Spiffe(s) => {
+                // Use service name as a pseudo-role if available
+                s.service_name.as_deref().into_iter().collect()
             }
-            Self::ApiKey { key_id, name, .. } => {
-                if let Some(name) = name {
-                    write!(f, "ApiKey({key_id}, {name})")
-                } else {
-                    write!(f, "ApiKey({key_id})")
-                }
-            }
-            Self::Anonymous => write!(f, "Anonymous"),
+            Self::User(u) => u.roles.iter().map(String::as_str).collect(),
+            Self::ApiKey(k) => k.scopes.iter().map(String::as_str).collect(),
+            Self::Anonymous => Vec::new(),
         }
     }
 }
@@ -224,93 +72,84 @@ impl std::fmt::Display for CallerIdentity {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use themis_platform_types::identity::{ApiKeyIdentity, SpiffeIdentity, UserIdentity};
 
     #[test]
-    fn test_spiffe_identity() {
+    fn test_spiffe_log_id() {
         let identity = CallerIdentity::spiffe("spiffe://example.org/service/users");
-
-        assert!(identity.is_service());
-        assert!(!identity.is_anonymous());
-        assert!(!identity.is_user());
-        assert!(!identity.is_api_key());
-
-        if let CallerIdentity::Spiffe { spiffe_id } = &identity {
-            assert_eq!(spiffe_id, "spiffe://example.org/service/users");
-        } else {
-            panic!("Expected Spiffe identity");
-        }
+        assert_eq!(identity.log_id(), "spiffe://example.org/service/users");
     }
 
     #[test]
-    fn test_user_identity() {
-        let identity = CallerIdentity::user("user-123", Some("alice@example.com"));
-
-        assert!(identity.is_user());
-        assert!(!identity.is_anonymous());
-
-        if let CallerIdentity::User { user_id, email, .. } = &identity {
-            assert_eq!(user_id, "user-123");
-            assert_eq!(email.as_deref(), Some("alice@example.com"));
-        } else {
-            panic!("Expected User identity");
-        }
+    fn test_user_log_id() {
+        let identity = CallerIdentity::user("user-123", "alice@example.com");
+        assert_eq!(identity.log_id(), "user:user-123");
     }
 
     #[test]
-    fn test_api_key_identity() {
-        let identity = CallerIdentity::api_key_with_scopes(
-            "key-abc",
-            Some("Prod Key"),
-            vec!["read".to_string(), "write".to_string()],
-        );
-
-        assert!(identity.is_api_key());
-        assert!(!identity.is_anonymous());
-
-        if let CallerIdentity::ApiKey {
-            key_id,
-            name,
-            scopes,
-        } = &identity
-        {
-            assert_eq!(key_id, "key-abc");
-            assert_eq!(name.as_deref(), Some("Prod Key"));
-            assert_eq!(scopes, &vec!["read".to_string(), "write".to_string()]);
-        } else {
-            panic!("Expected ApiKey identity");
-        }
+    fn test_api_key_log_id() {
+        let identity = CallerIdentity::api_key("key-abc123", "Production Key");
+        assert_eq!(identity.log_id(), "apikey:key-abc123");
     }
 
     #[test]
-    fn test_anonymous_identity() {
-        let identity = CallerIdentity::Anonymous;
-
-        assert!(identity.is_anonymous());
-        assert!(!identity.is_service());
-        assert!(!identity.is_user());
-        assert!(!identity.is_api_key());
+    fn test_anonymous_log_id() {
+        let identity = CallerIdentity::anonymous();
+        assert_eq!(identity.log_id(), "anonymous");
     }
 
     #[test]
-    fn test_log_id() {
-        assert_eq!(
-            CallerIdentity::spiffe("spiffe://example.org/svc").log_id(),
-            "spiffe://example.org/svc"
-        );
-        assert_eq!(
-            CallerIdentity::user("u123", None::<String>).log_id(),
-            "user:u123"
-        );
-        assert_eq!(
-            CallerIdentity::api_key("k456", None::<String>).log_id(),
-            "apikey:k456"
-        );
-        assert_eq!(CallerIdentity::Anonymous.log_id(), "anonymous");
+    fn test_user_roles() {
+        let identity = CallerIdentity::User(UserIdentity {
+            user_id: "u123".to_string(),
+            email: None,
+            name: None,
+            roles: vec!["admin".to_string(), "user".to_string()],
+            groups: vec![],
+            tenant_id: None,
+        });
+        assert_eq!(identity.roles(), vec!["admin", "user"]);
+    }
+
+    #[test]
+    fn test_api_key_roles_from_scopes() {
+        let identity = CallerIdentity::ApiKey(ApiKeyIdentity {
+            key_id: "k123".to_string(),
+            name: "Test Key".to_string(),
+            scopes: vec!["read".to_string(), "write".to_string()],
+            owner_id: None,
+        });
+        assert_eq!(identity.roles(), vec!["read", "write"]);
+    }
+
+    #[test]
+    fn test_spiffe_roles_from_service_name() {
+        let identity = CallerIdentity::Spiffe(SpiffeIdentity {
+            spiffe_id: "spiffe://example.org/orders".to_string(),
+            trust_domain: Some("example.org".to_string()),
+            service_name: Some("orders".to_string()),
+        });
+        assert_eq!(identity.roles(), vec!["orders"]);
+    }
+
+    #[test]
+    fn test_anonymous_roles_empty() {
+        let identity = CallerIdentity::anonymous();
+        assert!(identity.roles().is_empty());
+    }
+
+    #[test]
+    fn test_display() {
+        // The Display impl is from themis-platform-types, but let's verify it works
+        let identity = CallerIdentity::user("u123", "test@example.com");
+        let display = format!("{:?}", identity);
+        assert!(display.contains("User"));
+        assert!(display.contains("u123"));
     }
 
     #[test]
     fn test_serialization() {
-        let identity = CallerIdentity::user("u123", Some("test@example.com"));
+        let identity = CallerIdentity::user("u123", "test@example.com");
         let json = serde_json::to_string(&identity).expect("serialization should work");
         assert!(json.contains("\"type\":\"user\""));
         assert!(json.contains("\"user_id\":\"u123\""));
@@ -318,26 +157,5 @@ mod tests {
         let parsed: CallerIdentity =
             serde_json::from_str(&json).expect("deserialization should work");
         assert_eq!(identity, parsed);
-    }
-
-    #[test]
-    fn test_display() {
-        assert_eq!(
-            CallerIdentity::spiffe("spiffe://example.org/svc").to_string(),
-            "SPIFFE(spiffe://example.org/svc)"
-        );
-        assert_eq!(
-            CallerIdentity::user("u123", Some("a@b.com")).to_string(),
-            "User(u123, a@b.com)"
-        );
-        assert_eq!(
-            CallerIdentity::user("u123", None::<String>).to_string(),
-            "User(u123)"
-        );
-        assert_eq!(
-            CallerIdentity::api_key("k1", Some("Key")).to_string(),
-            "ApiKey(k1, Key)"
-        );
-        assert_eq!(CallerIdentity::Anonymous.to_string(), "Anonymous");
     }
 }

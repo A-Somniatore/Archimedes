@@ -23,14 +23,9 @@ use std::time::Instant;
 /// use archimedes_core::CallerIdentity;
 ///
 /// let mut ctx = MiddlewareContext::new();
-/// ctx.set_identity(CallerIdentity::User {
-///     user_id: "user-123".to_string(),
-///     email: Some("alice@example.com".to_string()),
-///     name: Some("Alice".to_string()),
-///     roles: vec!["admin".to_string()],
-/// });
+/// ctx.set_identity(CallerIdentity::user("user-123", "alice@example.com"));
 ///
-/// assert!(matches!(ctx.identity(), CallerIdentity::User { .. }));
+/// assert!(matches!(ctx.identity(), CallerIdentity::User(_)));
 /// ```
 #[derive(Debug)]
 pub struct MiddlewareContext {
@@ -273,25 +268,24 @@ mod tests {
 
     #[test]
     fn test_set_identity() {
+        use themis_platform_types::identity::UserIdentity;
+
         let mut ctx = MiddlewareContext::new();
-        ctx.set_identity(CallerIdentity::User {
+        ctx.set_identity(CallerIdentity::User(UserIdentity {
             user_id: "u123".to_string(),
             email: Some("alice@example.com".to_string()),
             name: Some("Alice".to_string()),
             roles: vec!["admin".to_string()],
-        });
+            groups: vec![],
+            tenant_id: None,
+        }));
 
         match ctx.identity() {
-            CallerIdentity::User {
-                user_id,
-                email,
-                name,
-                roles,
-            } => {
-                assert_eq!(user_id, "u123");
-                assert_eq!(email, &Some("alice@example.com".to_string()));
-                assert_eq!(name, &Some("Alice".to_string()));
-                assert_eq!(roles, &vec!["admin".to_string()]);
+            CallerIdentity::User(u) => {
+                assert_eq!(u.user_id, "u123");
+                assert_eq!(u.email, Some("alice@example.com".to_string()));
+                assert_eq!(u.name, Some("Alice".to_string()));
+                assert_eq!(u.roles, vec!["admin".to_string()]);
             }
             _ => panic!("Expected User identity"),
         }
@@ -353,12 +347,7 @@ mod tests {
     #[test]
     fn test_to_request_context() {
         let mut ctx = MiddlewareContext::new();
-        ctx.set_identity(CallerIdentity::User {
-            user_id: "u123".to_string(),
-            email: None,
-            name: None,
-            roles: vec![],
-        });
+        ctx.set_identity(CallerIdentity::user("u123", "test@example.com"));
         ctx.set_trace_id("trace-123".to_string());
         ctx.set_span_id("span-456".to_string());
         ctx.set_operation_id("createUser".to_string());

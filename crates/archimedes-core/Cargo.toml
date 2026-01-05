@@ -9,6 +9,10 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+# Shared platform types
+themis-platform-types.workspace = true
+
+# Runtime and async
 tokio.workspace = true
 serde.workspace = true
 serde_json.workspace = true
