@@ -5,7 +5,7 @@
 > **Last Updated**: 2026-01-05  
 > **Target Completion**: Week 48 (includes 4-week buffer)
 
-> ⚠️ **CTO REVIEW (2026-01-04)**: Sign-off pending. See [CTO Architecture Review](../../docs/reviews/2026-01-04-cto-architecture-review.md)  
+> ⚠️ **CTO REVIEW (2026-01-04)**: Sign-off pending. See [CTO Architecture Review](/docs/reviews/2026-01-04-cto-architecture-review.md)  
 > **BLOCKING ISSUE**: Local type definitions must be migrated to `themis-platform-types` before Week 2.
 
 ---
@@ -645,16 +645,61 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Week 16: Configuration
 
-- [ ] Create `archimedes-config` crate
-- [ ] Design typed configuration schema
-- [ ] Implement file-based config loading
-- [ ] Add environment variable overrides
-- [ ] Fail on unknown fields
-- [ ] Document configuration options
+- [x] Create `archimedes-config` crate
+  > ✅ **Completed 2026-01-05**: New crate in `crates/archimedes-config/`
+  >
+  > - Dependencies: `toml` 0.8, `dotenvy` 0.15, `serde` 1.0
+  > - Integrates with archimedes-core and archimedes-telemetry
+- [x] Design typed configuration schema
+  > ✅ **Completed 2026-01-05**: `schema.rs` module
+  >
+  > - `ServerConfig`: host, port, read/write timeouts, max connections
+  > - `MetricsConfig`: enabled, endpoint, histogram buckets
+  > - `TracingConfig`: enabled, endpoint, service name, sampling ratio
+  > - `LoggingConfig`: level, format (Json/Pretty), include timestamps/spans
+  > - `AuthorizationConfig`: mode (AllowAll/DenyAll/Rbac/Opa), OPA endpoint
+  > - `ContractConfig`: path, strict validation, cache enabled
+- [x] Implement file-based config loading
+  > ✅ **Completed 2026-01-05**: `ConfigLoader` in `loader.rs`
+  >
+  > - TOML and JSON file format support
+  > - `with_file()` for required files, `with_optional_file()` for optional
+  > - `with_string()` for inline configuration
+  > - Format auto-detection from file extension
+- [x] Add environment variable overrides
+  > ✅ **Completed 2026-01-05**: Layered loading system
+  >
+  > - `with_env_prefix()` for PREFIX__SECTION__KEY format
+  > - `with_dotenv()` for .env file loading
+  > - Environment variables override file values
+  > - Type coercion for bool, integers, floats
+- [x] Fail on unknown fields
+  > ✅ **Completed 2026-01-05**: Strict validation
+  >
+  > - `#[serde(deny_unknown_fields)]` on all config structs
+  > - `ArchimedesConfig::validate()` for semantic validation
+  > - Socket address format validation
+  > - OPA endpoint required when mode is Opa
+- [x] Document configuration options
+  > ✅ **Completed 2026-01-05**: Comprehensive rustdoc
+  >
+  > - Module-level examples for all config sections
+  > - `development()` and `production()` presets with docs
+  > - Error type documentation with examples
+  > - 52 tests covering all configuration scenarios
 
-### Phase A4 Milestone
+### Phase A4 Milestone ✅ COMPLETE
 
 **Criteria**: Full observability (metrics, traces, logs), typed config
+
+**Completion Status** (2026-01-05):
+- ✅ `archimedes-telemetry` crate: metrics, tracing, logging (25 tests)
+- ✅ `archimedes-config` crate: typed configuration system (52 tests)
+- ✅ OpenTelemetry 0.27 integration
+- ✅ Prometheus metrics export
+- ✅ Structured JSON logging with tracing-subscriber
+- ✅ Layered configuration with file + env override support
+- ✅ Total tests: 323 passing
 
 ---
 

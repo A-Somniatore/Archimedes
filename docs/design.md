@@ -1,7 +1,7 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.1.0  
-> **Status**: Implementation Phase (Phase A4 Week 15 Complete)  
+> **Version**: 2.2.0  
+> **Status**: Implementation Phase (Phase A4 Complete)  
 > **Last Updated**: 2026-01-06  
 > **Component**: archimedes
 
@@ -16,11 +16,11 @@
 | `archimedes-server` | ✅ Complete | 90 | HTTP server, routing, handler registry, graceful shutdown |
 | `archimedes-middleware` | ✅ Complete | 104 | All 8 middleware stages + pipeline |
 | `archimedes-telemetry` | ✅ Complete | 25 | Prometheus metrics, OpenTelemetry tracing, structured logging |
-| `archimedes-config` | 🔜 Phase A4 | - | Typed configuration |
+| `archimedes-config` | ✅ Complete | 52 | Typed configuration with TOML/JSON, env overrides |
 | `archimedes-sentinel` | 🔜 Phase A5 | - | Themis contract integration |
 | `archimedes-authz` | 🔜 Phase A5 | - | Eunomia/OPA integration |
 
-**Total Tests**: 271 passing
+**Total Tests**: 323 passing
 
 ---
 
