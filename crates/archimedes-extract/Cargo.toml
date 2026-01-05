@@ -1,0 +1,39 @@
+[package]
+name = "archimedes-extract"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["extractor", "http", "request", "response", "themis"]
+categories = ["web-programming::http-server"]
+
+description = "Request extractors and response builders for Archimedes HTTP framework"
+
+[dependencies]
+# Workspace dependencies
+archimedes-core = { workspace = true }
+archimedes-router = { workspace = true }
+http = { workspace = true }
+bytes = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# URL query parsing
+serde_urlencoded = "0.7"
+
+# Form/multipart parsing
+multer = "3.1"
+
+# Async traits
+async-trait = "0.1"
+
+# Futures
+futures-core = "0.3"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "macros"] }
+
+[lints]
+workspace = true

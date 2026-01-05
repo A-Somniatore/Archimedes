@@ -53,6 +53,8 @@ impl CallerIdentityExt for CallerIdentity {
             Self::User(u) => format!("user:{}", u.user_id),
             Self::ApiKey(k) => format!("apikey:{}", k.key_id),
             Self::Anonymous => "anonymous".to_string(),
+            // CallerIdentity is #[non_exhaustive] for future extensibility
+            _ => "unknown".to_string(),
         }
     }
 
@@ -65,6 +67,8 @@ impl CallerIdentityExt for CallerIdentity {
             Self::User(u) => u.roles.iter().map(String::as_str).collect(),
             Self::ApiKey(k) => k.scopes.iter().map(String::as_str).collect(),
             Self::Anonymous => Vec::new(),
+            // CallerIdentity is #[non_exhaustive] for future extensibility
+            _ => Vec::new(),
         }
     }
 }

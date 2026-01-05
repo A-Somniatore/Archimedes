@@ -218,6 +218,8 @@ impl AuthorizationMiddleware {
                 // Anonymous has no roles
                 vec![]
             }
+            // CallerIdentity is #[non_exhaustive] for future extensibility
+            _ => vec![],
         }
     }
 }

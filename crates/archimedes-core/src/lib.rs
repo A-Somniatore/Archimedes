@@ -82,7 +82,7 @@ pub use themis_platform_types::{
     CallerIdentity,
     RequestId,
     // Re-export sub-types for convenience
-    identity::{SpiffeIdentity, UserIdentity, ApiKeyIdentity},
+    identity::{ApiKeyIdentity, SpiffeIdentity, UserIdentity},
 };
 
 // Re-export local types

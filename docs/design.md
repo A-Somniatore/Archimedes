@@ -9,17 +9,17 @@
 
 ## Implementation Status
 
-| Crate | Status | Tests | Description |
-|-------|--------|-------|-------------|
-| `archimedes` | ✅ Complete | - | Main facade crate (re-exports) |
-| `archimedes-core` | ✅ Complete | 55 | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract |
-| `archimedes-server` | ✅ Complete | 90 | HTTP server, routing, handler registry, graceful shutdown |
-| `archimedes-middleware` | ✅ Complete | 104 | All 8 middleware stages + pipeline |
-| `archimedes-telemetry` | ✅ Complete | 25 | Prometheus metrics, OpenTelemetry tracing, structured logging |
-| `archimedes-config` | ✅ Complete | 52 | Typed configuration with TOML/JSON, env overrides |
-| `archimedes-router` | ✅ Complete | 54 | High-performance radix tree router |
-| `archimedes-sentinel` | 🔜 Phase A5 | - | Themis contract integration |
-| `archimedes-authz` | 🔜 Phase A5 | - | Eunomia/OPA integration |
+| Crate                   | Status      | Tests | Description                                                                |
+| ----------------------- | ----------- | ----- | -------------------------------------------------------------------------- |
+| `archimedes`            | ✅ Complete | -     | Main facade crate (re-exports)                                             |
+| `archimedes-core`       | ✅ Complete | 55    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract |
+| `archimedes-server`     | ✅ Complete | 90    | HTTP server, routing, handler registry, graceful shutdown                  |
+| `archimedes-middleware` | ✅ Complete | 104   | All 8 middleware stages + pipeline                                         |
+| `archimedes-telemetry`  | ✅ Complete | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging              |
+| `archimedes-config`     | ✅ Complete | 52    | Typed configuration with TOML/JSON, env overrides                          |
+| `archimedes-router`     | ✅ Complete | 54    | High-performance radix tree router                                         |
+| `archimedes-sentinel`   | 🔜 Phase A5 | -     | Themis contract integration                                                |
+| `archimedes-authz`      | 🔜 Phase A5 | -     | Eunomia/OPA integration                                                    |
 
 **Total Tests**: 380 passing
 
@@ -162,16 +162,16 @@ Archimedes integrates with `themis-platform-types` to ensure type compatibility 
 
 **Imported Types (from `themis-platform-types`)**:
 
-| Type | Purpose | Usage in Archimedes |
-|------|---------|---------------------|
-| `CallerIdentity` | Enum representing authenticated caller | Used in `RequestContext`, authorization |
-| `RequestId` | UUID v7 wrapper for request correlation | Generated in Request ID middleware |
-| `SpiffeIdentity` | SPIFFE identity with service URI | Service-to-service auth |
-| `UserIdentity` | Human user with roles/tenant | User authentication |
-| `ApiKeyIdentity` | API key with scopes | Machine-to-machine auth |
-| `PolicyInput` | OPA evaluation input | Phase A5: Authorization |
-| `PolicyDecision` | OPA evaluation result | Phase A5: Authorization |
-| `ThemisErrorEnvelope` | Standard error response | Phase A5: Themis integration |
+| Type                  | Purpose                                 | Usage in Archimedes                     |
+| --------------------- | --------------------------------------- | --------------------------------------- |
+| `CallerIdentity`      | Enum representing authenticated caller  | Used in `RequestContext`, authorization |
+| `RequestId`           | UUID v7 wrapper for request correlation | Generated in Request ID middleware      |
+| `SpiffeIdentity`      | SPIFFE identity with service URI        | Service-to-service auth                 |
+| `UserIdentity`        | Human user with roles/tenant            | User authentication                     |
+| `ApiKeyIdentity`      | API key with scopes                     | Machine-to-machine auth                 |
+| `PolicyInput`         | OPA evaluation input                    | Phase A5: Authorization                 |
+| `PolicyDecision`      | OPA evaluation result                   | Phase A5: Authorization                 |
+| `ThemisErrorEnvelope` | Standard error response                 | Phase A5: Themis integration            |
 
 **Extension Traits**:
 

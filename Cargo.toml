@@ -8,6 +8,7 @@ members = [
     "crates/archimedes-telemetry",
     "crates/archimedes-config",
     "crates/archimedes-router",
+    "crates/archimedes-extract",
 ]
 
 [workspace.package]
@@ -32,6 +33,7 @@ archimedes-middleware = { path = "crates/archimedes-middleware" }
 archimedes-telemetry = { path = "crates/archimedes-telemetry" }
 archimedes-config = { path = "crates/archimedes-config" }
 archimedes-router = { path = "crates/archimedes-router" }
+archimedes-extract = { path = "crates/archimedes-extract" }
 
 # Async runtime
 tokio = { version = "1.43", features = ["full"] }

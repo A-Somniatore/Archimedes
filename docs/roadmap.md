@@ -1,8 +1,8 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.2.0  
+> **Version**: 2.4.0  
 > **Created**: 2026-01-04  
-> **Last Updated**: 2026-01-06  
+> **Last Updated**: 2026-01-05  
 > **Target Completion**: Week 48 (includes 4-week buffer)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!  
@@ -10,26 +10,108 @@
 
 ---
 
+## 🔄 themis-platform-types v0.2.1 Production Readiness (Coming Soon)
+
+> **When**: Before production release
+> **Status**: Development Complete - Pending Publish
+
+### New Production Guarantees (v0.2.1)
+
+All types are now verified for production use:
+
+1. **Thread Safety** - `Send + Sync` compile-time assertions (critical for async handlers)
+2. **MSRV Testing** - CI validates Rust 1.75 compatibility
+3. **Schema Validation** - JSON schemas validated in CI
+4. **Serialization Testing** - Property-based roundtrip tests (proptest)
+5. **Fallible Constructor** - `RequestId::try_new()` for container environments
+6. **Security Lint** - `#[must_use = "security bug"]` on `PolicyDecision` constructors
+
+### Recommended Usage in Archimedes
+
+```rust
+// Safe RequestId creation in middleware
+let request_id = RequestId::try_new().unwrap_or_else(|| {
+    tracing::warn!("UUID generation failed, using nil ID");
+    RequestId::nil()
+});
+
+// PolicyDecision MUST be used - compiler will warn if ignored
+let decision = eunomia.evaluate(&input).await?;
+if decision.is_denied() {
+    return Err(ThemisErrorEnvelope::policy_denied(decision.reason));
+}
+// Proceeding without checking decision would trigger must_use warning
+```
+
+---
+
+## 🔄 themis-platform-types v0.2.0 Migration (Required)
+
+> **When**: Week 9 (before A3 Middleware phase)
+> **Effort**: ~2 hours
+> **Breaking Changes**: Yes
+
+### Migration Checklist
+
+- [ ] Update `Cargo.toml` to `themis-platform-types = "0.2.0"`
+- [ ] Replace `build()` calls with `try_build()?` (build() is deprecated)
+- [ ] Update error handling to use `BuilderError` instead of `&'static str`
+- [ ] Add wildcard arms to match statements on `CallerIdentity`, `ErrorCode`
+- [ ] Use new re-exports if needed: `SpiffeIdentity`, `UserIdentity`, `ApiKeyIdentity`
+
+### Code Changes Required
+
+```rust
+// Before (v0.1.0)
+let input = PolicyInput::builder()
+    .caller(caller)
+    .service("my-service")
+    .try_build()?; // Returns Result<_, &'static str>
+
+// After (v0.2.0)
+use themis_platform_types::BuilderError;
+let input = PolicyInput::builder()
+    .caller(caller)
+    .service("my-service")
+    .try_build()?; // Returns Result<_, BuilderError>
+
+// Match statements need wildcard (enums are now #[non_exhaustive])
+match caller {
+    CallerIdentity::User(u) => handle_user(u),
+    CallerIdentity::Spiffe(s) => handle_service(s),
+    _ => handle_other(), // Required!
+}
+```
+
+### New Features Available
+
+- `Versioned<T>` wrapper for schema evolution
+- `SchemaMetadata` for version tracking
+- Proper `BuilderError` with field names
+- Fixed SemVer pre-release comparison
+
+---
+
 ## Key Decisions
 
-| Decision                                                                     | Impact                                                 |
-| ---------------------------------------------------------------------------- | ------------------------------------------------------ |
-| [ADR-008](../../docs/decisions/008-archimedes-full-framework.md)             | **Archimedes as internal standardized framework** |
-| [ADR-005](../../docs/decisions/005-kubernetes-ingress-over-custom-router.md) | Archimedes handles contract enforcement, not routing   |
-| [ADR-006](../../docs/decisions/006-grpc-post-mvp.md)                         | MVP is HTTP/REST only, gRPC is post-MVP                |
-| [ADR-004](../../docs/decisions/004-regorus-for-rego-parsing.md)              | Use Regorus for embedded OPA evaluation                |
-| [ADR-007](../../docs/decisions/007-apache-2-license.md)                      | Apache 2.0 license                                     |
+| Decision                                                                     | Impact                                               |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------- |
+| [ADR-008](../../docs/decisions/008-archimedes-full-framework.md)             | **Archimedes as internal standardized framework**    |
+| [ADR-005](../../docs/decisions/005-kubernetes-ingress-over-custom-router.md) | Archimedes handles contract enforcement, not routing |
+| [ADR-006](../../docs/decisions/006-grpc-post-mvp.md)                         | MVP is HTTP/REST only, gRPC is post-MVP              |
+| [ADR-004](../../docs/decisions/004-regorus-for-rego-parsing.md)              | Use Regorus for embedded OPA evaluation              |
+| [ADR-007](../../docs/decisions/007-apache-2-license.md)                      | Apache 2.0 license                                   |
 
 ## Vision: Internal Standardization
 
 Archimedes is an **internal platform** that standardizes how we build services:
 
-| Challenge (Per-Team Choice) | Archimedes Solution |
-|-----------------------------|---------------------|
+| Challenge (Per-Team Choice)         | Archimedes Solution           |
+| ----------------------------------- | ----------------------------- |
 | Each team picks different framework | One standard for all services |
-| Auth implemented differently | OPA-based auth built-in |
-| Validation varies | Contract-driven, automatic |
-| Observability setup per service | Built-in, zero config |
+| Auth implemented differently        | OPA-based auth built-in       |
+| Validation varies                   | Contract-driven, automatic    |
+| Observability setup per service     | Built-in, zero config         |
 
 **Archimedes Responsibilities (V1 Release):**
 
@@ -98,6 +180,7 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 | Hardening & Buffer          | 4 weeks  | 45-48 | Performance tuning, contingency   | All                     |
 
 **Total**: 48 weeks (12 months)
+
 - MVP: Weeks 1-20
 - Full Framework: Weeks 21-36
 - Stoa UI: Weeks 37-44
@@ -161,7 +244,7 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 >
 > - Added `themis-platform-types` as path dependency
 > - Migrated `CallerIdentity` to shared type with `CallerIdentityExt` extension
-> - Migrated `RequestId` to shared type  
+> - Migrated `RequestId` to shared type
 > - Updated all enum variant syntax (struct → tuple variants)
 > - All 326 tests pass
 
@@ -677,7 +760,7 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 - [x] Add environment variable overrides
   > ✅ **Completed 2026-01-05**: Layered loading system
   >
-  > - `with_env_prefix()` for PREFIX__SECTION__KEY format
+  > - `with_env_prefix()` for PREFIX**SECTION**KEY format
   > - `with_dotenv()` for .env file loading
   > - Environment variables override file values
   > - Type coercion for bool, integers, floats
@@ -701,6 +784,7 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 **Criteria**: Full observability (metrics, traces, logs), typed config
 
 **Completion Status** (2026-01-05):
+
 - ✅ `archimedes-telemetry` crate: metrics, tracing, logging (25 tests)
 - ✅ `archimedes-config` crate: typed configuration system (52 tests)
 - ✅ OpenTelemetry 0.27 integration
