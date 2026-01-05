@@ -1,8 +1,8 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.0.0  
-> **Status**: Implementation Phase (Phase A3 Complete)  
-> **Last Updated**: 2026-01-05  
+> **Version**: 2.1.0  
+> **Status**: Implementation Phase (Phase A4 Week 15 Complete)  
+> **Last Updated**: 2026-01-06  
 > **Component**: archimedes
 
 ---
