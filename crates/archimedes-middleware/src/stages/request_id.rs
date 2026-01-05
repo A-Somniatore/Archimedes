@@ -77,7 +77,9 @@ impl RequestIdMiddleware {
     /// trusted services that have already assigned request IDs.
     #[must_use]
     pub fn trust_incoming() -> Self {
-        Self { trust_incoming: true }
+        Self {
+            trust_incoming: true,
+        }
     }
 
     /// Extracts request ID from headers if present and valid.
@@ -151,7 +153,8 @@ mod tests {
             .unwrap()
     }
 
-    fn create_handler() -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
+    fn create_handler()
+    -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
         |_ctx, _req| {
             Box::pin(async {
                 HttpResponse::builder()
@@ -174,9 +177,14 @@ mod tests {
 
         // Context should have a request ID (may be different from original)
         assert!(response.headers().contains_key(REQUEST_ID_HEADER));
-        let header_id = response.headers().get(REQUEST_ID_HEADER).unwrap().to_str().unwrap();
+        let header_id = response
+            .headers()
+            .get(REQUEST_ID_HEADER)
+            .unwrap()
+            .to_str()
+            .unwrap();
         assert!(!header_id.is_empty());
-        
+
         // The ID in context should match response header
         assert_eq!(ctx.request_id().to_string(), header_id);
     }
@@ -192,7 +200,12 @@ mod tests {
         let response = middleware.process(&mut ctx, request, next).await;
 
         // Should have generated a new ID, not used the incoming one
-        let header_id = response.headers().get(REQUEST_ID_HEADER).unwrap().to_str().unwrap();
+        let header_id = response
+            .headers()
+            .get(REQUEST_ID_HEADER)
+            .unwrap()
+            .to_str()
+            .unwrap();
         assert_ne!(header_id, incoming_id);
     }
 
@@ -208,7 +221,12 @@ mod tests {
         let response = middleware.process(&mut ctx, request, next).await;
 
         // Should use the incoming ID
-        let header_id = response.headers().get(REQUEST_ID_HEADER).unwrap().to_str().unwrap();
+        let header_id = response
+            .headers()
+            .get(REQUEST_ID_HEADER)
+            .unwrap()
+            .to_str()
+            .unwrap();
         assert_eq!(header_id, incoming_id);
         assert_eq!(ctx.request_id().to_string(), incoming_id);
     }
@@ -224,7 +242,12 @@ mod tests {
         let response = middleware.process(&mut ctx, request, next).await;
 
         // Should generate new ID since incoming is invalid
-        let header_id = response.headers().get(REQUEST_ID_HEADER).unwrap().to_str().unwrap();
+        let header_id = response
+            .headers()
+            .get(REQUEST_ID_HEADER)
+            .unwrap()
+            .to_str()
+            .unwrap();
         assert_ne!(header_id, invalid_id);
         // Should be a valid UUID
         assert!(Uuid::parse_str(header_id).is_ok());

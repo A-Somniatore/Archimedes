@@ -282,7 +282,12 @@ mod tests {
         });
 
         match ctx.identity() {
-            CallerIdentity::User { user_id, email, name, roles } => {
+            CallerIdentity::User {
+                user_id,
+                email,
+                name,
+                roles,
+            } => {
                 assert_eq!(user_id, "u123");
                 assert_eq!(email, &Some("alice@example.com".to_string()));
                 assert_eq!(name, &Some("Alice".to_string()));
@@ -327,7 +332,10 @@ mod tests {
         // Set extension
         ctx.set_extension(MyExtension { value: 42 });
         assert!(ctx.has_extension::<MyExtension>());
-        assert_eq!(ctx.get_extension::<MyExtension>(), Some(&MyExtension { value: 42 }));
+        assert_eq!(
+            ctx.get_extension::<MyExtension>(),
+            Some(&MyExtension { value: 42 })
+        );
 
         // Remove extension
         let removed = ctx.remove_extension::<MyExtension>();

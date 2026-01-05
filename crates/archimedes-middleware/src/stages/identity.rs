@@ -80,11 +80,7 @@ impl IdentityMiddleware {
 
     /// Extracts SPIFFE identity from headers.
     fn extract_spiffe_identity(&self, request: &Request) -> Option<CallerIdentity> {
-        let spiffe_id = request
-            .headers()
-            .get(SPIFFE_ID_HEADER)?
-            .to_str()
-            .ok()?;
+        let spiffe_id = request.headers().get(SPIFFE_ID_HEADER)?.to_str().ok()?;
 
         // Validate SPIFFE ID format
         if !spiffe_id.starts_with("spiffe://") {
@@ -105,11 +101,7 @@ impl IdentityMiddleware {
 
     /// Extracts JWT identity from Authorization header.
     fn extract_jwt_identity(&self, request: &Request) -> Option<CallerIdentity> {
-        let auth_header = request
-            .headers()
-            .get(AUTHORIZATION_HEADER)?
-            .to_str()
-            .ok()?;
+        let auth_header = request.headers().get(AUTHORIZATION_HEADER)?.to_str().ok()?;
 
         // Check for Bearer token
         if !auth_header.starts_with("Bearer ") {
@@ -145,11 +137,7 @@ impl IdentityMiddleware {
 
     /// Extracts API key identity from headers.
     fn extract_api_key_identity(&self, request: &Request) -> Option<CallerIdentity> {
-        let api_key = request
-            .headers()
-            .get(API_KEY_HEADER)?
-            .to_str()
-            .ok()?;
+        let api_key = request.headers().get(API_KEY_HEADER)?.to_str().ok()?;
 
         // In a real implementation, we would:
         // 1. Look up the API key in a database
@@ -230,7 +218,8 @@ mod tests {
             .unwrap()
     }
 
-    fn create_handler() -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
+    fn create_handler()
+    -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
         |_ctx, _req| {
             Box::pin(async {
                 HttpResponse::builder()

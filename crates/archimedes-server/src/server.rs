@@ -88,7 +88,7 @@ pub type HttpResponse = Response<ResponseBody>;
 /// #[derive(Serialize)]
 /// struct User { id: String, name: String }
 ///
-/// async fn get_user(ctx: archimedes_core::RequestContext, req: GetUserRequest) 
+/// async fn get_user(ctx: archimedes_core::RequestContext, req: GetUserRequest)
 ///     -> Result<User, archimedes_server::HandlerError> {
 ///     Ok(User { id: req.user_id, name: "John".into() })
 /// }
@@ -259,12 +259,16 @@ impl Server {
     /// Returns an error if the server cannot bind or an I/O error occurs.
     pub async fn run_with_shutdown(self, shutdown: ShutdownSignal) -> Result<(), ServerError> {
         let addr = self.config.socket_addr().map_err(|e| {
-            ServerError::BindError(format!("Invalid address '{}': {}", self.config.http_addr(), e))
+            ServerError::BindError(format!(
+                "Invalid address '{}': {}",
+                self.config.http_addr(),
+                e
+            ))
         })?;
 
-        let listener = TcpListener::bind(addr).await.map_err(|e| {
-            ServerError::BindError(format!("Failed to bind to {}: {}", addr, e))
-        })?;
+        let listener = TcpListener::bind(addr)
+            .await
+            .map_err(|e| ServerError::BindError(format!("Failed to bind to {}: {}", addr, e)))?;
 
         tracing::info!("Server listening on {}", addr);
 
@@ -374,11 +378,7 @@ impl Server {
         }
 
         // Collect request body with timeout
-        let body_result = tokio::time::timeout(
-            self.request_timeout,
-            Self::collect_body(req),
-        )
-        .await;
+        let body_result = tokio::time::timeout(self.request_timeout, Self::collect_body(req)).await;
 
         let body = match body_result {
             Ok(Ok(body)) => body,
@@ -430,17 +430,14 @@ impl Server {
     /// Handles the /health endpoint.
     fn handle_health(&self) -> HttpResponse {
         let status = self.health.status();
-        let body = serde_json::to_string(&status).unwrap_or_else(|_| {
-            r#"{"status":"healthy"}"#.to_string()
-        });
+        let body = serde_json::to_string(&status)
+            .unwrap_or_else(|_| r#"{"status":"healthy"}"#.to_string());
 
         Response::builder()
             .status(StatusCode::OK)
             .header("Content-Type", "application/json")
             .body(Full::new(Bytes::from(body)))
-            .unwrap_or_else(|_| {
-                Response::new(Full::new(Bytes::from(r#"{"status":"healthy"}"#)))
-            })
+            .unwrap_or_else(|_| Response::new(Full::new(Bytes::from(r#"{"status":"healthy"}"#))))
     }
 
     /// Handles the /ready endpoint.
@@ -452,17 +449,14 @@ impl Server {
             StatusCode::SERVICE_UNAVAILABLE
         };
 
-        let body = serde_json::to_string(&status).unwrap_or_else(|_| {
-            format!(r#"{{"ready":{}}}"#, status.is_ready())
-        });
+        let body = serde_json::to_string(&status)
+            .unwrap_or_else(|_| format!(r#"{{"ready":{}}}"#, status.is_ready()));
 
         Response::builder()
             .status(status_code)
             .header("Content-Type", "application/json")
             .body(Full::new(Bytes::from(body)))
-            .unwrap_or_else(|_| {
-                Response::new(Full::new(Bytes::from(r#"{"ready":false}"#)))
-            })
+            .unwrap_or_else(|_| Response::new(Full::new(Bytes::from(r#"{"ready":false}"#))))
     }
 
     /// Routes a request to the appropriate handler.
@@ -488,8 +482,7 @@ impl Server {
         }
 
         // Create request context with operation ID
-        let ctx = RequestContext::new()
-            .with_operation_id(operation_id);
+        let ctx = RequestContext::new().with_operation_id(operation_id);
 
         // Store path params in a way handlers can access them
         // For now, we'll pass them via the body if needed, or handlers can extract from path
@@ -497,13 +490,11 @@ impl Server {
 
         // Invoke the handler
         match self.handlers.invoke(operation_id, ctx, body).await {
-            Ok(response_body) => {
-                Response::builder()
-                    .status(StatusCode::OK)
-                    .header("Content-Type", "application/json")
-                    .body(Full::new(response_body))
-                    .unwrap_or_else(|_| Response::new(Full::new(Bytes::new())))
-            }
+            Ok(response_body) => Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "application/json")
+                .body(Full::new(response_body))
+                .unwrap_or_else(|_| Response::new(Full::new(Bytes::new()))),
             Err(InvokeError::HandlerNotFound(id)) => {
                 tracing::error!("Handler not found during invocation: {}", id);
                 self.handle_error(
@@ -520,7 +511,11 @@ impl Server {
     }
 
     /// Handles handler errors and converts them to HTTP responses.
-    fn handle_handler_error(&self, operation_id: &str, error: crate::handler::HandlerError) -> HttpResponse {
+    fn handle_handler_error(
+        &self,
+        operation_id: &str,
+        error: crate::handler::HandlerError,
+    ) -> HttpResponse {
         use crate::handler::HandlerError;
 
         let (status, code, message) = match &error {
@@ -537,11 +532,7 @@ impl Server {
             HandlerError::ThemisError(e) => {
                 // Use to_envelope to get proper error structure
                 let envelope = e.to_envelope(None);
-                (
-                    e.status_code(),
-                    envelope.error.code,
-                    envelope.error.message,
-                )
+                (e.status_code(), envelope.error.code, envelope.error.message)
             }
             HandlerError::Custom(e) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
@@ -708,7 +699,9 @@ impl ServerBuilder {
     #[must_use]
     pub fn build(self) -> Server {
         let config = self.config_builder.build();
-        let service = self.health_service.unwrap_or_else(|| "archimedes".to_string());
+        let service = self
+            .health_service
+            .unwrap_or_else(|| "archimedes".to_string());
         let version = self
             .health_version
             .unwrap_or_else(|| env!("CARGO_PKG_VERSION").to_string());
@@ -751,9 +744,7 @@ mod tests {
 
     #[test]
     fn test_server_new() {
-        let config = ServerConfig::builder()
-            .http_addr("127.0.0.1:8080")
-            .build();
+        let config = ServerConfig::builder().http_addr("127.0.0.1:8080").build();
 
         let server = Server::new(config);
         assert_eq!(server.config().http_addr(), "127.0.0.1:8080");
@@ -785,7 +776,9 @@ mod tests {
     fn test_server_router_access() {
         let mut server = Server::builder().build();
 
-        server.router_mut().add_route(Method::GET, "/test", "testOp");
+        server
+            .router_mut()
+            .add_route(Method::GET, "/test", "testOp");
         assert!(server.router().has_operation("testOp"));
     }
 
@@ -825,10 +818,14 @@ mod tests {
     #[tokio::test]
     async fn test_server_route_matched_no_handler() {
         let mut server = Server::builder().build();
-        server.router_mut().add_route(Method::GET, "/users/{id}", "getUser");
+        server
+            .router_mut()
+            .add_route(Method::GET, "/users/{id}", "getUser");
 
         let server = Arc::new(server);
-        let response = server.route_request(&Method::GET, "/users/123", Bytes::new()).await;
+        let response = server
+            .route_request(&Method::GET, "/users/123", Bytes::new())
+            .await;
 
         // Without a handler registered, should return NOT_IMPLEMENTED
         assert_eq!(response.status(), StatusCode::NOT_IMPLEMENTED);
@@ -845,9 +842,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_server_run_invalid_address() {
-        let server = Server::builder()
-            .http_addr("not-a-valid-address")
-            .build();
+        let server = Server::builder().http_addr("not-a-valid-address").build();
 
         let result = server.run_with_shutdown(ShutdownSignal::new()).await;
         assert!(result.is_err());
@@ -873,11 +868,8 @@ mod tests {
         shutdown_trigger.trigger();
 
         // Server should exit quickly
-        let result = tokio::time::timeout(
-            Duration::from_secs(5),
-            server.run_with_shutdown(shutdown),
-        )
-        .await;
+        let result =
+            tokio::time::timeout(Duration::from_secs(5), server.run_with_shutdown(shutdown)).await;
 
         assert!(result.is_ok());
         assert!(result.unwrap().is_ok());
@@ -924,9 +916,7 @@ mod tests {
         let mut registry = HandlerRegistry::new();
         registry.register("echo", echo_handler);
 
-        let mut server = Server::builder()
-            .handlers(registry)
-            .build();
+        let mut server = Server::builder().handlers(registry).build();
         server.router_mut().add_route(Method::POST, "/echo", "echo");
 
         let server = Arc::new(server);
@@ -949,13 +939,15 @@ mod tests {
         let mut registry = HandlerRegistry::new();
         registry.register_no_body("healthCheck", health_handler);
 
-        let mut server = Server::builder()
-            .handlers(registry)
-            .build();
-        server.router_mut().add_route(Method::GET, "/status", "healthCheck");
+        let mut server = Server::builder().handlers(registry).build();
+        server
+            .router_mut()
+            .add_route(Method::GET, "/status", "healthCheck");
 
         let server = Arc::new(server);
-        let response = server.route_request(&Method::GET, "/status", Bytes::new()).await;
+        let response = server
+            .route_request(&Method::GET, "/status", Bytes::new())
+            .await;
 
         assert_eq!(response.status(), StatusCode::OK);
 
@@ -972,9 +964,7 @@ mod tests {
         let mut registry = HandlerRegistry::new();
         registry.register("echo", echo_handler);
 
-        let mut server = Server::builder()
-            .handlers(registry)
-            .build();
+        let mut server = Server::builder().handlers(registry).build();
         server.router_mut().add_route(Method::POST, "/echo", "echo");
 
         let server = Arc::new(server);
@@ -991,13 +981,15 @@ mod tests {
 
         let registry = HandlerRegistry::new();
 
-        let mut server = Server::builder()
-            .handlers(registry)
-            .build();
-        server.router_mut().add_route(Method::GET, "/missing", "missingOp");
+        let mut server = Server::builder().handlers(registry).build();
+        server
+            .router_mut()
+            .add_route(Method::GET, "/missing", "missingOp");
 
         let server = Arc::new(server);
-        let response = server.route_request(&Method::GET, "/missing", Bytes::new()).await;
+        let response = server
+            .route_request(&Method::GET, "/missing", Bytes::new())
+            .await;
 
         assert_eq!(response.status(), StatusCode::NOT_IMPLEMENTED);
     }

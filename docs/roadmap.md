@@ -1,32 +1,48 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 1.1.0  
+> **Version**: 2.0.0  
 > **Created**: 2026-01-04  
-> **Last Updated**: 2026-01-04  
-> **Target Completion**: Week 20 (MVP with integrations)
+> **Last Updated**: 2026-01-05  
+> **Target Completion**: Week 40 (Full Framework Release)
 
 ---
 
 ## Key Decisions
 
-| Decision | Impact |
-|----------|--------|
-| [ADR-005](../../docs/decisions/005-kubernetes-ingress-over-custom-router.md) | Archimedes handles contract enforcement, not routing |
-| [ADR-006](../../docs/decisions/006-grpc-post-mvp.md) | MVP is HTTP/REST only, gRPC is post-MVP |
-| [ADR-004](../../docs/decisions/004-regorus-for-rego-parsing.md) | Use Regorus for embedded OPA evaluation |
-| [ADR-007](../../docs/decisions/007-apache-2-license.md) | Apache 2.0 license |
+| Decision                                                                     | Impact                                                 |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [ADR-008](../../docs/decisions/008-archimedes-full-framework.md)             | **Archimedes replaces Axum/FastAPI/Boost (not wraps)** |
+| [ADR-005](../../docs/decisions/005-kubernetes-ingress-over-custom-router.md) | Archimedes handles contract enforcement, not routing   |
+| [ADR-006](../../docs/decisions/006-grpc-post-mvp.md)                         | MVP is HTTP/REST only, gRPC is post-MVP                |
+| [ADR-004](../../docs/decisions/004-regorus-for-rego-parsing.md)              | Use Regorus for embedded OPA evaluation                |
+| [ADR-007](../../docs/decisions/007-apache-2-license.md)                      | Apache 2.0 license                                     |
 
-**Archimedes Responsibilities (MVP):**
-- HTTP server with Axum
-- Contract-based request/response validation
-- Embedded OPA policy evaluation (Regorus)
-- Middleware pipeline (8 stages)
-- Observability (metrics, traces, logs)
+## Vision: Full Framework Replacement
+
+Archimedes is positioned as a **complete replacement** for:
+
+- **Axum** (Rust) – We match ergonomics, add governance
+- **FastAPI** (Python) – We match DX, add type safety + performance
+- **Boost.Beast** (C++) – We match performance, add modern abstractions
+
+**Archimedes Responsibilities (Full Release):**
+
+- **Own the HTTP layer** (direct Hyper, not through Axum)
+- High-performance custom router with radix tree matching
+- Native request/response extractors
+- Dependency injection system
+- Contract-based validation (Themis)
+- Embedded authorization (OPA/Eunomia)
+- Full observability (OpenTelemetry)
+- WebSocket and SSE support
+- Background tasks and scheduled jobs
+- Multi-language SDK generation
 
 **NOT Archimedes Responsibilities:**
+
 - External traffic routing (use K8s Ingress)
-- gRPC support (post-MVP)
-- Custom API gateway (use standard ingress)
+- HTTP/3 / QUIC (V2 feature)
+- Arbitrary middleware plugins (fixed pipeline)
 
 ---
 
@@ -52,16 +68,23 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Timeline Summary
 
-| Phase                | Duration | Weeks | Description                       | Dependencies            |
-| -------------------- | -------- | ----- | --------------------------------- | ----------------------- |
-| A0: Shared Types     | 1 week   | 1     | Integrate `themis-platform-types` | Themis creates crate    |
-| A1: Foundation       | 3 weeks  | 2-4   | Core types, server scaffold       | `themis-platform-types` |
-| A2: Server & Routing | 4 weeks  | 5-8   | HTTP server, routing, handlers    | None (mock contracts)   |
-| A3: Middleware       | 4 weeks  | 9-12  | Middleware pipeline, validation   | None (mock validation)  |
-| A4: Observability    | 4 weeks  | 13-16 | Metrics, tracing, logging, config | None                    |
-| A5: Integration      | 4 weeks  | 17-20 | Themis + Eunomia integration      | Themis, Eunomia         |
+| Phase                       | Duration | Weeks | Description                       | Dependencies            |
+| --------------------------- | -------- | ----- | --------------------------------- | ----------------------- |
+| **MVP (Weeks 1-20)**        |          |       |                                   |                         |
+| A0: Shared Types            | 1 week   | 1     | Integrate `themis-platform-types` | Themis creates crate    |
+| A1: Foundation              | 3 weeks  | 2-4   | Core types, server scaffold       | `themis-platform-types` |
+| A2: Server & Routing        | 4 weeks  | 5-8   | HTTP server, routing, handlers    | None (mock contracts)   |
+| A3: Middleware              | 4 weeks  | 9-12  | Middleware pipeline, validation   | None (mock validation)  |
+| A4: Observability           | 4 weeks  | 13-16 | Metrics, tracing, logging, config | None                    |
+| A5: Integration             | 4 weeks  | 17-20 | Themis + Eunomia integration      | Themis, Eunomia         |
+| **Framework (Weeks 21-40)** |          |       |                                   |                         |
+| A6: Core Framework          | 4 weeks  | 21-24 | Custom router, extractors, DI     | MVP complete            |
+| A7: FastAPI Parity          | 4 weeks  | 25-28 | Handler macros, auto-docs         | A6                      |
+| A8: Extended Features       | 4 weeks  | 29-32 | WebSocket, SSE, background tasks  | A7                      |
+| A9: Developer Experience    | 4 weeks  | 33-36 | CLI tool, hot reload, templates   | A8                      |
+| A10: Multi-Language SDKs    | 4 weeks  | 37-40 | Python, TS, Go, C++ code gen      | A9                      |
 
-**Total**: 20 weeks (16 weeks parallel, 4 weeks integration)
+**Total**: 40 weeks (20 weeks MVP + 20 weeks Full Framework)
 
 ### Cross-Component Timeline Alignment
 
@@ -381,33 +404,94 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Week 9: Middleware Architecture
 
-- [ ] Create `archimedes-middleware` crate
-- [ ] Design middleware trait
-- [ ] Implement fixed-order pipeline
-- [ ] Add middleware context passing
-- [ ] Ensure middleware cannot be reordered
-- [ ] Document middleware constraints
+- [x] Create `archimedes-middleware` crate
+  > ✅ **Completed 2026-01-05**: Full middleware infrastructure
+- [x] Design middleware trait
+  > ✅ **Completed 2026-01-05**: `archimedes_middleware::Middleware` trait
+  >
+  > - Async `process()` method with context, request, and next chain
+  > - `BoxFuture<'a, Response>` return type for type erasure
+  > - `name()` method for identification
+- [x] Implement fixed-order pipeline
+  > ✅ **Completed 2026-01-05**: `archimedes_middleware::Pipeline`
+  >
+  > - 8 fixed stages (RequestId through ErrorNormalization)
+  > - `Stage` enum with pre/post handler categorization
+  > - Cannot be reordered by users
+- [x] Add middleware context passing
+  > ✅ **Completed 2026-01-05**: `archimedes_middleware::MiddlewareContext`
+  >
+  > - Mutable context flows through pipeline
+  > - Type-erased extensions via `HashMap<TypeId, Box<dyn Any>>`
+  > - Converts to immutable `RequestContext` for handlers
+- [x] Ensure middleware cannot be reordered
+  > ✅ **Completed 2026-01-05**: `pub(crate)` methods prevent user modification
+- [x] Document middleware constraints
+  > ✅ **Completed 2026-01-05**: Crate-level docs with pipeline diagram
 
 ### Week 10: Core Middleware (Part 1)
 
-- [ ] Implement Request ID middleware
-- [ ] Implement Tracing middleware (span creation)
-- [ ] Implement Identity extraction middleware
-- [ ] Add SPIFFE identity parsing
-- [ ] Add JWT identity parsing
-- [ ] Test identity extraction
+- [x] Implement Request ID middleware
+  > ✅ **Completed 2026-01-05**: `archimedes_middleware::RequestIdMiddleware`
+  >
+  > - UUID v7 generation for time-ordered IDs
+  > - X-Request-ID header extraction (configurable trust)
+  > - Sets request and response headers
+- [x] Implement Tracing middleware (span creation)
+  > ✅ **Completed 2026-01-05**: `archimedes_middleware::TracingMiddleware`
+  >
+  > - W3C Trace Context (traceparent header) parsing
+  > - Trace ID and Span ID generation
+  > - `SpanInfo` extension stored in context
+- [x] Implement Identity extraction middleware
+  > ✅ **Completed 2026-01-05**: `archimedes_middleware::IdentityMiddleware`
+  >
+  > - SPIFFE identity from `x-spiffe-id` header
+  > - JWT identity from `authorization: Bearer` header
+  > - API Key identity from `x-api-key` header
+  > - Precedence: SPIFFE > JWT > ApiKey > Anonymous
+- [x] Add SPIFFE identity parsing
+  > ✅ **Completed 2026-01-05**: Trust domain validation, SPIFFE ID format
+- [x] Add JWT identity parsing
+  > ✅ **Completed 2026-01-05**: JWT structure parsing (header.payload.signature)
+- [x] Test identity extraction
+  > ✅ **Completed 2026-01-05**: 12 identity extraction tests
 
 ### Week 11: Core Middleware (Part 2)
 
-- [ ] Implement mock Authorization middleware
-- [ ] Implement mock Validation middleware
-- [ ] Add extension points (`pre_handler`, `post_handler`)
-- [ ] Test middleware ordering
-- [ ] Test extension points
+- [x] Implement mock Authorization middleware
+  > ✅ **Completed 2026-01-05**: `archimedes_middleware::AuthorizationMiddleware`
+  >
+  > - Allow-all, Deny-all, and RBAC modes
+  > - Role-based access control with wildcard support
+  > - Anonymous operation allowlist
+  > - Custom `PolicyEvaluator` trait for extensibility
+  > - 14 authorization tests
+- [x] Implement mock Validation middleware
+  > ✅ **Completed 2026-01-05**: `archimedes_middleware::ValidationMiddleware`
+  >
+  > - Request and Response validation middleware
+  > - `MockSchema` with required fields and type checking
+  > - Support for String, Integer, Number, Boolean, Array, Object types
+  > - Allow-all, Reject-all, and Schema-based modes
+  > - 14 validation tests
+- [x] Add extension points (`pre_handler`, `post_handler`)
+  > ✅ **Completed 2026-01-05**: `PipelineBuilder` with hooks
+  >
+  > - `pre_handler()` hook after identity, before authorization
+  > - `post_handler()` hook after handler, before response validation
+- [x] Test middleware ordering
+  > ✅ **Completed 2026-01-05**: Stage ordering tests verify fixed sequence
+- [x] Test extension points
+  > ✅ **Completed 2026-01-05**: Pipeline builder tests with hooks
 
 ### Week 12: Response Pipeline
 
-- [ ] Implement response validation middleware (mock)
+- [x] Implement response validation middleware (mock)
+  > ✅ **Completed 2026-01-05**: `ResponseValidationMiddleware`
+  >
+  > - Schema-based response validation
+  > - Configurable enforce mode (error vs log-only)
 - [ ] Implement telemetry emission middleware
 - [ ] Implement error normalization middleware
 - [ ] Wire complete request→response pipeline
@@ -416,6 +500,12 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 ### Phase A3 Milestone
 
 **Criteria**: Full middleware pipeline works with mock validation/auth
+
+> 🔄 **Status (2026-01-05)**: Phase A3 IN PROGRESS
+>
+> - Week 9-11 complete: Middleware architecture, core middleware, authorization, validation
+> - 69 middleware tests passing
+> - Week 12 remaining: telemetry, error normalization, end-to-end tests
 
 ---
 
@@ -497,47 +587,318 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Phase A5 Milestone
 
-**Criteria**: Full integration with Themis and Eunomia, production-ready
+**Criteria**: Full integration with Themis and Eunomia, production-ready MVP
+
+---
+
+## Phase A6: Core Framework (Weeks 21-24) 🚀 NEW
+
+> **Goal**: Replace Axum as HTTP layer, own routing and extractors directly
+
+### Week 21-22: Custom Router
+
+- [ ] Remove Axum dependency, use Hyper directly
+- [ ] Implement radix tree router for path matching
+- [ ] Support path parameters (`/users/{id}`)
+- [ ] Support wildcards (`/files/*path`)
+- [ ] Support method-based routing (GET, POST, etc.)
+- [ ] Benchmark: Match Axum's routing performance
+
+```rust
+// Target API
+let router = Router::new()
+    .route("/users", get(list_users).post(create_user))
+    .route("/users/{id}", get(get_user).put(update_user).delete(delete_user))
+    .route("/files/*path", get(serve_file));
+```
+
+### Week 23-24: Extractors and Response Building
+
+- [ ] Implement `Path<T>` extractor
+- [ ] Implement `Query<T>` extractor
+- [ ] Implement `Json<T>` extractor with contract validation
+- [ ] Implement `Form<T>` extractor
+- [ ] Implement `Multipart` extractor
+- [ ] Implement `Headers` extractor
+- [ ] Response builders (Json, Html, Redirect, etc.)
+- [ ] Error handling with structured responses
+
+```rust
+// Target handler signature
+async fn create_user(
+    Json(body): Json<CreateUserRequest>,  // Auto-validated against contract
+    headers: Headers,
+) -> Result<Json<User>, AppError> {
+    // ...
+}
+```
+
+### A6 Deliverables
+
+- `archimedes-router` - High-performance radix tree router
+- `archimedes-extract` - Request extractors
+- Benchmark suite vs Axum/Actix
+
+---
+
+## Phase A7: FastAPI Parity (Weeks 25-28) 🐍 NEW
+
+> **Goal**: Match FastAPI developer experience with handler macros
+
+### Week 25-26: Handler Macros
+
+- [ ] `#[archimedes::handler]` proc macro
+- [ ] Automatic parameter extraction from signature
+- [ ] Contract binding (which operation handles which contract endpoint)
+- [ ] Dependency injection integration
+
+```rust
+// FastAPI-style handler definition
+#[archimedes::handler(contract = "users.yaml", operation = "createUser")]
+async fn create_user(
+    db: Inject<Database>,      // DI injected
+    auth: Auth,                // Current user from auth middleware
+    body: CreateUserRequest,   // Auto-validated, auto-extracted
+) -> User {
+    db.insert_user(body, auth.user_id).await
+}
+```
+
+### Week 27-28: Automatic Documentation
+
+- [ ] OpenAPI spec generation from contracts + handlers
+- [ ] Swagger UI endpoint (`/docs`)
+- [ ] ReDoc endpoint (`/redoc`)
+- [ ] Interactive API console
+- [ ] Schema explorer
+
+### A7 Deliverables
+
+- `archimedes-macros` - Proc macros for handler definitions
+- `archimedes-docs` - Auto-documentation system
+- Documentation UI assets
+
+---
+
+## Phase A8: Extended Features (Weeks 29-32) 🔌 NEW
+
+> **Goal**: Add WebSocket, SSE, background tasks, database integration
+
+### Week 29-30: Real-Time Features
+
+- [ ] WebSocket support with contract validation
+- [ ] Server-Sent Events (SSE)
+- [ ] Connection management and lifecycle
+- [ ] Heartbeat and reconnection handling
+
+```rust
+#[archimedes::websocket(contract = "chat.yaml")]
+async fn chat_handler(ws: WebSocket, auth: Auth) {
+    while let Some(msg) = ws.recv().await {
+        // Messages validated against contract
+        ws.send(response).await;
+    }
+}
+```
+
+### Week 31-32: Background Processing
+
+- [ ] Background task spawning
+- [ ] Scheduled jobs (cron expressions)
+- [ ] Task queues with retry logic
+- [ ] Database connection pooling (SQLx)
+
+```rust
+#[archimedes::task(schedule = "0 0 * * *")]  // Daily at midnight
+async fn cleanup_expired_sessions(db: Inject<Database>) {
+    db.delete_expired_sessions().await;
+}
+```
+
+### A8 Deliverables
+
+- `archimedes-ws` - WebSocket support
+- `archimedes-sse` - Server-Sent Events
+- `archimedes-tasks` - Background task system
+- `archimedes-db` - Database connection pooling
+
+---
+
+## Phase A9: Developer Experience (Weeks 33-36) 🛠️ NEW
+
+> **Goal**: CLI tools, hot reload, and project scaffolding
+
+### Week 33-34: CLI Tool
+
+- [ ] `archimedes new <project>` - Scaffold new project
+- [ ] `archimedes generate handler` - Generate handler from contract
+- [ ] `archimedes generate client` - Generate client SDK
+- [ ] `archimedes dev` - Development server with hot reload
+- [ ] `archimedes build` - Production build
+
+```bash
+# Create new project
+$ archimedes new my-service --contract api.yaml
+
+# Generate handlers from contract
+$ archimedes generate handler --contract api.yaml --output src/handlers/
+
+# Run development server with hot reload
+$ archimedes dev
+```
+
+### Week 35-36: Developer Tools
+
+- [ ] Hot reload in development mode
+- [ ] Request/response logging with pretty printing
+- [ ] Error overlay in development
+- [ ] Template engine integration (Askama/Tera)
+- [ ] Static file serving
+
+### A9 Deliverables
+
+- `archimedes-cli` - Command-line tool
+- `archimedes-dev` - Development server
+- `archimedes-templates` - Template engine integration
+- Project templates and examples
+
+---
+
+## Phase A10: Multi-Language SDKs (Weeks 37-40) 🌍 NEW
+
+> **Goal**: Generate client SDKs for Python, TypeScript, Go, C++
+
+### Week 37-38: Python and TypeScript SDKs
+
+- [ ] Python SDK generator (asyncio-based)
+- [ ] TypeScript SDK generator (fetch/axios)
+- [ ] Type-safe request/response types
+- [ ] Automatic retry and error handling
+- [ ] Authentication handling
+
+```python
+# Generated Python client
+from my_service import MyServiceClient, CreateUserRequest
+
+client = MyServiceClient(base_url="https://api.example.com")
+user = await client.create_user(CreateUserRequest(name="Alice", email="alice@example.com"))
+```
+
+```typescript
+// Generated TypeScript client
+import { MyServiceClient, CreateUserRequest } from "./my-service-client";
+
+const client = new MyServiceClient({ baseUrl: "https://api.example.com" });
+const user = await client.createUser({
+  name: "Alice",
+  email: "alice@example.com",
+});
+```
+
+### Week 39-40: Go and C++ SDKs
+
+- [ ] Go SDK generator
+- [ ] C++ SDK generator (with Boost.Asio option)
+- [ ] gRPC client generation (for services using gRPC)
+- [ ] SDK versioning and compatibility
+
+```go
+// Generated Go client
+client := myservice.NewClient("https://api.example.com")
+user, err := client.CreateUser(ctx, &myservice.CreateUserRequest{
+    Name: "Alice",
+    Email: "alice@example.com",
+})
+```
+
+### A10 Deliverables
+
+- `archimedes-codegen-python` - Python SDK generator
+- `archimedes-codegen-typescript` - TypeScript SDK generator
+- `archimedes-codegen-go` - Go SDK generator
+- `archimedes-codegen-cpp` - C++ SDK generator
+- SDK templates and runtime libraries
 
 ---
 
 ## Milestones Summary
 
-| Milestone         | Target  | Criteria                       | Dependencies            |
-| ----------------- | ------- | ------------------------------ | ----------------------- |
-| A0: Shared Types  | Week 1  | Using `themis-platform-types`  | Themis creates crate    |
-| A1: Foundation    | Week 4  | Core types, mock contracts     | `themis-platform-types` |
-| A2: Server        | Week 8  | HTTP server, routing, handlers | None                    |
-| A3: Middleware    | Week 12 | Full pipeline with mocks       | None                    |
-| A4: Observability | Week 16 | Metrics, traces, logs, config  | None                    |
-| A5: Integrated    | Week 20 | Themis + Eunomia integration   | Themis, Eunomia         |
+| Milestone             | Target  | Criteria                         | Dependencies            |
+| --------------------- | ------- | -------------------------------- | ----------------------- |
+| **MVP Release**       |         |                                  |                         |
+| A0: Shared Types      | Week 1  | Using `themis-platform-types`    | Themis creates crate    |
+| A1: Foundation        | Week 4  | Core types, mock contracts       | `themis-platform-types` |
+| A2: Server            | Week 8  | HTTP server, routing, handlers   | None                    |
+| A3: Middleware        | Week 12 | Full pipeline with mocks         | None                    |
+| A4: Observability     | Week 16 | Metrics, traces, logs, config    | None                    |
+| A5: Integrated        | Week 20 | Themis + Eunomia integration     | Themis, Eunomia         |
+| **Framework Release** |         |                                  |                         |
+| A6: Core Framework    | Week 24 | Router, extractors (Axum parity) | MVP                     |
+| A7: FastAPI Parity    | Week 28 | Handler macros, auto-docs        | A6                      |
+| A8: Extended Features | Week 32 | WebSocket, SSE, background tasks | A7                      |
+| A9: Developer Exp     | Week 36 | CLI, hot reload, templates       | A8                      |
+| A10: Multi-Lang SDKs  | Week 40 | Python, TS, Go, C++ generators   | A9                      |
 
 ---
 
 ## Deliverables
 
-### Crates
+### Core Crates (MVP)
 
 - `themis-platform-types` - **Shared types** (dependency, not owned)
 - `archimedes` - Main facade crate (re-exports)
-- `archimedes-core` - Core types and traits (depends on `themis-platform-types`)
-- `archimedes-server` - HTTP/gRPC server
+- `archimedes-core` - Core types and traits
+- `archimedes-server` - HTTP server (Hyper-based)
 - `archimedes-middleware` - Middleware pipeline
 - `archimedes-sentinel` - Themis contract validation
 - `archimedes-authz` - OPA/Eunomia integration
 - `archimedes-telemetry` - OpenTelemetry integration
 - `archimedes-config` - Configuration management
 
-### Features
+### Framework Crates (New)
+
+- `archimedes-router` - High-performance radix tree router
+- `archimedes-extract` - Request extractors (Path, Query, Json, etc.)
+- `archimedes-macros` - Proc macros (`#[handler]`, etc.)
+- `archimedes-docs` - Auto-documentation (Swagger UI, ReDoc)
+- `archimedes-ws` - WebSocket support
+- `archimedes-sse` - Server-Sent Events
+- `archimedes-tasks` - Background tasks and scheduled jobs
+- `archimedes-db` - Database connection pooling
+
+### Tools
+
+- `archimedes-cli` - Command-line scaffolding tool
+- `archimedes-dev` - Development server with hot reload
+
+### Code Generators
+
+- `archimedes-codegen-rust` - Rust client/server generation
+- `archimedes-codegen-python` - Python SDK generation
+- `archimedes-codegen-typescript` - TypeScript SDK generation
+- `archimedes-codegen-go` - Go SDK generation
+- `archimedes-codegen-cpp` - C++ SDK generation
+
+### Features (Full Release)
 
 - HTTP/1.1 and HTTP/2 support
-- gRPC support (via Tonic)
+- gRPC support (post-MVP)
 - Fixed-order middleware pipeline
 - Contract validation (enforced/monitor modes)
 - OPA authorization
 - OpenTelemetry observability
 - Typed configuration
 - Graceful shutdown
+- **Custom high-performance router**
+- **Type-safe extractors**
+- **Handler macros (FastAPI-style)**
+- **Auto-generated documentation**
+- **WebSocket and SSE**
+- **Background tasks and cron jobs**
+- **Database connection pooling**
+- **CLI scaffolding**
+- **Hot reload development**
+- **Multi-language SDK generation**
 
 ---
 

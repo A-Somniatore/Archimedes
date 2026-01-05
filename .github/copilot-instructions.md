@@ -386,6 +386,16 @@ archimedes/
 └── CONTRIBUTING.md
 ```
 
+## Terminal Command Preferences
+
+When running terminal commands:
+
+- **Never use `2>&1`** – Avoid stderr redirection in commands
+- **Never use `-p` package filters** – Run `cargo test` for the whole workspace, not `cargo test -p <crate>`
+- **Avoid subprocesses that don't terminate** – Some filtered commands hang indefinitely
+- **Use `cargo test --workspace`** – For running all tests across the workspace
+- **Single-line commit messages** – Keep commit messages concise
+
 ## Key Reminders
 
 1. **Test everything** – If it's not tested, it's broken

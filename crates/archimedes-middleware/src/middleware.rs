@@ -121,7 +121,11 @@ enum NextInner<'a> {
         next: Box<Next<'a>>,
     },
     /// End of chain - invoke the handler
-    Handler(Box<dyn FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> + Send + 'a>),
+    Handler(
+        Box<
+            dyn FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> + Send + 'a,
+        >,
+    ),
 }
 
 impl<'a> Next<'a> {
@@ -150,9 +154,7 @@ impl<'a> Next<'a> {
     /// This consumes `self` to ensure it can only be called once.
     pub async fn run(self, ctx: &mut MiddlewareContext, request: Request) -> Response {
         match self.inner {
-            NextInner::Chain { middleware, next } => {
-                middleware.process(ctx, request, *next).await
-            }
+            NextInner::Chain { middleware, next } => middleware.process(ctx, request, *next).await,
             NextInner::Handler(handler) => handler(ctx, request).await,
         }
     }
@@ -210,9 +212,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bytes::Bytes;
     use http::{Request as HttpRequest, Response as HttpResponse, StatusCode};
     use http_body_util::Full;
-    use bytes::Bytes;
 
     struct TestMiddleware {
         name: &'static str,

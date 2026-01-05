@@ -73,4 +73,7 @@ pub use pipeline::{HookError, Pipeline, PipelineBuilder, Stage};
 pub use types::{Request, Response, ResponseExt};
 
 // Re-export stage middleware
-pub use stages::{IdentityMiddleware, RequestIdMiddleware, TracingMiddleware};
+pub use stages::{
+    AuthorizationMiddleware, IdentityMiddleware, RequestIdMiddleware, ResponseValidationMiddleware,
+    TracingMiddleware, ValidationMiddleware,
+};

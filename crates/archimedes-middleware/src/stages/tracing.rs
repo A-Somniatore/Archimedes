@@ -112,13 +112,13 @@ impl Middleware for TracingMiddleware {
     ) -> BoxFuture<'a, Response> {
         Box::pin(async move {
             // Extract or generate trace context
-            let trace_context = self
-                .extract_trace_context(&request)
-                .unwrap_or_else(|| TraceContext {
-                    trace_id: Self::generate_trace_id(),
-                    parent_span_id: None,
-                    flags: TraceFlags::SAMPLED,
-                });
+            let trace_context =
+                self.extract_trace_context(&request)
+                    .unwrap_or_else(|| TraceContext {
+                        trace_id: Self::generate_trace_id(),
+                        parent_span_id: None,
+                        flags: TraceFlags::SAMPLED,
+                    });
 
             // Generate new span ID for this request
             let span_id = Self::generate_span_id();
@@ -256,7 +256,8 @@ mod tests {
             .unwrap()
     }
 
-    fn create_handler() -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
+    fn create_handler()
+    -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
         |_ctx, _req| {
             Box::pin(async {
                 HttpResponse::builder()
@@ -307,7 +308,10 @@ mod tests {
 
         // Should have parent span ID in extension
         let span_info = ctx.get_extension::<SpanInfo>().unwrap();
-        assert_eq!(span_info.parent_span_id, Some("b7ad6b7169203331".to_string()));
+        assert_eq!(
+            span_info.parent_span_id,
+            Some("b7ad6b7169203331".to_string())
+        );
     }
 
     #[tokio::test]

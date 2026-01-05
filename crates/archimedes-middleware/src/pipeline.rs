@@ -109,7 +109,12 @@ impl Pipeline {
     /// This is the main entry point for request processing. The request
     /// flows through all middleware stages in order, then to the handler,
     /// then through post-handler stages.
-    pub async fn process<H>(&self, mut ctx: MiddlewareContext, request: Request, handler: H) -> Response
+    pub async fn process<H>(
+        &self,
+        mut ctx: MiddlewareContext,
+        request: Request,
+        handler: H,
+    ) -> Response
     where
         H: FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> + Send + 'static,
     {

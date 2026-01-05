@@ -3,7 +3,7 @@
 //! The [`Handler`] trait defines the interface for request handlers in Archimedes.
 
 use crate::{RequestContext, ThemisError};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use std::future::Future;
 
 /// A trait for handling typed requests.

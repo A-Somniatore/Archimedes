@@ -541,9 +541,7 @@ mod tests {
 
     #[test]
     fn test_route_match_clone() {
-        let params = [("id".to_string(), "42".to_string())]
-            .into_iter()
-            .collect();
+        let params = [("id".to_string(), "42".to_string())].into_iter().collect();
         let m1 = RouteMatch::new("test", params);
         let m2 = m1.clone();
 
