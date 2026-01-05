@@ -77,6 +77,11 @@ where
 /// A type-erased handler for use in the router.
 ///
 /// This allows storing handlers of different types in a single collection.
+///
+/// # Note
+///
+/// This trait will be used in Phase A5+ when integrating with real handlers.
+#[allow(dead_code)]
 pub trait ErasedHandler: Send + Sync + 'static {
     /// Handles a request with raw JSON input/output.
     ///
@@ -110,6 +115,11 @@ pub trait ErasedHandler: Send + Sync + 'static {
 ///
 /// let handler = FnHandler::new(get_user);
 /// ```
+///
+/// # Note
+///
+/// This struct will be actively used in Phase A6+ when implementing handler macros.
+#[allow(dead_code)]
 pub struct FnHandler<F, Req, Res, Fut>
 where
     F: Fn(&RequestContext, Req) -> Fut + Send + Sync + 'static,
@@ -130,6 +140,7 @@ where
 {
     /// Creates a new function-based handler.
     #[must_use]
+    #[allow(dead_code)]
     pub const fn new(func: F) -> Self {
         Self {
             func,
@@ -154,12 +165,22 @@ where
 ///
 /// Use this for operations like health checks or operations where all
 /// parameters come from the URL path or query string.
+///
+/// # Note
+///
+/// This type will be used when implementing handlers that don't require request bodies.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Default, serde::Deserialize, serde::Serialize)]
 pub struct Empty {}
 
 /// Unit response type for handlers that don't return a body.
 ///
 /// Use this for operations that return only a status code (e.g., 204 No Content).
+///
+/// # Note
+///
+/// This type will be used for handlers returning 204 No Content responses.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
 pub struct NoContent {}
 

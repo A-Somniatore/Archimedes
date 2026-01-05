@@ -1,8 +1,26 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 1.0.0  
-> **Status**: Design Phase  
+> **Version**: 2.0.0  
+> **Status**: Implementation Phase (Phase A3 Complete)  
+> **Last Updated**: 2026-01-05  
 > **Component**: archimedes
+
+---
+
+## Implementation Status
+
+| Crate | Status | Tests | Description |
+|-------|--------|-------|-------------|
+| `archimedes` | ✅ Complete | - | Main facade crate (re-exports) |
+| `archimedes-core` | ✅ Complete | 52 | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract |
+| `archimedes-server` | ✅ Complete | 90 | HTTP server, routing, handler registry, graceful shutdown |
+| `archimedes-middleware` | ✅ Complete | 104 | All 8 middleware stages + pipeline |
+| `archimedes-telemetry` | 🔜 Phase A4 | - | Prometheus metrics, OpenTelemetry tracing |
+| `archimedes-config` | 🔜 Phase A4 | - | Typed configuration |
+| `archimedes-sentinel` | 🔜 Phase A5 | - | Themis contract integration |
+| `archimedes-authz` | 🔜 Phase A5 | - | Eunomia/OPA integration |
+
+**Total Tests**: 246 passing
 
 ---
 
@@ -60,12 +78,12 @@ Unlike general-purpose frameworks (Axum, Actix, FastAPI), Archimedes is **opinio
 - ✅ Enable code generation from Themis contracts
 - ✅ Make non-compliance a compile-time or startup error
 
-### Non-Goals (V1)
+### Non-Goals (V1 MVP)
 
 - ❌ Plugin-based middleware systems
 - ❌ Runtime policy authoring or hot-reload of business logic
 - ❌ HTTP/3 / QUIC support
-- ❌ WebSocket support (may revisit in V2)
+- ❌ WebSocket support (planned for Phase A8 post-MVP)
 - ❌ Acting as a general-purpose web framework
 
 ---
@@ -224,6 +242,8 @@ where
 
 The Archimedes repository is organized as a Cargo workspace:
 
+> **Note**: Implemented crates are marked with ✅, planned crates with 🔜
+
 ```
 archimedes/
 ├── Cargo.toml                    # Workspace root
@@ -231,43 +251,49 @@ archimedes/
 ├── LICENSE
 │
 ├── crates/
-│   ├── archimedes/               # Main library crate (facade)
+│   ├── archimedes/               # ✅ Main library crate (facade)
 │   │   ├── Cargo.toml
 │   │   └── src/
 │   │       ├── lib.rs            # Re-exports public API
 │   │       └── prelude.rs        # Common imports
 │   │
-│   ├── archimedes-core/          # Core types and traits
+│   ├── archimedes-core/          # ✅ Core types and traits
 │   │   └── src/
 │   │       ├── lib.rs
-│   │       ├── context.rs        # RequestContext
+│   │       ├── context.rs        # RequestContext, RequestId
 │   │       ├── handler.rs        # Handler trait
-│   │       ├── error.rs          # ThemisError types
-│   │       └── identity.rs       # CallerIdentity
+│   │       ├── error.rs          # ThemisError, ErrorEnvelope
+│   │       ├── identity.rs       # CallerIdentity
+│   │       ├── contract.rs       # Mock Contract, Operation, MockSchema
+│   │       └── fixtures.rs       # Test fixtures
 │   │
-│   ├── archimedes-server/        # HTTP/gRPC server implementation
+│   ├── archimedes-server/        # ✅ HTTP server implementation
 │   │   └── src/
 │   │       ├── lib.rs
 │   │       ├── server.rs         # Main server struct
 │   │       ├── router.rs         # Request routing
-│   │       ├── transport/
-│   │       │   ├── http.rs
-│   │       │   └── grpc.rs
+│   │       ├── handler.rs        # Handler registry
+│   │       ├── config.rs         # Server configuration
+│   │       ├── health.rs         # Health/readiness endpoints
 │   │       └── shutdown.rs       # Graceful shutdown
 │   │
-│   ├── archimedes-middleware/    # Middleware pipeline
+│   ├── archimedes-middleware/    # ✅ Middleware pipeline
 │   │   └── src/
 │   │       ├── lib.rs
+│   │       ├── middleware.rs     # Middleware trait
+│   │       ├── context.rs        # MiddlewareContext
 │   │       ├── pipeline.rs       # Fixed middleware chain
-│   │       ├── request_id.rs
-│   │       ├── tracing.rs
-│   │       ├── identity.rs
-│   │       ├── authz.rs          # OPA integration
-│   │       ├── validation.rs     # Contract validation
-│   │       ├── telemetry.rs
-│   │       └── error_normalize.rs
+│   │       └── stages/
+│   │           ├── request_id.rs       # Stage 1: UUID v7 generation
+│   │           ├── tracing.rs          # Stage 2: W3C Trace Context
+│   │           ├── identity.rs         # Stage 3: SPIFFE/JWT/ApiKey
+│   │           ├── authorization.rs    # Stage 4: RBAC authorization
+│   │           ├── validation.rs       # Stage 5: Request validation
+│   │           ├── response_validation.rs  # Stage 6
+│   │           ├── telemetry.rs        # Stage 7: Metrics/logs
+│   │           └── error_normalization.rs  # Stage 8
 │   │
-│   ├── archimedes-sentinel/      # Themis contract validation
+│   ├── archimedes-sentinel/      # 🔜 Themis contract validation (Phase A5)
 │   │   └── src/
 │   │       ├── lib.rs
 │   │       ├── loader.rs         # Contract artifact loading

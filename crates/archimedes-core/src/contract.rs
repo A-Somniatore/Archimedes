@@ -875,6 +875,7 @@ impl MockSchema {
         value: &serde_json::Value,
         path: &str,
     ) -> Result<(), ValidationError> {
+        #[allow(unused_imports)]
         use serde_json::Value;
 
         // Handle null values

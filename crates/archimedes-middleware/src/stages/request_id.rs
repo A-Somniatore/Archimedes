@@ -169,7 +169,7 @@ mod tests {
     async fn test_generates_request_id_when_missing() {
         let middleware = RequestIdMiddleware::new();
         let mut ctx = MiddlewareContext::new();
-        let original_id = ctx.request_id();
+        let _original_id = ctx.request_id();
         let request = create_test_request();
 
         let next = Next::handler(create_handler());

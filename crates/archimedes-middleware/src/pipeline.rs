@@ -56,13 +56,23 @@ pub struct Pipeline {
     /// Pre-handler middleware stages (stages 1-5)
     pre_handler_stages: Vec<BoxedMiddleware>,
 
-    /// Optional pre-handler extension point
+    /// Optional pre-handler extension point.
+    ///
+    /// Note: This field is stored for future use when hooks are integrated
+    /// into the pipeline execution. Currently hooks are configured but not
+    /// invoked - this will be implemented in Phase A5 integration.
+    #[allow(dead_code)]
     pre_handler_hook: Option<PreHandlerHook>,
 
     /// Post-handler middleware stages (stages 6-8)
     post_handler_stages: Vec<BoxedMiddleware>,
 
-    /// Optional post-handler extension point
+    /// Optional post-handler extension point.
+    ///
+    /// Note: This field is stored for future use when hooks are integrated
+    /// into the pipeline execution. Currently hooks are configured but not
+    /// invoked - this will be implemented in Phase A5 integration.
+    #[allow(dead_code)]
     post_handler_hook: Option<PostHandlerHook>,
 }
 

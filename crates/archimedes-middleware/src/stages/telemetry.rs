@@ -113,6 +113,11 @@ impl TelemetryMiddleware {
     }
 
     /// Collects telemetry data from the context and response.
+    ///
+    /// Note: This method provides a reusable way to collect telemetry data.
+    /// Currently telemetry collection is inlined in the process method for
+    /// ownership reasons, but this method is kept for future use.
+    #[allow(dead_code)]
     fn collect_telemetry(
         &self,
         ctx: &MiddlewareContext,
