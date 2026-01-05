@@ -50,6 +50,12 @@ pub use archimedes_server as server;
 // Re-export middleware types
 pub use archimedes_middleware as middleware;
 
+// Re-export router types
+pub use archimedes_router as router;
+
+// Re-export extraction types
+pub use archimedes_extract as extract;
+
 /// Prelude module for convenient imports.
 ///
 /// # Example
@@ -60,5 +66,15 @@ pub use archimedes_middleware as middleware;
 pub mod prelude {
     pub use archimedes_core::{
         CallerIdentity, Handler, RequestContext, RequestId, ThemisError, ThemisResult,
+    };
+
+    // Re-export common extractors
+    pub use archimedes_extract::{
+        Form, Header, Headers, Json, JsonWithLimit, Path, Query, RawQuery,
+    };
+
+    // Re-export common response builders
+    pub use archimedes_extract::response::{
+        ErrorResponse, HtmlResponse, JsonResponse, NoContent, Redirect, TextResponse,
     };
 }
