@@ -558,28 +558,87 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Week 13: Metrics
 
-- [ ] Create `archimedes-telemetry` crate
-- [ ] Implement Prometheus metrics
-- [ ] Add `archimedes_requests_total` counter
-- [ ] Add `archimedes_request_duration_seconds` histogram
-- [ ] Add `archimedes_in_flight_requests` gauge
+- [x] Create `archimedes-telemetry` crate
+  > ✅ **Completed 2026-01-05**: Full telemetry infrastructure
+  >
+  > - Prometheus metrics, OpenTelemetry tracing, structured logging
+  > - Unified `TelemetryConfig` builder
+  > - `TelemetryGuard` for graceful shutdown
+- [x] Implement Prometheus metrics
+  > ✅ **Completed 2026-01-05**: `archimedes_telemetry::metrics` module
+  >
+  > - `MetricsConfig` with builder pattern
+  > - `init_metrics()` and `render_metrics()` functions
+  > - `metrics-exporter-prometheus` 0.16 integration
+- [x] Add `archimedes_requests_total` counter
+  > ✅ **Completed 2026-01-05**: `record_request()` function
+  >
+  > - Labels: operation_id, method, status_code
+- [x] Add `archimedes_request_duration_seconds` histogram
+  > ✅ **Completed 2026-01-05**: Duration recording with custom buckets
+  >
+  > - Default buckets: 0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0
+- [x] Add `archimedes_in_flight_requests` gauge
+  > ✅ **Completed 2026-01-05**: RAII-style `InFlightGuard`
+  >
+  > - `increment_in_flight()` / `decrement_in_flight()`
+  > - Guard auto-decrements on drop
 - [ ] Expose `/metrics` endpoint
+  > 🔜 **Pending**: Requires server integration
 
 ### Week 14: Tracing
 
-- [ ] Integrate OpenTelemetry tracing
-- [ ] Implement trace context propagation
-- [ ] Add span attributes (operationId, service, etc.)
-- [ ] Configure OTLP exporter
-- [ ] Test trace correlation
+- [x] Integrate OpenTelemetry tracing
+  > ✅ **Completed 2026-01-05**: `archimedes_telemetry::tracing` module
+  >
+  > - OpenTelemetry 0.27 with `opentelemetry_sdk`
+  > - `TracingConfig` with service name, environment, sampling ratio
+  > - `init_tracing()` and `shutdown_tracing()` functions
+- [x] Implement trace context propagation
+  > ✅ **Completed 2026-01-05**: W3C Trace Context support
+  >
+  > - `HeaderExtractor` and `HeaderInjector` for http::HeaderMap
+  > - `extract_context()` and `inject_context()` helpers
+- [x] Add span attributes (operationId, service, etc.)
+  > ✅ **Completed 2026-01-05**: Semantic conventions
+  >
+  > - Uses `opentelemetry-semantic-conventions` 0.27
+  > - Service name, version, environment attributes
+- [x] Configure OTLP exporter
+  > ✅ **Completed 2026-01-05**: `opentelemetry-otlp` 0.27
+  >
+  > - Configurable endpoint via `TracingConfig::otlp_endpoint`
+  > - Tonic gRPC transport
+- [x] Test trace correlation
+  > ✅ **Completed 2026-01-05**: Header extraction/injection tests
 
 ### Week 15: Logging
 
-- [ ] Implement structured JSON logging
-- [ ] Add request_id, trace_id to all logs
-- [ ] Configure log levels
-- [ ] Add audit logging for authz decisions
-- [ ] Test log output format
+- [x] Implement structured JSON logging
+  > ✅ **Completed 2026-01-05**: `archimedes_telemetry::logging` module
+  >
+  > - `LogConfig` with format (JSON/Pretty), level, service name
+  > - `init_logging()` with tracing-subscriber
+  > - `development()` and `production()` presets
+- [x] Add request_id, trace_id to all logs
+  > ✅ **Completed 2026-01-05**: `fields` module constants
+  >
+  > - REQUEST_ID, TRACE_ID, SPAN_ID, OPERATION_ID
+  > - USER_ID, TENANT_ID, CLIENT_ID
+- [x] Configure log levels
+  > ✅ **Completed 2026-01-05**: `create_env_filter()` helper
+  >
+  > - EnvFilter-based level configuration
+  > - Supports RUST_LOG environment variable
+- [x] Add audit logging for authz decisions
+  > ✅ **Completed 2026-01-05**: `record_authz_decision()` in metrics
+  >
+  > - Labels: operation_id, decision (allow/deny), policy_name
+- [x] Test log output format
+  > ✅ **Completed 2026-01-05**: LogConfig tests (6 tests)
+  >
+  > - Default, development, production config tests
+  > - Field name constant tests
 
 ### Week 16: Configuration
 

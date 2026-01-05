@@ -15,12 +15,12 @@
 | `archimedes-core` | ✅ Complete | 52 | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract |
 | `archimedes-server` | ✅ Complete | 90 | HTTP server, routing, handler registry, graceful shutdown |
 | `archimedes-middleware` | ✅ Complete | 104 | All 8 middleware stages + pipeline |
-| `archimedes-telemetry` | 🔜 Phase A4 | - | Prometheus metrics, OpenTelemetry tracing |
+| `archimedes-telemetry` | ✅ Complete | 25 | Prometheus metrics, OpenTelemetry tracing, structured logging |
 | `archimedes-config` | 🔜 Phase A4 | - | Typed configuration |
 | `archimedes-sentinel` | 🔜 Phase A5 | - | Themis contract integration |
 | `archimedes-authz` | 🔜 Phase A5 | - | Eunomia/OPA integration |
 
-**Total Tests**: 246 passing
+**Total Tests**: 271 passing
 
 ---
 
