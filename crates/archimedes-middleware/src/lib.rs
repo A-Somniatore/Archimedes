@@ -74,6 +74,6 @@ pub use types::{Request, Response, ResponseExt};
 
 // Re-export stage middleware
 pub use stages::{
-    AuthorizationMiddleware, IdentityMiddleware, RequestIdMiddleware, ResponseValidationMiddleware,
-    TracingMiddleware, ValidationMiddleware,
+    AuthorizationMiddleware, ErrorNormalizationMiddleware, IdentityMiddleware, RequestIdMiddleware,
+    ResponseValidationMiddleware, TelemetryMiddleware, TracingMiddleware, ValidationMiddleware,
 };

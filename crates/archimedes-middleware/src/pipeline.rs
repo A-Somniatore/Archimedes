@@ -196,20 +196,26 @@ impl PipelineBuilder {
 
     /// Adds a pre-handler middleware stage.
     ///
-    /// **Note**: This is intended for internal use only. Users cannot
-    /// add custom middleware to the core pipeline.
+    /// Pre-handler stages run before the request handler, in order:
+    /// 1. Request ID
+    /// 2. Tracing
+    /// 3. Identity
+    /// 4. Authorization
+    /// 5. Request Validation
     #[must_use]
-    pub(crate) fn add_pre_handler_stage<M: Middleware>(mut self, middleware: M) -> Self {
+    pub fn add_pre_handler_stage<M: Middleware>(mut self, middleware: M) -> Self {
         self.pre_handler_stages.push(Arc::new(middleware));
         self
     }
 
     /// Adds a post-handler middleware stage.
     ///
-    /// **Note**: This is intended for internal use only. Users cannot
-    /// add custom middleware to the core pipeline.
+    /// Post-handler stages run after the request handler, in order:
+    /// 6. Response Validation
+    /// 7. Telemetry
+    /// 8. Error Normalization
     #[must_use]
-    pub(crate) fn add_post_handler_stage<M: Middleware>(mut self, middleware: M) -> Self {
+    pub fn add_post_handler_stage<M: Middleware>(mut self, middleware: M) -> Self {
         self.post_handler_stages.push(Arc::new(middleware));
         self
     }

@@ -1,9 +1,9 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.0.0  
+> **Version**: 2.1.0  
 > **Created**: 2026-01-04  
 > **Last Updated**: 2026-01-05  
-> **Target Completion**: Week 40 (Full Framework Release)
+> **Target Completion**: Week 48 (includes 4-week buffer)
 
 ---
 
@@ -11,23 +11,26 @@
 
 | Decision                                                                     | Impact                                                 |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------ |
-| [ADR-008](../../docs/decisions/008-archimedes-full-framework.md)             | **Archimedes replaces Axum/FastAPI/Boost (not wraps)** |
+| [ADR-008](../../docs/decisions/008-archimedes-full-framework.md)             | **Archimedes as internal standardized framework** |
 | [ADR-005](../../docs/decisions/005-kubernetes-ingress-over-custom-router.md) | Archimedes handles contract enforcement, not routing   |
 | [ADR-006](../../docs/decisions/006-grpc-post-mvp.md)                         | MVP is HTTP/REST only, gRPC is post-MVP                |
 | [ADR-004](../../docs/decisions/004-regorus-for-rego-parsing.md)              | Use Regorus for embedded OPA evaluation                |
 | [ADR-007](../../docs/decisions/007-apache-2-license.md)                      | Apache 2.0 license                                     |
 
-## Vision: Full Framework Replacement
+## Vision: Internal Standardization
 
-Archimedes is positioned as a **complete replacement** for:
+Archimedes is an **internal platform** that standardizes how we build services:
 
-- **Axum** (Rust) – We match ergonomics, add governance
-- **FastAPI** (Python) – We match DX, add type safety + performance
-- **Boost.Beast** (C++) – We match performance, add modern abstractions
+| Challenge (Per-Team Choice) | Archimedes Solution |
+|-----------------------------|---------------------|
+| Each team picks different framework | One standard for all services |
+| Auth implemented differently | OPA-based auth built-in |
+| Validation varies | Contract-driven, automatic |
+| Observability setup per service | Built-in, zero config |
 
-**Archimedes Responsibilities (Full Release):**
+**Archimedes Responsibilities (V1 Release):**
 
-- **Own the HTTP layer** (direct Hyper, not through Axum)
+- **Own the HTTP layer** (direct Hyper for full control)
 - High-performance custom router with radix tree matching
 - Native request/response extractors
 - Dependency injection system
@@ -36,12 +39,16 @@ Archimedes is positioned as a **complete replacement** for:
 - Full observability (OpenTelemetry)
 - WebSocket and SSE support
 - Background tasks and scheduled jobs
-- Multi-language SDK generation
+
+**Deferred to V1.1:**
+
+- Multi-language SDK generation (Python, TS, Go, C++)
+- GraphQL support
 
 **NOT Archimedes Responsibilities:**
 
 - External traffic routing (use K8s Ingress)
-- HTTP/3 / QUIC (V2 feature)
+- HTTP/3 / QUIC (future consideration)
 - Arbitrary middleware plugins (fixed pipeline)
 
 ---
@@ -77,14 +84,23 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 | A3: Middleware              | 4 weeks  | 9-12  | Middleware pipeline, validation   | None (mock validation)  |
 | A4: Observability           | 4 weeks  | 13-16 | Metrics, tracing, logging, config | None                    |
 | A5: Integration             | 4 weeks  | 17-20 | Themis + Eunomia integration      | Themis, Eunomia         |
-| **Framework (Weeks 21-40)** |          |       |                                   |                         |
+| **Framework (Weeks 21-36)** |          |       |                                   |                         |
 | A6: Core Framework          | 4 weeks  | 21-24 | Custom router, extractors, DI     | MVP complete            |
-| A7: FastAPI Parity          | 4 weeks  | 25-28 | Handler macros, auto-docs         | A6                      |
+| A7: Handler Macros          | 4 weeks  | 25-28 | Handler macros, auto-docs         | A6                      |
 | A8: Extended Features       | 4 weeks  | 29-32 | WebSocket, SSE, background tasks  | A7                      |
 | A9: Developer Experience    | 4 weeks  | 33-36 | CLI tool, hot reload, templates   | A8                      |
-| A10: Multi-Language SDKs    | 4 weeks  | 37-40 | Python, TS, Go, C++ code gen      | A9                      |
+| **Stoa (Weeks 37-44)**      |          |       |                                   |                         |
+| Stoa UI                     | 8 weeks  | 37-44 | Visibility dashboard              | A9, Archimedes          |
+| **Buffer (Weeks 45-48)**    |          |       |                                   |                         |
+| Hardening & Buffer          | 4 weeks  | 45-48 | Performance tuning, contingency   | All                     |
 
-**Total**: 40 weeks (20 weeks MVP + 20 weeks Full Framework)
+**Total**: 48 weeks (12 months)
+- MVP: Weeks 1-20
+- Full Framework: Weeks 21-36
+- Stoa UI: Weeks 37-44
+- Buffer: Weeks 45-48
+
+**Note**: Multi-language SDK generation (A10) deferred to V1.1 to ensure quality of core platform.
 
 ### Cross-Component Timeline Alignment
 
@@ -492,20 +508,49 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
   >
   > - Schema-based response validation
   > - Configurable enforce mode (error vs log-only)
-- [ ] Implement telemetry emission middleware
-- [ ] Implement error normalization middleware
-- [ ] Wire complete request→response pipeline
-- [ ] End-to-end pipeline tests
+- [x] Implement telemetry emission middleware
+  > ✅ **Completed 2026-01-05**: `TelemetryMiddleware`
+  >
+  > - Service name, version, environment tracking
+  > - Request duration measurement
+  > - Status code, operation ID, request/trace IDs
+  > - `TelemetryData` stored in context for inspection
+  > - 7 telemetry tests
+- [x] Implement error normalization middleware
+  > ✅ **Completed 2026-01-05**: `ErrorNormalizationMiddleware`
+  >
+  > - Converts all errors to standard JSON envelope
+  > - Error code mapping (NOT_FOUND, UNAUTHORIZED, etc.)
+  > - Request ID in all error responses
+  > - Internal error message hiding (configurable)
+  > - 9 error normalization tests
+- [x] Wire complete request→response pipeline
+  > ✅ **Completed 2026-01-05**: Full 8-stage pipeline
+  >
+  > - `PipelineBuilder` with public `add_pre_handler_stage` and `add_post_handler_stage`
+  > - Stages: RequestId → Tracing → Identity → Authorization → Validation → Telemetry → ErrorNormalization
+  > - Context flows through all stages
+- [x] End-to-end pipeline tests
+  > ✅ **Completed 2026-01-05**: `tests/pipeline_e2e.rs`
+  >
+  > - Full pipeline integration tests (19 tests)
+  > - SPIFFE identity extraction test
+  > - Trace context propagation test
+  > - RBAC authorization tests
+  > - Validation tests
+  > - Error normalization tests
 
 ### Phase A3 Milestone
 
 **Criteria**: Full middleware pipeline works with mock validation/auth
 
-> 🔄 **Status (2026-01-05)**: Phase A3 IN PROGRESS
+> ✅ **Status (2026-01-05)**: Phase A3 COMPLETE
 >
-> - Week 9-11 complete: Middleware architecture, core middleware, authorization, validation
-> - 69 middleware tests passing
-> - Week 12 remaining: telemetry, error normalization, end-to-end tests
+> - All 8 middleware stages implemented and tested
+> - 85 middleware tests + 19 end-to-end tests = 104 total middleware tests
+> - RequestId, Tracing, Identity, Authorization, Validation, ResponseValidation, Telemetry, ErrorNormalization
+> - Full pipeline wired and working
+> - Ready to proceed to Phase A4: Observability & Config
 
 ---
 

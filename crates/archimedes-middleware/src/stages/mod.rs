@@ -15,12 +15,14 @@
 //! ## Post-Handler Stages (6-8)
 //!
 //! 6. [`validation`] - Response validation (via `ResponseValidationMiddleware`)
-//! 7. `telemetry` - Emit metrics and logs (Week 12)
-//! 8. `error_normalization` - Error envelope conversion (Week 12)
+//! 7. [`telemetry`] - Emit metrics and logs
+//! 8. [`error_normalization`] - Error envelope conversion
 
 pub mod authorization;
+pub mod error_normalization;
 pub mod identity;
 pub mod request_id;
+pub mod telemetry;
 pub mod tracing;
 pub mod validation;
 
@@ -28,8 +30,10 @@ pub mod validation;
 pub use authorization::{
     AuthorizationMiddleware, AuthorizationResult, PolicyDecision, PolicyEvaluator, RbacBuilder,
 };
+pub use error_normalization::{ErrorNormalizationMiddleware, NormalizedError};
 pub use identity::IdentityMiddleware;
 pub use request_id::RequestIdMiddleware;
+pub use telemetry::{TelemetryBuilder, TelemetryData, TelemetryMiddleware};
 pub use tracing::{SpanInfo, TraceContext, TracingMiddleware};
 pub use validation::{
     FieldType, MockSchema, MockSchemaBuilder, RequestBody, ResponseValidationMiddleware,
