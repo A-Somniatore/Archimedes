@@ -1,7 +1,7 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.4.0  
-> **Status**: Implementation Phase (Phase A4 Complete, A0 Migration Complete, A6 In Progress)  
+> **Version**: 2.5.0  
+> **Status**: Implementation Phase (Phase A4 Complete, A0 Migration Complete, A6 Complete)  
 > **Last Updated**: 2026-01-05  
 > **Component**: archimedes
 
@@ -18,10 +18,11 @@
 | `archimedes-telemetry`  | ✅ Complete | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging              |
 | `archimedes-config`     | ✅ Complete | 52    | Typed configuration with TOML/JSON, env overrides                          |
 | `archimedes-router`     | ✅ Complete | 54    | High-performance radix tree router                                         |
+| `archimedes-extract`    | ✅ Complete | 85    | Request extractors and response builders                                   |
 | `archimedes-sentinel`   | 🔜 Phase A5 | -     | Themis contract integration                                                |
 | `archimedes-authz`      | 🔜 Phase A5 | -     | Eunomia/OPA integration                                                    |
 
-**Total Tests**: 380 passing
+**Total Tests**: 465 passing
 
 ---
 
