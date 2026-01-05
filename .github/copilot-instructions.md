@@ -4,6 +4,16 @@
 
 **Archimedes** is the async HTTP/gRPC/GraphQL server framework for the Themis Platform. It provides contract-first enforcement, mandatory middleware, built-in authorization via OPA, and first-class observability with OpenTelemetry.
 
+## CRITICAL: Before Making Changes
+
+**ALWAYS review these documents before implementing any changes:**
+
+1. **`docs/roadmap.md`** - Check current phase, priorities, and CTO concerns
+2. **`docs/design.md`** - Understand architecture decisions and patterns
+3. **`docs/spec.md`** - Verify requirements and constraints
+
+This ensures changes align with project direction and don't duplicate effort.
+
 ## Technology Stack
 
 | Area          | Technology                       |
