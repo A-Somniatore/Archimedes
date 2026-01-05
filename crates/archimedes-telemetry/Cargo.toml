@@ -1,0 +1,49 @@
+[package]
+name = "archimedes-telemetry"
+description = "OpenTelemetry-based observability for Archimedes (metrics, tracing, logging)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["telemetry", "metrics", "tracing", "observability", "prometheus"]
+categories = ["development-tools::profiling", "asynchronous"]
+
+[dependencies]
+# Internal crates
+archimedes-core = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+
+# HTTP types for metrics endpoint
+hyper = { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Tracing / Observability
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+opentelemetry-otlp = { workspace = true }
+opentelemetry-semantic-conventions = { workspace = true }
+
+# Metrics
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+
+[lints]
+workspace = true

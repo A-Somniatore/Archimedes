@@ -5,6 +5,7 @@ members = [
     "crates/archimedes-core",
     "crates/archimedes-server",
     "crates/archimedes-middleware",
+    "crates/archimedes-telemetry",
 ]
 
 [workspace.package]
@@ -23,6 +24,7 @@ archimedes = { path = "crates/archimedes" }
 archimedes-core = { path = "crates/archimedes-core" }
 archimedes-server = { path = "crates/archimedes-server" }
 archimedes-middleware = { path = "crates/archimedes-middleware" }
+archimedes-telemetry = { path = "crates/archimedes-telemetry" }
 
 # Async runtime
 tokio = { version = "1.43", features = ["full"] }
@@ -49,8 +51,9 @@ uuid = { version = "1.11", features = ["v7", "serde"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
 opentelemetry = "0.27"
-opentelemetry_sdk = "0.27"
-opentelemetry-otlp = "0.27"
+opentelemetry_sdk = { version = "0.27", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.27", features = ["tonic"] }
+opentelemetry-semantic-conventions = "0.27"
 
 # Metrics
 metrics = "0.24"
