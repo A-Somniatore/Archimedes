@@ -151,6 +151,53 @@ impl MethodRouter {
         }
     }
 
+    /// Merges another method router into this one.
+    ///
+    /// Methods from the `other` router will be added to this router.
+    /// If a method is already set in this router, it will NOT be overwritten.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use archimedes_router::MethodRouter;
+    /// use http::Method;
+    ///
+    /// let mut router = MethodRouter::new().get("getUsers");
+    /// router.merge(MethodRouter::new().post("createUser"));
+    ///
+    /// assert_eq!(router.get_operation(&Method::GET), Some("getUsers"));
+    /// assert_eq!(router.get_operation(&Method::POST), Some("createUser"));
+    /// ```
+    pub fn merge(&mut self, other: MethodRouter) {
+        if self.get.is_none() {
+            self.get = other.get;
+        }
+        if self.post.is_none() {
+            self.post = other.post;
+        }
+        if self.put.is_none() {
+            self.put = other.put;
+        }
+        if self.delete.is_none() {
+            self.delete = other.delete;
+        }
+        if self.patch.is_none() {
+            self.patch = other.patch;
+        }
+        if self.head.is_none() {
+            self.head = other.head;
+        }
+        if self.options.is_none() {
+            self.options = other.options;
+        }
+        if self.trace.is_none() {
+            self.trace = other.trace;
+        }
+        if self.connect.is_none() {
+            self.connect = other.connect;
+        }
+    }
+
     /// Returns true if any methods are registered.
     #[must_use]
     pub fn has_any_method(&self) -> bool {
@@ -301,5 +348,51 @@ mod tests {
         let router = MethodRouter::new().get("getUser");
         let cloned = router.clone();
         assert_eq!(cloned.get_operation(&Method::GET), Some("getUser"));
+    }
+
+    #[test]
+    fn test_method_router_merge_adds_methods() {
+        let mut router = MethodRouter::new().get("getUsers");
+        router.merge(MethodRouter::new().post("createUser"));
+
+        assert_eq!(router.get_operation(&Method::GET), Some("getUsers"));
+        assert_eq!(router.get_operation(&Method::POST), Some("createUser"));
+    }
+
+    #[test]
+    fn test_method_router_merge_does_not_overwrite() {
+        // Existing method should not be overwritten
+        let mut router = MethodRouter::new().get("originalGet");
+        router.merge(MethodRouter::new().get("newGet").post("createUser"));
+
+        // Original GET should be preserved
+        assert_eq!(router.get_operation(&Method::GET), Some("originalGet"));
+        // New POST should be added
+        assert_eq!(router.get_operation(&Method::POST), Some("createUser"));
+    }
+
+    #[test]
+    fn test_method_router_merge_all_methods() {
+        let mut router = MethodRouter::new();
+        router.merge(MethodRouter::new()
+            .get("get")
+            .post("post")
+            .put("put")
+            .delete("delete")
+            .patch("patch")
+            .head("head")
+            .options("options")
+            .trace("trace")
+            .connect("connect"));
+
+        assert_eq!(router.get_operation(&Method::GET), Some("get"));
+        assert_eq!(router.get_operation(&Method::POST), Some("post"));
+        assert_eq!(router.get_operation(&Method::PUT), Some("put"));
+        assert_eq!(router.get_operation(&Method::DELETE), Some("delete"));
+        assert_eq!(router.get_operation(&Method::PATCH), Some("patch"));
+        assert_eq!(router.get_operation(&Method::HEAD), Some("head"));
+        assert_eq!(router.get_operation(&Method::OPTIONS), Some("options"));
+        assert_eq!(router.get_operation(&Method::TRACE), Some("trace"));
+        assert_eq!(router.get_operation(&Method::CONNECT), Some("connect"));
     }
 }

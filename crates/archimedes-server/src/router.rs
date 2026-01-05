@@ -1,8 +1,9 @@
 //! Request routing and path matching.
 //!
 //! This module provides routing functionality that maps incoming HTTP
-//! requests to operation IDs defined in contracts. The router uses
-//! path templates with parameter extraction.
+//! requests to operation IDs defined in contracts. The router internally
+//! uses a high-performance radix tree from [`archimedes_router`] for
+//! O(k) path matching where k is the path length.
 //!
 //! # Architecture
 //!
@@ -13,6 +14,13 @@
 //!
 //! This contract-first approach ensures all routes are defined in the
 //! API contract (OpenAPI/AsyncAPI) and validated at startup.
+//!
+//! # Performance
+//!
+//! The router uses a radix tree (compressed trie) data structure which provides:
+//! - O(k) path matching where k is the path length
+//! - Static > Parameter > Wildcard priority
+//! - Minimal heap allocations via small-vector optimization
 //!
 //! # Example
 //!
@@ -37,6 +45,7 @@
 
 use std::collections::HashMap;
 
+use archimedes_router::MethodRouter;
 use http::Method;
 
 /// A matched route with extracted path parameters.
@@ -80,95 +89,14 @@ impl RouteMatch {
     }
 }
 
-/// A segment of a path template.
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum PathSegment {
-    /// A literal segment (e.g., "users")
-    Literal(String),
-
-    /// A parameter segment (e.g., "{userId}")
-    Param(String),
-}
-
-/// A registered route with its pattern and operation ID.
-#[derive(Debug, Clone)]
-struct Route {
-    /// HTTP method for this route
-    method: Method,
-
-    /// Parsed path segments
-    segments: Vec<PathSegment>,
-
-    /// Operation ID from the contract
-    operation_id: String,
-
-    /// Original path pattern for debugging
-    _pattern: String,
-}
-
-impl Route {
-    /// Creates a new route from a method, path pattern, and operation ID.
-    fn new(method: Method, pattern: &str, operation_id: impl Into<String>) -> Self {
-        let segments = Self::parse_segments(pattern);
-        Self {
-            method,
-            segments,
-            operation_id: operation_id.into(),
-            _pattern: pattern.to_string(),
-        }
-    }
-
-    /// Parses a path pattern into segments.
-    fn parse_segments(pattern: &str) -> Vec<PathSegment> {
-        pattern
-            .split('/')
-            .filter(|s| !s.is_empty())
-            .map(|s| {
-                if s.starts_with('{') && s.ends_with('}') {
-                    // Parameter segment: extract name without braces
-                    let name = &s[1..s.len() - 1];
-                    PathSegment::Param(name.to_string())
-                } else {
-                    PathSegment::Literal(s.to_string())
-                }
-            })
-            .collect()
-    }
-
-    /// Attempts to match this route against a path.
-    ///
-    /// Returns extracted parameters if the route matches.
-    fn match_path(&self, path: &str) -> Option<HashMap<String, String>> {
-        let path_segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
-
-        // Must have same number of segments
-        if path_segments.len() != self.segments.len() {
-            return None;
-        }
-
-        let mut params = HashMap::new();
-
-        for (pattern, actual) in self.segments.iter().zip(path_segments.iter()) {
-            match pattern {
-                PathSegment::Literal(expected) => {
-                    if expected != *actual {
-                        return None;
-                    }
-                }
-                PathSegment::Param(name) => {
-                    params.insert(name.clone(), (*actual).to_string());
-                }
-            }
-        }
-
-        Some(params)
-    }
-}
-
 /// HTTP request router.
 ///
 /// Routes incoming requests to operation IDs based on method and path.
-/// Supports path parameters using OpenAPI-style `{paramName}` syntax.
+/// Supports path parameters using OpenAPI-style `{paramName}` syntax
+/// and wildcards using `*paramName` syntax.
+///
+/// Internally uses a high-performance radix tree from [`archimedes_router`]
+/// for O(k) path matching where k is the path length.
 ///
 /// # Example
 ///
@@ -194,8 +122,12 @@ impl Route {
 /// ```
 #[derive(Debug, Clone, Default)]
 pub struct Router {
-    /// Registered routes
-    routes: Vec<Route>,
+    /// Internal radix tree router
+    inner: archimedes_router::Router,
+
+    /// Track operation IDs for has_operation queries
+    /// Maps operation_id -> route count (for tracking)
+    operation_ids: HashMap<String, usize>,
 }
 
 impl Router {
@@ -211,7 +143,10 @@ impl Router {
     /// ```
     #[must_use]
     pub fn new() -> Self {
-        Self { routes: Vec::new() }
+        Self {
+            inner: archimedes_router::Router::new(),
+            operation_ids: HashMap::new(),
+        }
     }
 
     /// Adds a route to the router.
@@ -238,14 +173,18 @@ impl Router {
         pattern: impl AsRef<str>,
         operation_id: impl Into<String>,
     ) {
-        let route = Route::new(method, pattern.as_ref(), operation_id);
-        self.routes.push(route);
+        let operation_id = operation_id.into();
+        let method_router = MethodRouter::new().method(&method, &operation_id);
+        self.inner.insert(pattern.as_ref(), method_router);
+
+        // Track the operation ID
+        *self.operation_ids.entry(operation_id).or_insert(0) += 1;
     }
 
     /// Returns the number of registered routes.
     #[must_use]
     pub fn route_count(&self) -> usize {
-        self.routes.len()
+        self.inner.len()
     }
 
     /// Matches an incoming request to a route.
@@ -281,17 +220,20 @@ impl Router {
     /// ```
     #[must_use]
     pub fn match_route(&self, method: &Method, path: &str) -> Option<RouteMatch> {
-        // Try to find a matching route
-        // Routes are checked in order; first match wins
-        for route in &self.routes {
-            if route.method == *method {
-                if let Some(params) = route.match_path(path) {
-                    return Some(RouteMatch::new(&route.operation_id, params));
-                }
-            }
-        }
+        // Normalize path: ensure it has leading slash and trim trailing slash
+        let path = normalize_path(path);
 
-        None
+        // Use the radix tree router for O(k) matching
+        let route_match = self.inner.match_route(method, &path)?;
+
+        // Convert archimedes_router::Params to HashMap<String, String>
+        let params: HashMap<String, String> = route_match
+            .params
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect();
+
+        Some(RouteMatch::new(route_match.operation_id.to_string(), params))
     }
 
     /// Checks if a specific operation ID is registered.
@@ -314,7 +256,7 @@ impl Router {
     /// ```
     #[must_use]
     pub fn has_operation(&self, operation_id: &str) -> bool {
-        self.routes.iter().any(|r| r.operation_id == operation_id)
+        self.operation_ids.contains_key(operation_id)
     }
 
     /// Returns all registered operation IDs.
@@ -334,7 +276,26 @@ impl Router {
     /// assert!(ops.contains(&"createUser"));
     /// ```
     pub fn operation_ids(&self) -> impl Iterator<Item = &str> {
-        self.routes.iter().map(|r| r.operation_id.as_str())
+        self.operation_ids.keys().map(String::as_str)
+    }
+}
+
+/// Normalizes a path for routing.
+///
+/// - Ensures leading slash
+/// - Removes trailing slash (except for root "/")
+fn normalize_path(path: &str) -> String {
+    let path = if path.is_empty() || !path.starts_with('/') {
+        format!("/{path}")
+    } else {
+        path.to_string()
+    };
+
+    // Remove trailing slash (except for root)
+    if path.len() > 1 && path.ends_with('/') {
+        path[..path.len() - 1].to_string()
+    } else {
+        path
     }
 }
 

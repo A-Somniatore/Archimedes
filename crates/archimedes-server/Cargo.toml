@@ -11,6 +11,8 @@ repository.workspace = true
 [dependencies]
 archimedes-core.workspace = true
 archimedes-middleware.workspace = true
+archimedes-router.workspace = true
+archimedes-extract.workspace = true
 tokio.workspace = true
 hyper.workspace = true
 hyper-util.workspace = true

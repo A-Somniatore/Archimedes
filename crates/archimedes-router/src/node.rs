@@ -121,8 +121,12 @@ impl Node {
     /// Inserts segments into the tree recursively.
     fn insert_segments(&mut self, segments: &[(String, SegmentKind)], methods: MethodRouter) {
         if segments.is_empty() {
-            // This is the target node
-            self.methods = Some(methods);
+            // This is the target node - merge methods instead of replacing
+            if let Some(existing) = &mut self.methods {
+                existing.merge(methods);
+            } else {
+                self.methods = Some(methods);
+            }
             return;
         }
 
@@ -156,11 +160,20 @@ impl Node {
                 }
             }
             SegmentKind::Wildcard(name) => {
-                // Create wildcard child (must be last segment)
+                // Create or reuse wildcard child (must be last segment)
                 assert!(remaining.is_empty(), "Wildcard must be the last segment in path");
-                let mut child = Node::new_wildcard(name);
-                child.methods = Some(methods);
-                self.wildcard_child = Some(Box::new(child));
+                if let Some(child) = &mut self.wildcard_child {
+                    // Merge with existing wildcard
+                    if let Some(existing) = &mut child.methods {
+                        existing.merge(methods);
+                    } else {
+                        child.methods = Some(methods);
+                    }
+                } else {
+                    let mut child = Node::new_wildcard(name);
+                    child.methods = Some(methods);
+                    self.wildcard_child = Some(Box::new(child));
+                }
             }
         }
     }
