@@ -3,8 +3,39 @@
 //! The [`Handler`] trait defines the interface for request handlers in Archimedes.
 
 use crate::{RequestContext, ThemisError};
-use serde::{Serialize, de::DeserializeOwned};
+use bytes::Bytes;
+use serde::{de::DeserializeOwned, Serialize};
 use std::future::Future;
+use std::pin::Pin;
+
+/// A boxed future for handler results.
+pub type BoxedFuture<T> = Pin<Box<dyn Future<Output = T> + Send>>;
+
+/// Type alias for a boxed handler function.
+///
+/// This is the type-erased handler signature used by the macro-generated code.
+pub type BoxedHandler = Box<
+    dyn Fn(RequestContext, Bytes) -> BoxedFuture<Result<Bytes, ThemisError>> + Send + Sync,
+>;
+
+/// Converts a handler result into a response body.
+///
+/// This function is used by the `#[handler]` macro to convert the handler's
+/// return type into a serialized `Bytes` response.
+///
+/// # Errors
+///
+/// Returns `ThemisError` if serialization fails.
+pub fn into_response<T: Serialize>(result: Result<T, ThemisError>) -> Result<Bytes, ThemisError> {
+    match result {
+        Ok(value) => {
+            let bytes = serde_json::to_vec(&value)
+                .map_err(|e| ThemisError::internal(format!("Failed to serialize response: {e}")))?;
+            Ok(Bytes::from(bytes))
+        }
+        Err(e) => Err(e),
+    }
+}
 
 /// A trait for handling typed requests.
 ///

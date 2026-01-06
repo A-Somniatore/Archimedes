@@ -102,6 +102,7 @@
 mod context;
 mod error;
 mod extractor;
+mod inject;
 mod path;
 mod query;
 mod json;
@@ -114,6 +115,7 @@ pub mod response;
 pub use context::ExtractionContext;
 pub use error::{ExtractionError, ExtractionSource};
 pub use extractor::FromRequest;
+pub use inject::Inject;
 pub use path::{Path, path_param};
 pub use query::{Query, RawQuery};
 pub use json::{Json, JsonWithLimit};

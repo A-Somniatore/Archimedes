@@ -72,9 +72,10 @@
 
 mod context;
 pub mod contract;
+pub mod di;
 mod error;
 pub mod fixtures;
-mod handler;
+pub mod handler;
 mod identity;
 
 // Re-export shared types from themis-platform-types

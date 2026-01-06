@@ -16,6 +16,7 @@ archimedes-server.workspace = true
 archimedes-middleware.workspace = true
 archimedes-router.workspace = true
 archimedes-extract.workspace = true
+archimedes-macros.workspace = true
 
 [lints]
 workspace = true

@@ -19,6 +19,8 @@ pub enum ExtractionSource {
     Header,
     /// Content-Type header specifically
     ContentType,
+    /// Other sources (e.g., DI container)
+    Other,
 }
 
 impl fmt::Display for ExtractionSource {
@@ -29,6 +31,7 @@ impl fmt::Display for ExtractionSource {
             Self::Body => write!(f, "body"),
             Self::Header => write!(f, "header"),
             Self::ContentType => write!(f, "content-type"),
+            Self::Other => write!(f, "other"),
         }
     }
 }
@@ -71,6 +74,8 @@ enum ExtractionErrorKind {
     PayloadTooLarge,
     /// Content-Type is unsupported
     UnsupportedMediaType,
+    /// Custom error (e.g., DI failure)
+    Custom,
 }
 
 impl ExtractionError {
@@ -159,6 +164,25 @@ impl ExtractionError {
         }
     }
 
+    /// Creates a custom error.
+    ///
+    /// Use this for errors that don't fit the other categories,
+    /// such as dependency injection failures.
+    #[must_use]
+    pub fn custom(
+        source: ExtractionSource,
+        field: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Self {
+        let field = field.into();
+        Self {
+            extraction_source: source,
+            kind: ExtractionErrorKind::Custom,
+            message: message.into(),
+            field: Some(field),
+        }
+    }
+
     /// Returns the extraction source.
     #[must_use]
     pub fn extraction_source(&self) -> ExtractionSource {
@@ -187,6 +211,7 @@ impl ExtractionError {
             ExtractionErrorKind::DeserializationFailed => StatusCode::BAD_REQUEST,
             ExtractionErrorKind::PayloadTooLarge => StatusCode::PAYLOAD_TOO_LARGE,
             ExtractionErrorKind::UnsupportedMediaType => StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            ExtractionErrorKind::Custom => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
@@ -200,6 +225,7 @@ impl ExtractionError {
             ExtractionErrorKind::DeserializationFailed => "DESERIALIZATION_FAILED",
             ExtractionErrorKind::PayloadTooLarge => "PAYLOAD_TOO_LARGE",
             ExtractionErrorKind::UnsupportedMediaType => "UNSUPPORTED_MEDIA_TYPE",
+            ExtractionErrorKind::Custom => "EXTRACTION_FAILED",
         }
     }
 }

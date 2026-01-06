@@ -3,9 +3,11 @@
 //! The [`ExtractionContext`] is the primary interface for extractors to access
 //! different parts of an HTTP request.
 
+use archimedes_core::di::Container;
 use archimedes_router::Params;
 use bytes::Bytes;
 use http::{HeaderMap, Method, Uri};
+use std::sync::Arc;
 
 /// Context providing access to all parts of an HTTP request.
 ///
@@ -42,6 +44,8 @@ pub struct ExtractionContext {
     headers: HeaderMap,
     body: Bytes,
     path_params: Params,
+    /// Optional DI container for dependency injection.
+    container: Option<Arc<Container>>,
 }
 
 impl ExtractionContext {
@@ -60,7 +64,34 @@ impl ExtractionContext {
             headers,
             body,
             path_params,
+            container: None,
         }
+    }
+
+    /// Creates an extraction context with a DI container.
+    #[must_use]
+    pub fn with_container(
+        method: Method,
+        uri: Uri,
+        headers: HeaderMap,
+        body: Bytes,
+        path_params: Params,
+        container: Arc<Container>,
+    ) -> Self {
+        Self {
+            method,
+            uri,
+            headers,
+            body,
+            path_params,
+            container: Some(container),
+        }
+    }
+
+    /// Returns the DI container if available.
+    #[must_use]
+    pub fn container(&self) -> Option<&Container> {
+        self.container.as_deref()
     }
 
     /// Returns the HTTP method.
@@ -223,6 +254,7 @@ impl ExtractionContextBuilder {
             headers: self.headers,
             body: self.body,
             path_params: self.path_params,
+            container: None,
         }
     }
 }

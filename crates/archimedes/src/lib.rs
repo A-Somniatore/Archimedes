@@ -15,6 +15,11 @@
 //! ```rust,ignore
 //! use archimedes::prelude::*;
 //!
+//! #[archimedes::handler(operation = "getUser")]
+//! async fn get_user(Path(user_id): Path<UserId>) -> Result<Json<User>, AppError> {
+//!     // Your handler logic here
+//! }
+//!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let server = Server::builder()
@@ -56,6 +61,9 @@ pub use archimedes_router as router;
 // Re-export extraction types
 pub use archimedes_extract as extract;
 
+// Re-export macros - the handler attribute macro
+pub use archimedes_macros::handler;
+
 /// Prelude module for convenient imports.
 ///
 /// # Example
@@ -67,14 +75,20 @@ pub mod prelude {
     pub use archimedes_core::{
         CallerIdentity, Handler, RequestContext, RequestId, ThemisError, ThemisResult,
     };
+    
+    // Re-export DI types
+    pub use archimedes_core::di::{Container, Inject};
 
     // Re-export common extractors
     pub use archimedes_extract::{
-        Form, Header, Headers, Json, JsonWithLimit, Path, Query, RawQuery,
+        Form, Header, Headers, Inject as InjectExtract, Json, JsonWithLimit, Path, Query, RawQuery,
     };
 
     // Re-export common response builders
     pub use archimedes_extract::response::{
         ErrorResponse, HtmlResponse, JsonResponse, NoContent, Redirect, TextResponse,
     };
+    
+    // Re-export handler macro
+    pub use archimedes_macros::handler;
 }
