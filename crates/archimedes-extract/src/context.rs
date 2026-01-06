@@ -174,6 +174,10 @@ impl ExtractionContext {
 }
 
 /// Builder for constructing an `ExtractionContext`.
+///
+/// This builder is primarily useful for testing, allowing you to construct
+/// contexts with specific values for extracting data in unit tests.
+#[allow(dead_code)]
 #[derive(Debug, Default)]
 pub struct ExtractionContextBuilder {
     method: Option<Method>,

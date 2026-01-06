@@ -98,6 +98,10 @@ impl<T: Send + Sync + 'static> FromRequest for Inject<T> {
 }
 
 /// Extension trait for converting injection errors.
+///
+/// This trait provides a convenient way to convert `InjectionError` into
+/// `ExtractionError` for use in the extraction pipeline.
+#[allow(dead_code)]
 pub trait InjectExt {
     /// Converts to an extraction error.
     fn into_extraction_error(self) -> ExtractionError;
