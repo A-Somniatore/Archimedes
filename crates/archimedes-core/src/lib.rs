@@ -77,6 +77,7 @@ mod error;
 pub mod fixtures;
 pub mod handler;
 mod identity;
+mod invocation;
 
 // Re-export shared types from themis-platform-types
 pub use themis_platform_types::{
@@ -91,6 +92,7 @@ pub use context::RequestContext;
 pub use contract::{Contract, MockSchema, Operation, ValidationError};
 pub use error::{ErrorCategory, ErrorDetail, ErrorEnvelope, ThemisError, ThemisResult};
 pub use handler::Handler;
+pub use invocation::{InvocationContext, InvocationContextBuilder};
 
 // Keep local identity module for Archimedes-specific extensions
 pub use identity::CallerIdentityExt;

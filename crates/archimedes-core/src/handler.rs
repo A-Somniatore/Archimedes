@@ -2,7 +2,7 @@
 //!
 //! The [`Handler`] trait defines the interface for request handlers in Archimedes.
 
-use crate::{RequestContext, ThemisError};
+use crate::{InvocationContext, RequestContext, ThemisError};
 use bytes::Bytes;
 use serde::{de::DeserializeOwned, Serialize};
 use std::future::Future;
@@ -14,8 +14,10 @@ pub type BoxedFuture<T> = Pin<Box<dyn Future<Output = T> + Send>>;
 /// Type alias for a boxed handler function.
 ///
 /// This is the type-erased handler signature used by the macro-generated code.
+/// Handlers receive an [`InvocationContext`] containing all HTTP request details
+/// and middleware context.
 pub type BoxedHandler = Box<
-    dyn Fn(RequestContext, Bytes) -> BoxedFuture<Result<Bytes, ThemisError>> + Send + Sync,
+    dyn Fn(InvocationContext) -> BoxedFuture<Result<Bytes, ThemisError>> + Send + Sync,
 >;
 
 /// Converts a handler result into a response body.

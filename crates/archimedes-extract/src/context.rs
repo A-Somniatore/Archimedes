@@ -4,6 +4,7 @@
 //! different parts of an HTTP request.
 
 use archimedes_core::di::Container;
+use archimedes_core::InvocationContext;
 use archimedes_router::Params;
 use bytes::Bytes;
 use http::{HeaderMap, Method, Uri};
@@ -65,6 +66,44 @@ impl ExtractionContext {
             body,
             path_params,
             container: None,
+        }
+    }
+
+    /// Creates an extraction context from an invocation context.
+    ///
+    /// This method bridges the macro-generated handler code with the extraction
+    /// system. It copies all HTTP request details from the [`InvocationContext`]
+    /// into an `ExtractionContext` suitable for use with extractors.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use archimedes_extract::ExtractionContext;
+    /// use archimedes_core::InvocationContext;
+    /// use archimedes_router::Params;
+    /// use http::{Method, Uri, HeaderMap};
+    /// use bytes::Bytes;
+    ///
+    /// let invocation = InvocationContext::new(
+    ///     Method::GET,
+    ///     Uri::from_static("/users/123"),
+    ///     HeaderMap::new(),
+    ///     Bytes::new(),
+    ///     Params::new(),
+    /// );
+    ///
+    /// let extraction = ExtractionContext::from_invocation(&invocation);
+    /// assert_eq!(extraction.method(), &Method::GET);
+    /// ```
+    #[must_use]
+    pub fn from_invocation(ctx: &InvocationContext) -> Self {
+        Self {
+            method: ctx.method().clone(),
+            uri: ctx.uri().clone(),
+            headers: ctx.headers().clone(),
+            body: ctx.body().clone(),
+            path_params: ctx.path_params().clone(),
+            container: ctx.container_arc(),
         }
     }
 

@@ -9,6 +9,9 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+# Internal crates
+archimedes-router.workspace = true
+
 # Shared platform types
 themis-platform-types.workspace = true
 

@@ -85,6 +85,10 @@ fn generate_handler_code(attrs: &HandlerAttrs, handler: &HandlerFn) -> syn::Resu
         }
 
         /// Registers this handler with a handler registry.
+        ///
+        /// The handler receives an [`InvocationContext`] containing all HTTP request
+        /// details and middleware context. The macro generates extraction code for
+        /// each parameter type.
         #[doc(hidden)]
         #vis fn #registration_fn_name<F>(mut register: F)
         where
@@ -92,13 +96,10 @@ fn generate_handler_code(attrs: &HandlerAttrs, handler: &HandlerFn) -> syn::Resu
         {
             use archimedes_extract::FromRequest;
 
-            let handler = move |ctx: archimedes_core::RequestContext, body: bytes::Bytes| {
+            let handler = move |ctx: archimedes_core::InvocationContext| {
                 Box::pin(async move {
-                    // Create extraction context from the request context and body
-                    let extraction_ctx = archimedes_extract::ExtractionContext::from_request_context(
-                        &ctx,
-                        &body,
-                    );
+                    // Create extraction context from the invocation context
+                    let extraction_ctx = archimedes_extract::ExtractionContext::from_invocation(&ctx);
 
                     // Extract all parameters
                     #extraction_bindings
