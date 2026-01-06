@@ -7,7 +7,7 @@ use syn::{
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     spanned::Spanned,
-    Expr, ExprLit, FnArg, Ident, ItemFn, Lit, Meta, Pat, PatIdent, PatType, Path, Token, Type,
+    Expr, ExprLit, FnArg, Ident, ItemFn, Lit, Meta, Pat, PatIdent, PatType, Token, Type,
 };
 
 /// Parsed handler attributes.
@@ -98,7 +98,7 @@ impl HandlerParam {
     pub fn from_fn_arg(arg: &FnArg) -> syn::Result<Self> {
         match arg {
             FnArg::Typed(PatType { pat, ty, .. }) => {
-                let (name, pattern) = Self::extract_name_and_pattern(pat)?;
+                let (name, _pattern) = Self::extract_name_and_pattern(pat)?;
                 let is_inject = Self::is_inject_type(ty);
 
                 Ok(Self {
@@ -164,8 +164,10 @@ pub struct HandlerFn {
     /// The function parameters.
     pub params: Vec<HandlerParam>,
     /// The return type.
+    #[allow(dead_code)] // Will be used when macro expansion is complete
     pub return_type: Type,
     /// Whether the function is async.
+    #[allow(dead_code)] // Will be used when macro expansion is complete
     pub is_async: bool,
     /// The original function item (for re-emission).
     pub item: ItemFn,
@@ -211,6 +213,7 @@ impl HandlerFn {
     }
 
     /// Returns the inner return type if wrapped in Result.
+    #[allow(dead_code)] // Will be used when macro expansion is complete
     pub fn unwrap_result_type(&self) -> Option<(&Type, &Type)> {
         if let Type::Path(type_path) = &self.return_type {
             if let Some(segment) = type_path.path.segments.last() {

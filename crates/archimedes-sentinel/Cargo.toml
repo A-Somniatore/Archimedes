@@ -1,0 +1,57 @@
+[package]
+name = "archimedes-sentinel"
+description = "Themis contract integration for Archimedes - operation resolution and validation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["themis", "contract", "validation", "archimedes"]
+categories = ["web-programming::http-server"]
+
+[dependencies]
+# Internal crates
+archimedes-core = { workspace = true }
+
+# Themis artifacts
+themis-artifact = { workspace = true }
+themis-core = { workspace = true }
+themis-registry = { workspace = true }
+
+# Shared platform types
+themis-platform-types = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# HTTP
+http = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+# Data structures
+indexmap = { workspace = true }
+
+# Regex for path matching
+regex = { workspace = true }
+
+# UUID for parameter validation
+uuid = { workspace = true }
+
+# HTTP client for registry loading
+reqwest = { version = "0.12", features = ["json"] }
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+
+[lints]
+workspace = true

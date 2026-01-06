@@ -10,6 +10,7 @@ members = [
     "crates/archimedes-router",
     "crates/archimedes-extract",
     "crates/archimedes-macros",
+    # "crates/archimedes-sentinel",  # Temporarily disabled - depends on Themis APIs (Phase A5)
 ]
 
 [workspace.package]
@@ -36,6 +37,12 @@ archimedes-config = { path = "crates/archimedes-config" }
 archimedes-router = { path = "crates/archimedes-router" }
 archimedes-extract = { path = "crates/archimedes-extract" }
 archimedes-macros = { path = "crates/archimedes-macros" }
+archimedes-sentinel = { path = "crates/archimedes-sentinel" }
+
+# Themis crates for contract integration
+themis-artifact = { path = "../themis/crates/themis-artifact" }
+themis-core = { path = "../themis/crates/themis-core" }
+themis-registry = { path = "../themis/crates/themis-registry" }
 
 # Async runtime
 tokio = { version = "1.43", features = ["full"] }
@@ -69,6 +76,10 @@ opentelemetry-semantic-conventions = "0.27"
 # Metrics
 metrics = "0.24"
 metrics-exporter-prometheus = "0.16"
+
+# Regex and collections
+regex = "1.11"
+indexmap = { version = "2.7", features = ["serde"] }
 
 # Testing
 tokio-test = "0.4"

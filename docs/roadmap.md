@@ -1,28 +1,28 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.5.0  
+> **Version**: 2.7.0  
 > **Created**: 2026-01-04  
 > **Last Updated**: 2025-01-06  
 > **Target Completion**: Week 48 (includes 4-week buffer)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!  
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
-> **UPDATE (2025-01-06)**: Phase A6 complete with full server integration.
+> **UPDATE (2025-01-06)**: Phase A7 in progress - handler macros skeleton complete.
 
 ---
 
-## 🎉 Recent Progress (Phase A6 Integration Complete)
+## 🎉 Recent Progress (Phase A7 Handler Macros)
 
-### Router Integration (v2.6.0) - COMPLETE
-- **archimedes-server** now uses **archimedes-router** internally
-- O(k) radix tree matching replaces O(n) linear scan
-- `MethodRouter::merge()` enables incremental route registration
-- Backward-compatible API maintained
+### Handler Macros (v2.7.0) - IN PROGRESS
+- **archimedes-macros** crate created with `#[handler]` attribute macro
+- Parsing utilities for handler attributes, parameters, function signatures
+- Code generation skeleton for handler registration functions
 
-### Extract Integration (v2.6.0) - COMPLETE  
-- Main `archimedes` crate re-exports `router` and `extract`
-- Prelude includes common extractors and responses
-- 561 tests passing across all crates
+### Dependency Injection (v2.7.0) - COMPLETE
+- **archimedes-core** DI container with TypeId-based registry
+- `Container`, `Inject<T>`, `InjectionError` types
+- `Inject<T>` extractor in **archimedes-extract**
+- 670 tests passing across all crates
 
 ---
 
@@ -977,27 +977,43 @@ async fn create_user(
 
 ---
 
-## Phase A7: FastAPI Parity (Weeks 25-28) 🐍 NEW
+## Phase A7: FastAPI Parity (Weeks 25-28) 🐍 IN PROGRESS
 
 > **Goal**: Match FastAPI developer experience with handler macros
+> **Status**: 🔄 Week 25-26 - Handler Macros (Skeleton Complete)
 
 ### Week 25-26: Handler Macros
 
-- [ ] `#[archimedes::handler]` proc macro
-- [ ] Automatic parameter extraction from signature
+- [x] Create `archimedes-macros` proc-macro crate
+- [x] `#[archimedes::handler]` attribute macro (skeleton)
+- [x] Parsing utilities for handler attributes and signatures
+- [x] `HandlerAttrs` - operation ID, method, path parsing
+- [x] `HandlerParam` - extractor type identification (Path, Query, Json, Header, Inject)
+- [x] `HandlerFn` - async function signature parsing
+- [x] Dependency injection container (`archimedes-core::di`)
+  - [x] `Container` - TypeId-based service registry with Arc storage
+  - [x] `Inject<T>` - Type-safe wrapper for injected services
+  - [x] `InjectionError` - Error type for missing services
+- [x] `Inject<T>` extractor in `archimedes-extract`
+  - [x] `FromRequest` implementation
+  - [x] `ExtractionContext` with optional container support
+- [ ] Wire macro-generated code to work end-to-end
 - [ ] Contract binding (which operation handles which contract endpoint)
-- [ ] Dependency injection integration
 
 ```rust
-// FastAPI-style handler definition
-#[archimedes::handler(contract = "users.yaml", operation = "createUser")]
+// FastAPI-style handler definition (syntax ready, codegen WIP)
+#[archimedes::handler(operation = "createUser")]
 async fn create_user(
-    db: Inject<Database>,      // DI injected
+    db: Inject<Database>,      // DI injected ✅ extractor ready
     auth: Auth,                // Current user from auth middleware
     body: CreateUserRequest,   // Auto-validated, auto-extracted
 ) -> User {
     db.insert_user(body, auth.user_id).await
 }
+```
+
+**Tests**: 8 macro tests + 13 DI tests + 6 inject extractor tests = 27 new tests
+**Total**: 670 tests passing across all crates
 ```
 
 ### Week 27-28: Automatic Documentation

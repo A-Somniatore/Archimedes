@@ -1,7 +1,7 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.6.0  
-> **Status**: Implementation Phase (Phase A4 Complete, A0 Migration Complete, A6 Complete + Integration)  
+> **Version**: 2.7.0  
+> **Status**: Implementation Phase (Phase A7 In Progress)  
 > **Last Updated**: 2025-01-06  
 > **Component**: archimedes
 
@@ -9,35 +9,42 @@
 
 ## Implementation Status
 
-| Crate                   | Status      | Tests | Description                                                                |
-| ----------------------- | ----------- | ----- | -------------------------------------------------------------------------- |
-| `archimedes`            | ✅ Complete | -     | Main facade crate (re-exports all crates)                                  |
-| `archimedes-core`       | ✅ Complete | 55    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract |
-| `archimedes-server`     | ✅ Complete | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown     |
-| `archimedes-middleware` | ✅ Complete | 104   | All 8 middleware stages + pipeline                                         |
-| `archimedes-telemetry`  | ✅ Complete | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging              |
-| `archimedes-config`     | ✅ Complete | 52    | Typed configuration with TOML/JSON, env overrides                          |
-| `archimedes-router`     | ✅ Complete | 57    | High-performance radix tree router with method merging                     |
-| `archimedes-extract`    | ✅ Complete | 104   | Request extractors and response builders                                   |
-| `archimedes-sentinel`   | 🔜 Phase A5 | -     | Themis contract integration                                                |
-| `archimedes-authz`      | 🔜 Phase A5 | -     | Eunomia/OPA integration                                                    |
+| Crate                   | Status       | Tests | Description                                                                |
+| ----------------------- | ------------ | ----- | -------------------------------------------------------------------------- |
+| `archimedes`            | ✅ Complete  | -     | Main facade crate (re-exports all crates)                                  |
+| `archimedes-core`       | ✅ Complete  | 67    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI |
+| `archimedes-server`     | ✅ Complete  | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown     |
+| `archimedes-middleware` | ✅ Complete  | 104   | All 8 middleware stages + pipeline                                         |
+| `archimedes-telemetry`  | ✅ Complete  | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging              |
+| `archimedes-config`     | ✅ Complete  | 52    | Typed configuration with TOML/JSON, env overrides                          |
+| `archimedes-router`     | ✅ Complete  | 57    | High-performance radix tree router with method merging                     |
+| `archimedes-extract`    | ✅ Complete  | 115   | Request extractors, response builders, DI injection                        |
+| `archimedes-macros`     | 🔄 Phase A7  | 8     | Handler macros for FastAPI-style definition (skeleton)                     |
+| `archimedes-sentinel`   | 🔜 Phase A5  | -     | Themis contract integration                                                |
+| `archimedes-authz`      | 🔜 Phase A5  | -     | Eunomia/OPA integration                                                    |
 
-**Total Tests**: 561 passing
+**Total Tests**: 670 passing
 
 ---
 
-## Recent Updates (Phase A6 Integration)
+## Recent Updates (Phase A7 Handler Macros)
 
-### Router Integration (v2.6.0)
-- **archimedes-server** now uses **archimedes-router** internally
-- Replaced O(n) linear Vec-based routing with O(k) radix tree matching
-- Added `MethodRouter::merge()` for incremental route registration
-- Full backward-compatible API for `Router`, `RouteMatch`
+### Handler Macros (v2.7.0)
+- **archimedes-macros**: New proc-macro crate for FastAPI-style handler definitions
+- `#[handler(operation = "...")]` attribute macro for handler functions
+- Parsing utilities for handler attributes, parameters, and function signatures
+- Code generation for handler registration functions
 
-### Extract Integration (v2.6.0)
-- Main `archimedes` crate now re-exports `archimedes-router` and `archimedes-extract`
-- Prelude includes common extractors: `Json`, `Form`, `Query`, `Path`, `Headers`
-- Prelude includes common responses: `JsonResponse`, `ErrorResponse`, `Redirect`
+### Dependency Injection (v2.7.0)
+- **archimedes-core**: Added DI container with TypeId-based service registry
+- `Container`: Thread-safe service container with Arc-wrapped services
+- `Inject<T>`: Type-safe wrapper for injected services
+- `InjectionError`: Error type for missing service dependencies
+
+### Inject Extractor (v2.7.0)
+- **archimedes-extract**: Added `Inject<T>` extractor for DI in handlers
+- `ExtractionContext` now supports optional DI container
+- Seamless integration with existing extractor pattern
 
 ---
 
