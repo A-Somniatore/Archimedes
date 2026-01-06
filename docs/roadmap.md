@@ -811,15 +811,20 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ---
 
-## Phase A5: Integration (Weeks 17-20) — REQUIRES THEMIS/EUNOMIA
+## Phase A5: Integration (Weeks 17-20) — IN PROGRESS
 
-### Week 17: Themis Integration
+### Week 17: Themis Integration — IN PROGRESS
 
-- [ ] Create `archimedes-sentinel` crate
-- [ ] Implement contract artifact loading
-- [ ] Implement path → operationId resolution from real contracts
-- [ ] Implement request validation against schemas
+- [x] Create `archimedes-sentinel` crate
+  > ✅ **Completed 2026-01-06**: Full sentinel implementation with 38 tests
+- [x] Implement contract artifact loading
+  > ✅ **Completed 2026-01-06**: `ArtifactLoader` supporting file, JSON, registry
+- [x] Implement path → operationId resolution from real contracts
+  > ✅ **Completed 2026-01-06**: `OperationResolver` with regex path matching
+- [x] Implement request validation against schemas
+  > ✅ **Completed 2026-01-06**: `SchemaValidator` with type and required field checks
 - [ ] Replace mock validation with real validation
+  > 🔜 **Next**: Wire sentinel into archimedes-middleware
 
 ### Week 18: Eunomia Integration
 
