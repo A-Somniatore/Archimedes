@@ -1,33 +1,46 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.7.0  
+> **Version**: 2.8.0  
 > **Status**: Implementation Phase (Phase A7 In Progress)  
-> **Last Updated**: 2025-01-06  
+> **Last Updated**: 2025-01-07  
 > **Component**: archimedes
 
 ---
 
 ## Implementation Status
 
-| Crate                   | Status       | Tests | Description                                                                |
-| ----------------------- | ------------ | ----- | -------------------------------------------------------------------------- |
-| `archimedes`            | ✅ Complete  | -     | Main facade crate (re-exports all crates)                                  |
-| `archimedes-core`       | ✅ Complete  | 67    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI |
-| `archimedes-server`     | ✅ Complete  | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown     |
-| `archimedes-middleware` | ✅ Complete  | 104   | All 8 middleware stages + pipeline                                         |
-| `archimedes-telemetry`  | ✅ Complete  | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging              |
-| `archimedes-config`     | ✅ Complete  | 52    | Typed configuration with TOML/JSON, env overrides                          |
-| `archimedes-router`     | ✅ Complete  | 57    | High-performance radix tree router with method merging                     |
-| `archimedes-extract`    | ✅ Complete  | 115   | Request extractors, response builders, DI injection                        |
-| `archimedes-macros`     | 🔄 Phase A7  | 8     | Handler macros for FastAPI-style definition (skeleton)                     |
-| `archimedes-sentinel`   | 🔜 Phase A5  | -     | Themis contract integration                                                |
-| `archimedes-authz`      | 🔜 Phase A5  | -     | Eunomia/OPA integration                                                    |
+| Crate                   | Status       | Tests | Description                                                                          |
+| ----------------------- | ------------ | ----- | ------------------------------------------------------------------------------------ |
+| `archimedes`            | ✅ Complete  | -     | Main facade crate (re-exports all crates)                                            |
+| `archimedes-core`       | ✅ Complete  | 74    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext |
+| `archimedes-server`     | ✅ Complete  | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown               |
+| `archimedes-middleware` | ✅ Complete  | 104   | All 8 middleware stages + pipeline                                                   |
+| `archimedes-telemetry`  | ✅ Complete  | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                        |
+| `archimedes-config`     | ✅ Complete  | 52    | Typed configuration with TOML/JSON, env overrides                                    |
+| `archimedes-router`     | ✅ Complete  | 57    | High-performance radix tree router with method merging                               |
+| `archimedes-extract`    | ✅ Complete  | 109   | Request extractors, response builders, DI injection                                  |
+| `archimedes-macros`     | 🔄 Phase A7  | 14    | Handler macros for FastAPI-style definition (wiring complete)                        |
+| `archimedes-sentinel`   | ⏸️ Blocked   | 38    | Themis contract integration (awaiting themis-contract crate)                         |
+| `archimedes-authz`      | 🔜 Phase A5  | -     | Eunomia/OPA integration                                                              |
 
-**Total Tests**: 670 passing
+**Total Tests**: 643 passing
 
 ---
 
 ## Recent Updates (Phase A7 Handler Macros)
+
+### InvocationContext (v2.8.0) - NEW
+- **archimedes-core**: Added `InvocationContext` to bridge handler invocation with extraction system
+- Aggregates HTTP request details (method, URI, headers, body)
+- Includes path parameters from router matching
+- Carries middleware `RequestContext` (identity, request ID, trace info)
+- Optional DI container via `Arc<Container>`
+- `BoxedHandler` signature updated to use `InvocationContext`
+
+### Macro Wiring (v2.8.0) - NEW
+- **archimedes-extract**: Added `ExtractionContext::from_invocation()` bridge method
+- **archimedes-macros**: Handler codegen now works end-to-end with extractors
+- Integration tests verify full extraction pipeline (JSON, Path, Query, Headers, Inject)
 
 ### Handler Macros (v2.7.0)
 - **archimedes-macros**: New proc-macro crate for FastAPI-style handler definitions
@@ -298,7 +311,63 @@ pub struct RequestContext {
 }
 ```
 
-### 4.4 Handler Trait
+### 4.4 Invocation Context
+
+When invoking a handler, the server creates an `InvocationContext` that bridges the HTTP layer with the extraction system:
+
+```rust
+pub struct InvocationContext {
+    /// HTTP method (GET, POST, etc.)
+    method: Method,
+
+    /// Request URI with path and query
+    uri: Uri,
+
+    /// HTTP headers
+    headers: HeaderMap,
+
+    /// Request body (buffered)
+    body: Bytes,
+
+    /// Path parameters extracted by router (e.g., {userId} → "123")
+    path_params: Params,
+
+    /// Middleware context (identity, request ID, trace info)
+    request_context: RequestContext,
+
+    /// Optional DI container for service injection
+    container: Option<Arc<Container>>,
+}
+```
+
+**Purpose**: `InvocationContext` aggregates all information needed to invoke a handler:
+- HTTP request details for extractors (Path, Query, Json, Headers)
+- Middleware context for request correlation and identity
+- DI container for `Inject<T>` extractor
+
+**Conversion to ExtractionContext**:
+
+```rust
+// In handler macro-generated code:
+let extraction_ctx = ExtractionContext::from_invocation(&ctx);
+
+// Extractors use ExtractionContext to access request data
+let user_id: Path<UserId> = Path::from_request(&extraction_ctx)?;
+let body: Json<CreateUserRequest> = Json::from_request(&extraction_ctx)?;
+```
+
+**Handler Type**:
+
+```rust
+/// Type-erased handler function signature
+pub type BoxedHandler = Box<
+    dyn Fn(InvocationContext) -> BoxFuture<'static, Result<Response<Body>, ThemisError>>
+        + Send
+        + Sync,
+>;
+```
+
+### 4.5 Handler Trait
 
 Handlers implement a standard trait with typed request/response:
 

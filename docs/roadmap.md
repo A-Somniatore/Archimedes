@@ -1,17 +1,24 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.7.0  
+> **Version**: 2.8.0  
 > **Created**: 2026-01-04  
-> **Last Updated**: 2025-01-06  
+> **Last Updated**: 2025-01-07  
 > **Target Completion**: Week 48 (includes 4-week buffer)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!  
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
-> **UPDATE (2025-01-06)**: Phase A7 in progress - handler macros skeleton complete.
+> **UPDATE (2025-01-07)**: Phase A7 Week 25-26 complete - InvocationContext and macro integration wired.
 
 ---
 
 ## 🎉 Recent Progress (Phase A7 Handler Macros)
+
+### InvocationContext & Integration (v2.8.0) - COMPLETE
+- **InvocationContext** type combining HTTP request details with middleware context
+- **BoxedHandler** signature updated to use `InvocationContext`
+- **ExtractionContext::from_invocation()** bridge method for extractors
+- Integration tests verifying full extraction pipeline (JSON, Path, Query, Headers, DI)
+- 643 tests passing across all crates
 
 ### Handler Macros (v2.7.0) - IN PROGRESS
 - **archimedes-macros** crate created with `#[handler]` attribute macro
@@ -22,7 +29,6 @@
 - **archimedes-core** DI container with TypeId-based registry
 - `Container`, `Inject<T>`, `InjectionError` types
 - `Inject<T>` extractor in **archimedes-extract**
-- 670 tests passing across all crates
 
 ---
 
@@ -985,12 +991,12 @@ async fn create_user(
 ## Phase A7: FastAPI Parity (Weeks 25-28) 🐍 IN PROGRESS
 
 > **Goal**: Match FastAPI developer experience with handler macros
-> **Status**: 🔄 Week 25-26 - Handler Macros (Skeleton Complete)
+> **Status**: 🔄 Week 25-26 - Handler Macros (Wiring Complete)
 
-### Week 25-26: Handler Macros
+### Week 25-26: Handler Macros ✅ COMPLETE
 
 - [x] Create `archimedes-macros` proc-macro crate
-- [x] `#[archimedes::handler]` attribute macro (skeleton)
+- [x] `#[archimedes::handler]` attribute macro
 - [x] Parsing utilities for handler attributes and signatures
 - [x] `HandlerAttrs` - operation ID, method, path parsing
 - [x] `HandlerParam` - extractor type identification (Path, Query, Json, Header, Inject)
@@ -1002,23 +1008,48 @@ async fn create_user(
 - [x] `Inject<T>` extractor in `archimedes-extract`
   - [x] `FromRequest` implementation
   - [x] `ExtractionContext` with optional container support
-- [ ] Wire macro-generated code to work end-to-end
+- [x] **InvocationContext** - Bridge between server handler invocation and extraction system
+  > ✅ **Completed 2025-01-07**: `archimedes_core::InvocationContext`
+  >
+  > - Aggregates HTTP request details (method, URI, headers, body)
+  > - Includes path parameters from router matching
+  > - Carries middleware `RequestContext` (identity, request ID, trace info)
+  > - Optional DI container via `Arc<Container>`
+  > - Builder pattern for test construction
+  > - 7 tests covering all functionality
+- [x] **BoxedHandler** signature updated
+  > ✅ **Completed 2025-01-07**: Handler type now uses `InvocationContext`
+  >
+  > - `Fn(InvocationContext) -> BoxFuture<'static, Result<Response<Body>, ThemisError>>`
+  > - Simplifies handler invocation from server code
+- [x] **ExtractionContext::from_invocation()** bridge method
+  > ✅ **Completed 2025-01-07**: Extraction system integration
+  >
+  > - Converts `InvocationContext` to `ExtractionContext`
+  > - Enables all extractors (Path, Query, Json, Headers, Inject) to work with handlers
+- [x] Wire macro-generated code to work end-to-end
+  > ✅ **Completed 2025-01-07**: Full integration verified with tests
+- [x] Integration tests for handler workflow
+  > ✅ **Completed 2025-01-07**: `archimedes-macros/tests/handler_integration.rs`
+  >
+  > - 6 integration tests covering JSON, Path, Query, Headers, Inject extractors
+  > - Full extraction pipeline verification
 - [ ] Contract binding (which operation handles which contract endpoint)
 
 ```rust
-// FastAPI-style handler definition (syntax ready, codegen WIP)
+// FastAPI-style handler definition (syntax ready, codegen working)
 #[archimedes::handler(operation = "createUser")]
 async fn create_user(
-    db: Inject<Database>,      // DI injected ✅ extractor ready
+    db: Inject<Database>,      // DI injected ✅ working
     auth: Auth,                // Current user from auth middleware
-    body: CreateUserRequest,   // Auto-validated, auto-extracted
+    body: CreateUserRequest,   // Auto-validated, auto-extracted ✅ working
 ) -> User {
     db.insert_user(body, auth.user_id).await
 }
 ```
 
-**Tests**: 8 macro tests + 13 DI tests + 6 inject extractor tests = 27 new tests
-**Total**: 670 tests passing across all crates
+**Tests**: 8 macro tests + 13 DI tests + 6 inject extractor tests + 6 integration tests = 33 new tests
+**Total**: 643 tests passing across all crates
 ```
 
 ### Week 27-28: Automatic Documentation

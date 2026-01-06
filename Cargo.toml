@@ -10,7 +10,7 @@ members = [
     "crates/archimedes-router",
     "crates/archimedes-extract",
     "crates/archimedes-macros",
-    # "crates/archimedes-sentinel",  # Temporarily disabled - depends on Themis APIs (Phase A5)
+    "crates/archimedes-sentinel",
 ]
 
 [workspace.package]

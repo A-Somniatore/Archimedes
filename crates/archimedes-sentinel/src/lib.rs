@@ -180,6 +180,7 @@ impl Sentinel {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use indexmap::IndexMap;
     use std::collections::HashMap;
 
     fn create_test_artifact() -> LoadedArtifact {
@@ -211,7 +212,7 @@ mod tests {
                     tags: vec!["users".to_string()],
                 },
             ],
-            schemas: HashMap::new(),
+            schemas: IndexMap::new(),
         }
     }
 

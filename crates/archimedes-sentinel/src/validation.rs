@@ -5,6 +5,7 @@
 
 use std::collections::HashMap;
 
+use indexmap::IndexMap;
 use serde_json::Value;
 use themis_core::Schema;
 use tracing::{debug, warn};
@@ -55,7 +56,7 @@ pub struct SchemaValidator {
     /// Validation configuration.
     config: ValidationConfig,
     /// Named schemas from the artifact.
-    _schemas: HashMap<String, Schema>,
+    _schemas: IndexMap<String, Schema>,
 }
 
 impl SchemaValidator {
@@ -403,7 +404,7 @@ mod tests {
                 response_schemas,
                 tags: vec![],
             }],
-            schemas: HashMap::new(),
+            schemas: IndexMap::new(),
         }
     }
 

@@ -6,6 +6,7 @@
 use std::collections::HashMap;
 use std::path::Path;
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use themis_artifact::{Artifact, ArtifactOperation};
 use themis_core::Schema;
@@ -29,7 +30,7 @@ pub struct LoadedArtifact {
     /// All operations in the contract.
     pub operations: Vec<LoadedOperation>,
     /// Named schemas for validation.
-    pub schemas: HashMap<String, Schema>,
+    pub schemas: IndexMap<String, Schema>,
 }
 
 /// A loaded operation ready for runtime use.

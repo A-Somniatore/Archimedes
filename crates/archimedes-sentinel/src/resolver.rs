@@ -222,6 +222,7 @@ impl From<&LoadedArtifact> for OperationResolver {
 mod tests {
     use super::*;
     use crate::artifact::LoadedOperation;
+    use indexmap::IndexMap;
 
     fn create_test_artifact() -> LoadedArtifact {
         LoadedArtifact {
@@ -285,7 +286,7 @@ mod tests {
                     tags: vec!["orders".to_string()],
                 },
             ],
-            schemas: HashMap::new(),
+            schemas: IndexMap::new(),
         }
     }
 
