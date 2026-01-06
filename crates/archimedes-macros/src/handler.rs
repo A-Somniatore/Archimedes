@@ -140,13 +140,13 @@ fn generate_extractions(params: &[HandlerParam]) -> syn::Result<(TokenStream, To
             // For Inject<T>, use the DI container
             bindings.push(quote! {
                 let #pattern: #ty = archimedes_core::di::Inject::from_container(&extraction_ctx)
-                    .map_err(|e| archimedes_core::ThemisError::extraction_failed(e.to_string()))?;
+                    .map_err(|e| archimedes_core::ThemisError::validation(e.to_string()))?;
             });
         } else {
             // For regular extractors, use FromRequest
             bindings.push(quote! {
                 let #pattern: #ty = <#ty as archimedes_extract::FromRequest>::from_request(&extraction_ctx)
-                    .map_err(|e| archimedes_core::ThemisError::extraction_failed(e.to_string()))?;
+                    .map_err(|e| archimedes_core::ThemisError::validation(e.to_string()))?;
             });
         }
 
