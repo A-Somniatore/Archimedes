@@ -1,0 +1,82 @@
+[package]
+name = "archimedes-sidecar"
+description = "Archimedes sidecar proxy for multi-language service support"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "archimedes-sidecar"
+path = "src/main.rs"
+
+[lib]
+name = "archimedes_sidecar"
+path = "src/lib.rs"
+
+[dependencies]
+# Internal crates
+archimedes-core.workspace = true
+archimedes-middleware.workspace = true
+archimedes-config.workspace = true
+archimedes-telemetry.workspace = true
+archimedes-sentinel = { workspace = true, optional = true }
+archimedes-authz = { workspace = true, optional = true }
+
+# Shared platform types
+themis-platform-types.workspace = true
+
+# Async runtime
+tokio.workspace = true
+
+# HTTP server and client
+hyper.workspace = true
+hyper-util.workspace = true
+http.workspace = true
+http-body-util.workspace = true
+bytes.workspace = true
+
+# HTTP client for proxying
+reqwest.workspace = true
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+toml = "0.8"
+
+# Error handling
+thiserror.workspace = true
+anyhow.workspace = true
+
+# Tracing
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+# Metrics
+metrics.workspace = true
+metrics-exporter-prometheus.workspace = true
+
+# UUID
+uuid.workspace = true
+
+# Time
+chrono.workspace = true
+
+# Synchronization
+parking_lot.workspace = true
+
+# Async utilities
+futures-util.workspace = true
+
+[dev-dependencies]
+tokio-test.workspace = true
+
+[features]
+default = ["sentinel", "authz"]
+sentinel = ["dep:archimedes-sentinel"]
+authz = ["dep:archimedes-authz"]
+
+[lints]
+workspace = true
