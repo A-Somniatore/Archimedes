@@ -75,7 +75,7 @@ pub mod prelude {
     pub use archimedes_core::{
         CallerIdentity, Handler, RequestContext, RequestId, ThemisError, ThemisResult,
     };
-    
+
     // Re-export DI types
     pub use archimedes_core::di::{Container, Inject};
 
@@ -88,7 +88,7 @@ pub mod prelude {
     pub use archimedes_extract::response::{
         ErrorResponse, HtmlResponse, JsonResponse, NoContent, Redirect, TextResponse,
     };
-    
+
     // Re-export handler macro
     pub use archimedes_macros::handler;
 }

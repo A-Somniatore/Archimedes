@@ -1,0 +1,49 @@
+[package]
+name = "archimedes-sse"
+description = "Server-Sent Events support for Archimedes framework"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["sse", "server-sent-events", "async", "archimedes", "themis"]
+categories = ["web-programming::http-server", "asynchronous"]
+
+[dependencies]
+# Internal crates
+archimedes-core = { workspace = true }
+themis-platform-types = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true, features = ["sync", "time", "macros"] }
+futures-util = { workspace = true }
+
+# HTTP
+hyper = { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+# UUID for event IDs
+uuid = { workspace = true }
+
+# Time
+chrono = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+tokio-test = { workspace = true }
+
+[lints]
+workspace = true

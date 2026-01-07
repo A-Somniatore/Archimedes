@@ -14,6 +14,7 @@
 ## 🎉 Recent Progress (Phase A7 Complete)
 
 ### Automatic Documentation (v2.10.0) - ✅ COMPLETE
+
 - **archimedes-docs** crate for API documentation (29 tests)
 - **OpenApiGenerator** converts Themis artifacts to OpenAPI 3.1 specs
 - **SwaggerUi** generates interactive Swagger UI pages (CDN-loaded)
@@ -23,6 +24,7 @@
 - 742 tests passing across all crates
 
 ### Eunomia/OPA Integration (v2.10.0) - ✅ COMPLETE
+
 - **archimedes-authz** crate for OPA policy evaluation (26 tests)
 - **PolicyEvaluator** wrapping regorus (pure Rust OPA)
 - **DecisionCache** with TTL-based caching and stats
@@ -32,6 +34,7 @@
 - Feature flag: `opa` in archimedes-middleware
 
 ### Themis/Sentinel Integration (v2.9.0) - ✅ COMPLETE
+
 - **archimedes-sentinel** crate for contract validation (38 tests)
 - **ArtifactLoader** supporting file, JSON, registry sources
 - **OperationResolver** with regex path matching
@@ -41,12 +44,14 @@
 - Feature flag: `sentinel` in archimedes-middleware
 
 ### Handler Macros & Contract Binding (v2.9.0) - ✅ COMPLETE
+
 - **archimedes-macros** crate with `#[handler]` attribute macro
 - **HandlerBinder** for validating handlers against contracts
 - Parsing utilities for handler attributes, parameters, function signatures
 - DI container integration (`Container`, `Inject<T>`)
 
 ### InvocationContext & Integration (v2.8.0) - ✅ COMPLETE
+
 - **InvocationContext** type combining HTTP request details with middleware context
 - **BoxedHandler** signature updated to use `InvocationContext`
 - **ExtractionContext::from_invocation()** bridge method for extractors
@@ -853,6 +858,7 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
   > ✅ **Completed 2026-01-06**: `SchemaValidator` with type and required field checks
 - [x] Replace mock validation with real validation
   > ✅ **Completed 2026-01-07**: Wired sentinel into archimedes-middleware
+  >
   > - Added `sentinel` feature flag to archimedes-middleware
   > - `ValidationMiddleware::sentinel()` constructor
   > - `ResponseValidationMiddleware::sentinel()` constructor
@@ -864,21 +870,25 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
   > ✅ **Completed 2026-01-07**: Full authz implementation with 26 tests
 - [x] Integrate OPA evaluator
   > ✅ **Completed 2026-01-07**: `PolicyEvaluator` wrapping regorus engine
+  >
   > - Pure Rust OPA evaluation (no external process)
   > - Policy loading from files or bundles
   > - Evaluate queries returning `PolicyDecision`
 - [x] Implement policy bundle loading
   > ✅ **Completed 2026-01-07**: `BundleLoader` with tar.gz support
+  >
   > - Load OPA bundles from files
   > - Parse bundle metadata and revision
   > - Extract policies and data documents
 - [x] Implement authorization decision caching
   > ✅ **Completed 2026-01-07**: `DecisionCache` with TTL support
+  >
   > - Cache key based on caller + operation + resource
   > - Configurable TTL and max entries
   > - Stats tracking (hits, misses, evictions)
 - [x] Replace mock authorization with real OPA
   > ✅ **Completed 2026-01-07**: Wired authz into archimedes-middleware
+  >
   > - Added `opa` feature flag to archimedes-middleware
   > - `AuthorizationMiddleware::opa()` and `::opa_default()` constructors
   > - Builds `PolicyInput` from `MiddlewareContext`
@@ -1025,6 +1035,7 @@ async fn create_user(
 - 🔜 Benchmark suite vs Axum/Actix (deferred to post-A7)
 
 **Integration Notes (2025-01-06)**:
+
 - Server router replaced Vec<Route> O(n) with archimedes_router O(k)
 - Path normalization handles leading/trailing slashes
 - Multiple methods per path via merge semantics
@@ -1105,7 +1116,8 @@ let handlers = binder.into_handlers();
 
 **Tests**: 8 macro tests + 13 DI tests + 6 inject extractor tests + 6 integration tests + 6 binder tests = 39 new tests
 **Total**: 649 tests passing across all crates
-```
+
+````
 
 ### Week 27-28: Automatic Documentation ✅ COMPLETE
 
@@ -1161,7 +1173,7 @@ let redoc = ReDoc::new("/redoc", &spec);
 // Serve HTML at respective paths
 // swagger.html() -> Swagger UI HTML
 // redoc.html()   -> ReDoc HTML
-```
+````
 
 **Tests**: 29 new tests in archimedes-docs
 **Total**: 742 tests passing across all crates

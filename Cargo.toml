@@ -14,6 +14,7 @@ members = [
     "crates/archimedes-authz",
     "crates/archimedes-docs",
     "crates/archimedes-ws",
+    "crates/archimedes-sse",
 ]
 
 [workspace.package]
@@ -43,6 +44,7 @@ archimedes-macros = { path = "crates/archimedes-macros" }
 archimedes-sentinel = { path = "crates/archimedes-sentinel" }
 archimedes-authz = { path = "crates/archimedes-authz" }
 archimedes-ws = { path = "crates/archimedes-ws" }
+archimedes-sse = { path = "crates/archimedes-sse" }
 
 # Themis crates for contract integration
 themis-artifact = { path = "../themis/crates/themis-artifact" }

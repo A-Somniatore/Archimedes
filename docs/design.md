@@ -9,20 +9,20 @@
 
 ## Implementation Status
 
-| Crate                   | Status       | Tests | Description                                                                          |
-| ----------------------- | ------------ | ----- | ------------------------------------------------------------------------------------ |
-| `archimedes`            | ✅ Complete  | -     | Main facade crate (re-exports all crates)                                            |
-| `archimedes-core`       | ✅ Complete  | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
-| `archimedes-server`     | ✅ Complete  | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown               |
-| `archimedes-middleware` | ✅ Complete  | 104   | All 8 middleware stages + pipeline                                                   |
-| `archimedes-telemetry`  | ✅ Complete  | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                        |
-| `archimedes-config`     | ✅ Complete  | 52    | Typed configuration with TOML/JSON, env overrides                                    |
-| `archimedes-router`     | ✅ Complete  | 57    | High-performance radix tree router with method merging                               |
-| `archimedes-extract`    | ✅ Complete  | 109   | Request extractors, response builders, DI injection                                  |
-| `archimedes-macros`     | ✅ Complete  | 14    | Handler macros for FastAPI-style definition (wiring complete)                        |
-| `archimedes-sentinel`   | ✅ Complete  | 38    | Themis contract integration                                                          |
-| `archimedes-authz`      | ✅ Complete  | 26    | Eunomia/OPA integration                                                              |
-| `archimedes-docs`       | ✅ Complete  | 29    | OpenAPI generation, Swagger UI, ReDoc                                                |
+| Crate                   | Status      | Tests | Description                                                                                               |
+| ----------------------- | ----------- | ----- | --------------------------------------------------------------------------------------------------------- |
+| `archimedes`            | ✅ Complete | -     | Main facade crate (re-exports all crates)                                                                 |
+| `archimedes-core`       | ✅ Complete | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
+| `archimedes-server`     | ✅ Complete | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown                                    |
+| `archimedes-middleware` | ✅ Complete | 104   | All 8 middleware stages + pipeline                                                                        |
+| `archimedes-telemetry`  | ✅ Complete | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
+| `archimedes-config`     | ✅ Complete | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
+| `archimedes-router`     | ✅ Complete | 57    | High-performance radix tree router with method merging                                                    |
+| `archimedes-extract`    | ✅ Complete | 109   | Request extractors, response builders, DI injection                                                       |
+| `archimedes-macros`     | ✅ Complete | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
+| `archimedes-sentinel`   | ✅ Complete | 38    | Themis contract integration                                                                               |
+| `archimedes-authz`      | ✅ Complete | 26    | Eunomia/OPA integration                                                                                   |
+| `archimedes-docs`       | ✅ Complete | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
 
 **Total Tests**: 742 passing
 
@@ -31,6 +31,7 @@
 ## Recent Updates (Phase A7 Complete)
 
 ### Automatic Documentation (v2.10.0) - NEW
+
 - **archimedes-docs**: New crate for API documentation generation
 - `OpenApiGenerator`: Converts Themis artifacts to OpenAPI 3.1 specs
 - `SwaggerUi`: Generates interactive Swagger UI pages (CDN-loaded)
@@ -41,6 +42,7 @@
 - 29 tests covering all functionality
 
 ### Contract Binding (v2.9.0)
+
 - **archimedes-core**: Added `HandlerBinder` for contract binding validation
 - Validates handlers against contract operations at startup
 - Ensures all required operations have handlers (no missing handlers)
@@ -49,6 +51,7 @@
 - 6 unit tests covering all validation cases
 
 ### InvocationContext (v2.8.0)
+
 - **archimedes-core**: Added `InvocationContext` to bridge handler invocation with extraction system
 - Aggregates HTTP request details (method, URI, headers, body)
 - Includes path parameters from router matching
@@ -57,23 +60,27 @@
 - `BoxedHandler` signature updated to use `InvocationContext`
 
 ### Macro Wiring (v2.8.0)
+
 - **archimedes-extract**: Added `ExtractionContext::from_invocation()` bridge method
 - **archimedes-macros**: Handler codegen now works end-to-end with extractors
 - Integration tests verify full extraction pipeline (JSON, Path, Query, Headers, Inject)
 
 ### Handler Macros (v2.7.0)
+
 - **archimedes-macros**: New proc-macro crate for FastAPI-style handler definitions
 - `#[handler(operation = "...")]` attribute macro for handler functions
 - Parsing utilities for handler attributes, parameters, and function signatures
 - Code generation for handler registration functions
 
 ### Dependency Injection (v2.7.0)
+
 - **archimedes-core**: Added DI container with TypeId-based service registry
 - `Container`: Thread-safe service container with Arc-wrapped services
 - `Inject<T>`: Type-safe wrapper for injected services
 - `InjectionError`: Error type for missing service dependencies
 
 ### Inject Extractor (v2.7.0)
+
 - **archimedes-extract**: Added `Inject<T>` extractor for DI in handlers
 - `ExtractionContext` now supports optional DI container
 - Seamless integration with existing extractor pattern
@@ -360,6 +367,7 @@ pub struct InvocationContext {
 ```
 
 **Purpose**: `InvocationContext` aggregates all information needed to invoke a handler:
+
 - HTTP request details for extractors (Path, Query, Json, Headers)
 - Middleware context for request correlation and identity
 - DI container for `Inject<T>` extractor
@@ -981,6 +989,7 @@ pub enum Message {
 ```
 
 **Middleware Integration**:
+
 - Identity middleware runs on HTTP upgrade request
 - Authorization middleware validates WS connection permission
 - Message validation happens per-message (optional, configurable)
@@ -1030,7 +1039,7 @@ async fn event_stream(
             tokio::time::sleep(Duration::from_secs(1)).await;
         }
     });
-    
+
     sse.into_response()
 }
 ```
@@ -1104,7 +1113,7 @@ impl TaskSpawner {
     pub fn spawn<F>(&self, task: F) -> TaskHandle
     where
         F: Future<Output = ()> + Send + 'static;
-    
+
     /// Spawn a task with result
     pub fn spawn_with_result<F, T>(&self, task: F) -> JoinHandle<T>
     where
@@ -1148,7 +1157,7 @@ impl Scheduler {
     where
         F: Fn() -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<(), TaskError>> + Send;
-    
+
     /// Start the scheduler loop
     pub async fn run(&self) {
         loop {

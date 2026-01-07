@@ -70,6 +70,7 @@
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
 
+pub mod binder;
 mod context;
 pub mod contract;
 pub mod di;
@@ -78,7 +79,6 @@ pub mod fixtures;
 pub mod handler;
 mod identity;
 mod invocation;
-pub mod binder;
 
 // Re-export shared types from themis-platform-types
 pub use themis_platform_types::{
@@ -89,12 +89,12 @@ pub use themis_platform_types::{
 };
 
 // Re-export local types
+pub use binder::{BinderError, BinderResult, HandlerBinder};
 pub use context::RequestContext;
 pub use contract::{Contract, MockSchema, Operation, ValidationError};
 pub use error::{ErrorCategory, ErrorDetail, ErrorEnvelope, ThemisError, ThemisResult};
 pub use handler::Handler;
 pub use invocation::{InvocationContext, InvocationContextBuilder};
-pub use binder::{HandlerBinder, BinderError, BinderResult};
 
 // Keep local identity module for Archimedes-specific extensions
 pub use identity::CallerIdentityExt;

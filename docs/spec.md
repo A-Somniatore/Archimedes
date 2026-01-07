@@ -390,6 +390,7 @@ async fn daily_cleanup(db: Inject<Database>) -> Result<(), TaskError> {
 > **Note**: Full task queue support deferred to V1.2
 
 Basic retry support in V1.1:
+
 - Fixed delay retry
 - Exponential backoff
 - Max retry count
