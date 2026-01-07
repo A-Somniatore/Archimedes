@@ -76,6 +76,10 @@ impl MiddlewareContext {
             trace_id: None,
             span_id: None,
             operation_id: None,
+            method: Method::GET,
+            path: String::new(),
+            headers: None,
+            service_name: None,
             started_at: Instant::now(),
             extensions: HashMap::new(),
         }
@@ -92,6 +96,30 @@ impl MiddlewareContext {
             trace_id: None,
             span_id: None,
             operation_id: None,
+            method: Method::GET,
+            path: String::new(),
+            headers: None,
+            service_name: None,
+            started_at: Instant::now(),
+            extensions: HashMap::new(),
+        }
+    }
+
+    /// Creates a context from an HTTP request.
+    ///
+    /// This is the typical way to create a context for incoming requests.
+    #[must_use]
+    pub fn from_request(method: Method, path: String, headers: HeaderMap) -> Self {
+        Self {
+            request_id: RequestId::new(),
+            identity: CallerIdentity::Anonymous,
+            trace_id: None,
+            span_id: None,
+            operation_id: None,
+            method,
+            path,
+            headers: Some(headers),
+            service_name: None,
             started_at: Instant::now(),
             extensions: HashMap::new(),
         }
@@ -99,8 +127,8 @@ impl MiddlewareContext {
 
     /// Returns the request ID.
     #[must_use]
-    pub fn request_id(&self) -> RequestId {
-        self.request_id
+    pub fn request_id(&self) -> &RequestId {
+        &self.request_id
     }
 
     /// Sets the request ID.
@@ -108,6 +136,50 @@ impl MiddlewareContext {
     /// This should only be called by the `RequestId` middleware.
     pub fn set_request_id(&mut self, request_id: RequestId) {
         self.request_id = request_id;
+    }
+
+    /// Returns the HTTP method.
+    #[must_use]
+    pub fn method(&self) -> &Method {
+        &self.method
+    }
+
+    /// Sets the HTTP method.
+    pub fn set_method(&mut self, method: Method) {
+        self.method = method;
+    }
+
+    /// Returns the request path.
+    #[must_use]
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    /// Sets the request path.
+    pub fn set_path(&mut self, path: String) {
+        self.path = path;
+    }
+
+    /// Returns the request headers.
+    #[must_use]
+    pub fn headers(&self) -> Option<&HeaderMap> {
+        self.headers.as_ref()
+    }
+
+    /// Sets the request headers.
+    pub fn set_headers(&mut self, headers: HeaderMap) {
+        self.headers = Some(headers);
+    }
+
+    /// Returns the service name.
+    #[must_use]
+    pub fn service_name(&self) -> Option<&str> {
+        self.service_name.as_deref()
+    }
+
+    /// Sets the service name.
+    pub fn set_service_name(&mut self, name: String) {
+        self.service_name = Some(name);
     }
 
     /// Returns the caller identity.
@@ -263,6 +335,10 @@ impl Clone for MiddlewareContext {
             trace_id: self.trace_id.clone(),
             span_id: self.span_id.clone(),
             operation_id: self.operation_id.clone(),
+            method: self.method.clone(),
+            path: self.path.clone(),
+            headers: self.headers.clone(),
+            service_name: self.service_name.clone(),
             started_at: self.started_at,
             extensions: HashMap::new(),
         }
@@ -366,7 +442,7 @@ mod tests {
         ctx.set_operation_id("createUser".to_string());
 
         let req_ctx = ctx.to_request_context();
-        assert_eq!(req_ctx.request_id(), ctx.request_id());
+        assert_eq!(req_ctx.request_id(), *ctx.request_id());
         assert_eq!(req_ctx.trace_id(), Some("trace-123"));
         assert_eq!(req_ctx.span_id(), Some("span-456"));
         assert_eq!(req_ctx.operation_id(), Some("createUser"));

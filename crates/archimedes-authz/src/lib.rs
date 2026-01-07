@@ -105,6 +105,14 @@ impl Authorizer {
         Ok(Self::new(evaluator, cache))
     }
 
+    /// Create an Authorizer with default configuration.
+    ///
+    /// This is suitable for development and testing. For production,
+    /// use `with_config(EvaluatorConfig::production())`.
+    pub fn with_defaults() -> AuthzResult<Self> {
+        Self::with_config(EvaluatorConfig::development())
+    }
+
     /// Load a policy bundle from a file.
     pub async fn load_bundle(&mut self, path: impl AsRef<std::path::Path>) -> AuthzResult<()> {
         let metadata = self.evaluator.load_bundle_from_file(path).await?;

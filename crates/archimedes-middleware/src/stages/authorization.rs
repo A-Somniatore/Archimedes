@@ -50,10 +50,10 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 #[cfg(feature = "opa")]
-use archimedes_authz::{Authorizer, EvaluatorConfig};
+use archimedes_authz::Authorizer;
 
 #[cfg(feature = "opa")]
-use themis_platform_types::{PolicyInput, RequestId};
+use themis_platform_types::PolicyInput;
 
 #[cfg(feature = "opa")]
 use std::collections::HashMap as StdHashMap;
@@ -241,10 +241,7 @@ impl AuthorizationMiddleware {
         ctx: &MiddlewareContext,
     ) -> Result<themis_platform_types::PolicyDecision, archimedes_authz::AuthzError> {
         // Build PolicyInput from context
-        let request_id = ctx
-            .request_id()
-            .cloned()
-            .unwrap_or_else(RequestId::new);
+        let request_id = ctx.request_id().clone();
 
         let mut input_builder = PolicyInput::builder()
             .caller(identity.clone())
@@ -267,7 +264,7 @@ impl AuthorizationMiddleware {
             .try_build()
             .map_err(|e| archimedes_authz::AuthzError::Evaluation(format!("Failed to build policy input: {}", e)))?;
 
-        authorizer.evaluate(&input).await
+        authorizer.authorize(&input).await
     }
 
     /// Evaluates RBAC policy.
