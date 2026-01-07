@@ -65,18 +65,33 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+#[cfg(feature = "sentinel")]
+use archimedes_sentinel::Sentinel;
+
 /// Request validation middleware that validates against contract schemas.
 ///
-/// This is a mock implementation for development and testing.
-/// Production will use Themis contract artifacts.
-#[derive(Debug, Clone)]
+/// This middleware supports multiple validation modes:
+///
+/// - **AllowAll**: Allow all requests (development mode)
+/// - **RejectAll**: Reject all requests (testing)
+/// - **Schema**: Mock schema-based validation
+/// - **Sentinel**: Real contract validation via archimedes-sentinel (requires `sentinel` feature)
+#[derive(Clone)]
 pub struct ValidationMiddleware {
     /// The validation mode.
     mode: ValidationMode,
 }
 
+impl std::fmt::Debug for ValidationMiddleware {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ValidationMiddleware")
+            .field("mode", &self.mode.name())
+            .finish()
+    }
+}
+
 /// Response validation middleware that validates handler responses.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ResponseValidationMiddleware {
     /// The validation mode.
     mode: ValidationMode,
@@ -84,8 +99,17 @@ pub struct ResponseValidationMiddleware {
     enforce: bool,
 }
 
+impl std::fmt::Debug for ResponseValidationMiddleware {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ResponseValidationMiddleware")
+            .field("mode", &self.mode.name())
+            .field("enforce", &self.enforce)
+            .finish()
+    }
+}
+
 /// Validation mode configuration.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 enum ValidationMode {
     /// Allow all requests/responses (development mode).
     AllowAll,
@@ -93,6 +117,21 @@ enum ValidationMode {
     RejectAll,
     /// Schema-based validation.
     Schema(Arc<SchemaConfig>),
+    /// Sentinel contract validation (requires `sentinel` feature).
+    #[cfg(feature = "sentinel")]
+    Sentinel(Arc<Sentinel>),
+}
+
+impl ValidationMode {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::AllowAll => "allow_all",
+            Self::RejectAll => "reject_all",
+            Self::Schema(_) => "schema",
+            #[cfg(feature = "sentinel")]
+            Self::Sentinel(_) => "sentinel",
+        }
+    }
 }
 
 /// Schema configuration for validation.
@@ -188,6 +227,32 @@ impl ValidationMiddleware {
         ValidationBuilder::default()
     }
 
+    /// Creates a new validation middleware using Themis contract artifacts.
+    ///
+    /// This requires the `sentinel` feature to be enabled.
+    ///
+    /// # Arguments
+    ///
+    /// * `sentinel` - A pre-configured `Sentinel` from `archimedes-sentinel`
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// use archimedes_sentinel::{Sentinel, ArtifactLoader};
+    /// use archimedes_middleware::stages::ValidationMiddleware;
+    ///
+    /// let artifact = ArtifactLoader::from_file("contract.artifact.json").await?;
+    /// let sentinel = Sentinel::with_defaults(artifact);
+    /// let middleware = ValidationMiddleware::sentinel(sentinel);
+    /// ```
+    #[cfg(feature = "sentinel")]
+    #[must_use]
+    pub fn sentinel(sentinel: Sentinel) -> Self {
+        Self {
+            mode: ValidationMode::Sentinel(Arc::new(sentinel)),
+        }
+    }
+
     /// Validates the request body against the operation schema.
     fn validate_request(&self, operation_id: &str, body: &[u8]) -> ValidationResult {
         match &self.mode {
@@ -212,6 +277,73 @@ impl ValidationMiddleware {
                         valid: true,
                         errors: vec![],
                     }
+                }
+            }
+            #[cfg(feature = "sentinel")]
+            ValidationMode::Sentinel(sentinel) => {
+                Self::validate_with_sentinel(sentinel, operation_id, body)
+            }
+        }
+    }
+
+    /// Validates request body using Sentinel.
+    #[cfg(feature = "sentinel")]
+    fn validate_with_sentinel(
+        sentinel: &Sentinel,
+        operation_id: &str,
+        body: &[u8],
+    ) -> ValidationResult {
+        // Parse body as JSON
+        let json_body: serde_json::Value = if body.is_empty() {
+            serde_json::Value::Null
+        } else {
+            match serde_json::from_slice(body) {
+                Ok(v) => v,
+                Err(e) => {
+                    return ValidationResult {
+                        valid: false,
+                        errors: vec![ValidationError {
+                            field: "".to_string(),
+                            message: format!("Invalid JSON: {e}"),
+                            code: "INVALID_JSON".to_string(),
+                        }],
+                    };
+                }
+            }
+        };
+
+        // Validate using sentinel
+        match sentinel.validate_request(operation_id, &json_body) {
+            Ok(result) => {
+                if result.valid {
+                    ValidationResult {
+                        valid: true,
+                        errors: vec![],
+                    }
+                } else {
+                    ValidationResult {
+                        valid: false,
+                        errors: result
+                            .errors
+                            .into_iter()
+                            .map(|e| ValidationError {
+                                field: e.path,
+                                message: e.message,
+                                code: "SCHEMA_VALIDATION_ERROR".to_string(),
+                            })
+                            .collect(),
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::error!(error = %e, "Sentinel validation error");
+                ValidationResult {
+                    valid: false,
+                    errors: vec![ValidationError {
+                        field: "".to_string(),
+                        message: format!("Validation error: {e}"),
+                        code: "VALIDATION_ERROR".to_string(),
+                    }],
                 }
             }
         }
@@ -395,6 +527,18 @@ impl ResponseValidationMiddleware {
         ResponseValidationBuilder::default()
     }
 
+    /// Creates a new response validation middleware using Themis contract artifacts.
+    ///
+    /// This requires the `sentinel` feature to be enabled.
+    #[cfg(feature = "sentinel")]
+    #[must_use]
+    pub fn sentinel(sentinel: Sentinel, enforce: bool) -> Self {
+        Self {
+            mode: ValidationMode::Sentinel(Arc::new(sentinel)),
+            enforce,
+        }
+    }
+
     /// Sets whether to enforce validation (return error) or just log.
     #[must_use]
     pub fn enforce(mut self, enforce: bool) -> Self {
@@ -403,7 +547,7 @@ impl ResponseValidationMiddleware {
     }
 
     /// Validates the response body against the operation schema.
-    fn validate_response(&self, operation_id: &str, body: &[u8]) -> ValidationResult {
+    fn validate_response(&self, operation_id: &str, _status_code: u16, body: &[u8]) -> ValidationResult {
         match &self.mode {
             ValidationMode::AllowAll => ValidationResult {
                 valid: true,
@@ -426,6 +570,74 @@ impl ResponseValidationMiddleware {
                         valid: true,
                         errors: vec![],
                     }
+                }
+            }
+            #[cfg(feature = "sentinel")]
+            ValidationMode::Sentinel(sentinel) => {
+                Self::validate_response_with_sentinel(sentinel, operation_id, _status_code, body)
+            }
+        }
+    }
+
+    /// Validates response body using Sentinel.
+    #[cfg(feature = "sentinel")]
+    fn validate_response_with_sentinel(
+        sentinel: &Sentinel,
+        operation_id: &str,
+        status_code: u16,
+        body: &[u8],
+    ) -> ValidationResult {
+        // Parse body as JSON
+        let json_body: serde_json::Value = if body.is_empty() {
+            serde_json::Value::Null
+        } else {
+            match serde_json::from_slice(body) {
+                Ok(v) => v,
+                Err(e) => {
+                    return ValidationResult {
+                        valid: false,
+                        errors: vec![ValidationError {
+                            field: "".to_string(),
+                            message: format!("Invalid JSON response: {e}"),
+                            code: "INVALID_JSON".to_string(),
+                        }],
+                    };
+                }
+            }
+        };
+
+        // Validate using sentinel
+        match sentinel.validate_response(operation_id, status_code, &json_body) {
+            Ok(result) => {
+                if result.valid {
+                    ValidationResult {
+                        valid: true,
+                        errors: vec![],
+                    }
+                } else {
+                    ValidationResult {
+                        valid: false,
+                        errors: result
+                            .errors
+                            .into_iter()
+                            .map(|e| ValidationError {
+                                field: e.path,
+                                message: e.message,
+                                code: "RESPONSE_SCHEMA_ERROR".to_string(),
+                            })
+                            .collect(),
+                    }
+                }
+            }
+            Err(e) => {
+                tracing::error!(error = %e, "Sentinel response validation error");
+                ValidationResult {
+                    valid: false,
+                    errors: vec![ValidationError {
+                        field: "".to_string(),
+                        message: format!("Response validation error: {e}"),
+                        code: "VALIDATION_ERROR".to_string(),
+                    }],
                 }
             }
         }
@@ -454,12 +666,15 @@ impl Middleware for ResponseValidationMiddleware {
                 return response;
             }
 
+            // Get status code for sentinel validation
+            let status_code = response.status().as_u16();
+
             // For mock implementation, we'd need to extract response body
             // In production, this would buffer and validate the response
             // For now, we'll use a placeholder that assumes valid responses
             let body: &[u8] = &[];
 
-            let result = self.validate_response(&operation_id, body);
+            let result = self.validate_response(&operation_id, status_code, body);
 
             // Store response validation result
             ctx.set_extension(ResponseValidationResult(result.clone()));
