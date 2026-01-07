@@ -49,18 +49,40 @@ use http::StatusCode;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
+#[cfg(feature = "opa")]
+use archimedes_authz::{Authorizer, EvaluatorConfig};
+
+#[cfg(feature = "opa")]
+use themis_platform_types::{PolicyInput, RequestId};
+
+#[cfg(feature = "opa")]
+use std::collections::HashMap as StdHashMap;
+
 /// Authorization middleware that enforces access control policies.
 ///
-/// This is a mock implementation for development and testing.
-/// Production will use OPA via Eunomia.
-#[derive(Debug, Clone)]
+/// This middleware supports multiple authorization modes:
+///
+/// - **AllowAll**: Allow all requests (development mode)
+/// - **DenyAll**: Deny all requests (testing)
+/// - **Rbac**: Role-based access control (mock)
+/// - **Custom**: Custom policy evaluator trait
+/// - **Opa**: OPA policy evaluation via archimedes-authz (requires `opa` feature)
+#[derive(Clone)]
 pub struct AuthorizationMiddleware {
     /// The authorization mode.
     mode: AuthorizationMode,
 }
 
+impl std::fmt::Debug for AuthorizationMiddleware {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AuthorizationMiddleware")
+            .field("mode", &self.mode.name())
+            .finish()
+    }
+}
+
 /// Authorization mode configuration.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 enum AuthorizationMode {
     /// Allow all requests (development mode).
     AllowAll,
@@ -70,6 +92,22 @@ enum AuthorizationMode {
     Rbac(Arc<RbacConfig>),
     /// Custom policy function.
     Custom(Arc<dyn PolicyEvaluator>),
+    /// OPA policy evaluation (requires `opa` feature).
+    #[cfg(feature = "opa")]
+    Opa(Arc<Authorizer>),
+}
+
+impl AuthorizationMode {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::AllowAll => "allow_all",
+            Self::DenyAll => "deny_all",
+            Self::Rbac(_) => "rbac",
+            Self::Custom(_) => "custom",
+            #[cfg(feature = "opa")]
+            Self::Opa(_) => "opa",
+        }
+    }
 }
 
 /// Role-based access control configuration.
@@ -137,7 +175,45 @@ impl AuthorizationMiddleware {
         }
     }
 
-    /// Evaluates authorization for the given identity and operation.
+    /// Creates a new authorization middleware using OPA policy evaluation.
+    ///
+    /// This requires the `opa` feature to be enabled.
+    ///
+    /// # Arguments
+    ///
+    /// * `authorizer` - A pre-configured `Authorizer` from `archimedes-authz`
+    ///
+    /// # Example
+    ///
+    /// ```rust,ignore
+    /// use archimedes_authz::{Authorizer, EvaluatorConfig};
+    /// use archimedes_middleware::stages::AuthorizationMiddleware;
+    ///
+    /// let authorizer = Authorizer::with_config(EvaluatorConfig::production())?;
+    /// let middleware = AuthorizationMiddleware::opa(authorizer);
+    /// ```
+    #[cfg(feature = "opa")]
+    #[must_use]
+    pub fn opa(authorizer: Authorizer) -> Self {
+        Self {
+            mode: AuthorizationMode::Opa(Arc::new(authorizer)),
+        }
+    }
+
+    /// Creates a new authorization middleware using OPA with default configuration.
+    ///
+    /// This requires the `opa` feature to be enabled.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the OPA evaluator cannot be initialized.
+    #[cfg(feature = "opa")]
+    pub fn opa_default() -> Result<Self, archimedes_authz::AuthzError> {
+        let authorizer = Authorizer::with_defaults()?;
+        Ok(Self::opa(authorizer))
+    }
+
+    /// Evaluates authorization for the given identity and operation (sync mock modes).
     fn evaluate(&self, identity: &CallerIdentity, operation_id: &str) -> PolicyDecision {
         match &self.mode {
             AuthorizationMode::AllowAll => PolicyDecision::Allow,
@@ -148,7 +224,50 @@ impl AuthorizationMiddleware {
                 Self::evaluate_rbac(config, identity, operation_id)
             }
             AuthorizationMode::Custom(evaluator) => evaluator.evaluate(identity, operation_id),
+            #[cfg(feature = "opa")]
+            AuthorizationMode::Opa(_) => {
+                // OPA evaluation is handled in the async middleware process method
+                unreachable!("OPA mode should use evaluate_opa_async instead")
+            }
         }
+    }
+
+    /// Evaluates OPA authorization asynchronously.
+    #[cfg(feature = "opa")]
+    async fn evaluate_opa_async(
+        authorizer: &Authorizer,
+        identity: &CallerIdentity,
+        operation_id: &str,
+        ctx: &MiddlewareContext,
+    ) -> Result<themis_platform_types::PolicyDecision, archimedes_authz::AuthzError> {
+        // Build PolicyInput from context
+        let request_id = ctx
+            .request_id()
+            .cloned()
+            .unwrap_or_else(RequestId::new);
+
+        let mut input_builder = PolicyInput::builder()
+            .caller(identity.clone())
+            .service(ctx.service_name().unwrap_or("unknown"))
+            .operation_id(operation_id)
+            .method(ctx.method().as_str())
+            .path(ctx.path())
+            .request_id(request_id);
+
+        // Add headers as context if available
+        if let Some(headers) = ctx.headers() {
+            let headers_map: StdHashMap<String, String> = headers
+                .iter()
+                .filter_map(|(k, v)| v.to_str().ok().map(|v| (k.to_string(), v.to_string())))
+                .collect();
+            input_builder = input_builder.headers(headers_map);
+        }
+
+        let input = input_builder
+            .try_build()
+            .map_err(|e| archimedes_authz::AuthzError::Evaluation(format!("Failed to build policy input: {}", e)))?;
+
+        authorizer.evaluate(&input).await
     }
 
     /// Evaluates RBAC policy.
@@ -236,18 +355,60 @@ impl Middleware for AuthorizationMiddleware {
         next: Next<'a>,
     ) -> BoxFuture<'a, Response> {
         Box::pin(async move {
-            let operation_id = ctx.operation_id().unwrap_or("unknown");
-            let identity = ctx.identity();
+            let operation_id = ctx.operation_id().unwrap_or("unknown").to_string();
+            let identity = ctx.identity().clone();
 
-            // Evaluate authorization policy
-            let decision = self.evaluate(identity, operation_id);
+            // Handle OPA mode with async evaluation
+            #[cfg(feature = "opa")]
+            if let AuthorizationMode::Opa(authorizer) = &self.mode {
+                match Self::evaluate_opa_async(authorizer, &identity, &operation_id, ctx).await {
+                    Ok(decision) => {
+                        if decision.allowed {
+                            ctx.set_extension(AuthorizationResult {
+                                allowed: true,
+                                operation_id,
+                                reason: None,
+                            });
+                            return next.run(ctx, request).await;
+                        } else {
+                            let reason = decision.reason.unwrap_or_else(|| "access denied".to_string());
+                            ctx.set_extension(AuthorizationResult {
+                                allowed: false,
+                                operation_id,
+                                reason: Some(reason.clone()),
+                            });
+                            return Response::json_error(
+                                StatusCode::FORBIDDEN,
+                                "AUTHORIZATION_DENIED",
+                                &reason,
+                            );
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!(error = %e, "OPA authorization evaluation failed");
+                        ctx.set_extension(AuthorizationResult {
+                            allowed: false,
+                            operation_id,
+                            reason: Some(format!("Authorization error: {e}")),
+                        });
+                        return Response::json_error(
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            "AUTHORIZATION_ERROR",
+                            &format!("Policy evaluation failed: {e}"),
+                        );
+                    }
+                }
+            }
+
+            // Evaluate sync authorization policy for non-OPA modes
+            let decision = self.evaluate(&identity, &operation_id);
 
             match decision {
                 PolicyDecision::Allow => {
                     // Store decision in context for auditing
                     ctx.set_extension(AuthorizationResult {
                         allowed: true,
-                        operation_id: operation_id.to_string(),
+                        operation_id,
                         reason: None,
                     });
 
@@ -258,7 +419,7 @@ impl Middleware for AuthorizationMiddleware {
                     // Store decision in context for auditing
                     ctx.set_extension(AuthorizationResult {
                         allowed: false,
-                        operation_id: operation_id.to_string(),
+                        operation_id,
                         reason: Some(reason.clone()),
                     });
 

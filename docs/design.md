@@ -1,8 +1,8 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.8.0  
-> **Status**: Implementation Phase (Phase A7 In Progress)  
-> **Last Updated**: 2025-01-07  
+> **Version**: 2.9.0  
+> **Status**: Implementation Phase (Phase A7 Week 25-26 Complete)  
+> **Last Updated**: 2026-01-07  
 > **Component**: archimedes
 
 ---
@@ -12,7 +12,7 @@
 | Crate                   | Status       | Tests | Description                                                                          |
 | ----------------------- | ------------ | ----- | ------------------------------------------------------------------------------------ |
 | `archimedes`            | ✅ Complete  | -     | Main facade crate (re-exports all crates)                                            |
-| `archimedes-core`       | ✅ Complete  | 74    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext |
+| `archimedes-core`       | ✅ Complete  | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
 | `archimedes-server`     | ✅ Complete  | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown               |
 | `archimedes-middleware` | ✅ Complete  | 104   | All 8 middleware stages + pipeline                                                   |
 | `archimedes-telemetry`  | ✅ Complete  | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                        |
@@ -20,16 +20,24 @@
 | `archimedes-router`     | ✅ Complete  | 57    | High-performance radix tree router with method merging                               |
 | `archimedes-extract`    | ✅ Complete  | 109   | Request extractors, response builders, DI injection                                  |
 | `archimedes-macros`     | 🔄 Phase A7  | 14    | Handler macros for FastAPI-style definition (wiring complete)                        |
-| `archimedes-sentinel`   | ⏸️ Blocked   | 38    | Themis contract integration (awaiting themis-contract crate)                         |
-| `archimedes-authz`      | 🔜 Phase A5  | -     | Eunomia/OPA integration                                                              |
+| `archimedes-sentinel`   | ✅ Complete  | 38    | Themis contract integration                                                          |
+| `archimedes-authz`      | 🔄 Phase A5  | 25    | Eunomia/OPA integration (1 test needs Rego syntax fix)                               |
 
-**Total Tests**: 643 passing
+**Total Tests**: 649 passing (1 failing in authz due to Rego syntax)
 
 ---
 
 ## Recent Updates (Phase A7 Handler Macros)
 
-### InvocationContext (v2.8.0) - NEW
+### Contract Binding (v2.9.0) - NEW
+- **archimedes-core**: Added `HandlerBinder` for contract binding validation
+- Validates handlers against contract operations at startup
+- Ensures all required operations have handlers (no missing handlers)
+- Prevents duplicate handler registration
+- Prevents registration of unknown operations
+- 6 unit tests covering all validation cases
+
+### InvocationContext (v2.8.0)
 - **archimedes-core**: Added `InvocationContext` to bridge handler invocation with extraction system
 - Aggregates HTTP request details (method, URI, headers, body)
 - Includes path parameters from router matching

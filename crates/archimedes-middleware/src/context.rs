@@ -5,6 +5,7 @@
 //! context before the final context is passed to handlers.
 
 use archimedes_core::{CallerIdentity, RequestId};
+use http::{HeaderMap, Method};
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::time::Instant;
@@ -43,6 +44,18 @@ pub struct MiddlewareContext {
 
     /// The resolved operation ID from the contract.
     operation_id: Option<String>,
+
+    /// The HTTP method of the request.
+    method: Method,
+
+    /// The request path.
+    path: String,
+
+    /// The request headers.
+    headers: Option<HeaderMap>,
+
+    /// The service name (for policy evaluation).
+    service_name: Option<String>,
 
     /// When the request started processing.
     started_at: Instant,

@@ -10,6 +10,8 @@ repository.workspace = true
 
 [dependencies]
 archimedes-core.workspace = true
+archimedes-authz = { workspace = true, optional = true }
+archimedes-sentinel = { workspace = true, optional = true }
 themis-platform-types.workspace = true
 tokio.workspace = true
 serde.workspace = true
@@ -19,6 +21,15 @@ http.workspace = true
 http-body-util.workspace = true
 bytes.workspace = true
 uuid.workspace = true
+
+[features]
+default = []
+# Enable OPA/Eunomia authorization integration
+opa = ["dep:archimedes-authz"]
+# Enable Themis/Sentinel contract validation integration
+sentinel = ["dep:archimedes-sentinel"]
+# Enable all production integrations
+full = ["opa", "sentinel"]
 
 [dev-dependencies]
 tokio = { workspace = true, features = [
