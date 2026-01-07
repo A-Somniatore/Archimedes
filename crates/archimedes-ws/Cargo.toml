@@ -1,0 +1,57 @@
+[package]
+name = "archimedes-ws"
+description = "WebSocket support for Archimedes framework with contract validation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["websocket", "async", "archimedes", "themis"]
+categories = ["web-programming::websocket", "asynchronous"]
+
+[dependencies]
+# Internal crates
+archimedes-core = { workspace = true }
+themis-platform-types = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true, features = ["sync", "time", "macros"] }
+
+# WebSocket
+tokio-tungstenite = { workspace = true }
+tungstenite = { workspace = true }
+futures-util = { workspace = true }
+
+# HTTP
+hyper = { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+
+# Crypto for WebSocket handshake
+sha1 = { workspace = true }
+base64 = { workspace = true }
+
+# Collections
+dashmap = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+# UUID for connection IDs
+uuid = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full", "test-util"] }
+tokio-test = { workspace = true }
+
+[lints]
+workspace = true
