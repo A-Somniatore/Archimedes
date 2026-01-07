@@ -1,30 +1,35 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.9.0  
+> **Version**: 2.10.0  
 > **Created**: 2026-01-04  
 > **Last Updated**: 2026-01-07  
 > **Target Completion**: Week 48 (includes 4-week buffer)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!  
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
-> **UPDATE (2026-01-07)**: Phase A5 Week 17-18 in progress - Sentinel complete, Authz crate created.
+> **UPDATE (2026-01-07)**: Phase A5 Week 17-18 COMPLETE - Sentinel and Authz wired into middleware!
 
 ---
 
 ## 🎉 Recent Progress (Phase A5 Integration)
 
-### Eunomia/OPA Integration (v2.9.0) - IN PROGRESS
+### Eunomia/OPA Integration (v2.10.0) - ✅ COMPLETE
 - **archimedes-authz** crate for OPA policy evaluation (26 tests)
 - **PolicyEvaluator** wrapping regorus (pure Rust OPA)
 - **DecisionCache** with TTL-based caching and stats
 - **BundleLoader** for OPA tar.gz bundle loading
 - **EvaluatorConfig** with production/development presets
+- **AuthorizationMiddleware::opa()** wired into middleware pipeline
+- Feature flag: `opa` in archimedes-middleware
 
-### Themis/Sentinel Integration (v2.8.1) - COMPLETE
+### Themis/Sentinel Integration (v2.9.0) - ✅ COMPLETE
 - **archimedes-sentinel** crate for contract validation (38 tests)
 - **ArtifactLoader** supporting file, JSON, registry sources
 - **OperationResolver** with regex path matching
 - **SchemaValidator** with type and required field checks
+- **ValidationMiddleware::sentinel()** wired into middleware pipeline
+- **ResponseValidationMiddleware::sentinel()** for response validation
+- Feature flag: `sentinel` in archimedes-middleware
 
 ### InvocationContext & Integration (v2.8.0) - COMPLETE
 - **InvocationContext** type combining HTTP request details with middleware context
@@ -842,10 +847,14 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
   > ✅ **Completed 2026-01-06**: `OperationResolver` with regex path matching
 - [x] Implement request validation against schemas
   > ✅ **Completed 2026-01-06**: `SchemaValidator` with type and required field checks
-- [ ] Replace mock validation with real validation
-  > 🔜 **Next**: Wire sentinel into archimedes-middleware
+- [x] Replace mock validation with real validation
+  > ✅ **Completed 2026-01-07**: Wired sentinel into archimedes-middleware
+  > - Added `sentinel` feature flag to archimedes-middleware
+  > - `ValidationMiddleware::sentinel()` constructor
+  > - `ResponseValidationMiddleware::sentinel()` constructor
+  > - Uses real Themis contract schemas for validation
 
-### Week 18: Eunomia Integration — IN PROGRESS
+### Week 18: Eunomia Integration — ✅ COMPLETE
 
 - [x] Create `archimedes-authz` crate
   > ✅ **Completed 2026-01-07**: Full authz implementation with 26 tests
@@ -864,10 +873,14 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
   > - Cache key based on caller + operation + resource
   > - Configurable TTL and max entries
   > - Stats tracking (hits, misses, evictions)
-- [ ] Replace mock authorization with real OPA
-  > 🔜 **Next**: Wire authz into archimedes-middleware
+- [x] Replace mock authorization with real OPA
+  > ✅ **Completed 2026-01-07**: Wired authz into archimedes-middleware
+  > - Added `opa` feature flag to archimedes-middleware
+  > - `AuthorizationMiddleware::opa()` and `::opa_default()` constructors
+  > - Builds `PolicyInput` from `MiddlewareContext`
+  > - Uses real OPA policy evaluation via regorus
 
-### Week 19: Control Plane
+### Week 19: Control Plane — 🔜 NEXT
 
 - [ ] Implement policy update endpoint
 - [ ] Add mTLS authentication
