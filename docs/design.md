@@ -1,10 +1,9 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.11.1
-> **Status**: Implementation Phase (Phase A8 In Progress - Build Error)
-> **Last Updated**: 2026-01-08
+> **Version**: 2.12.0
+> **Status**: Implementation Phase (Phase A8 Complete)
+> **Last Updated**: 2026-01-09
 > **Component**: archimedes
-> **⚠️ Build Status**: Main crate has import errors for WebSocket/SSE/Tasks types
 
 ---
 
@@ -24,18 +23,41 @@
 | `archimedes-sentinel`   | ✅ Complete | 38    | Themis contract integration                                                                               |
 | `archimedes-authz`      | ✅ Complete | 26    | Eunomia/OPA integration                                                                                   |
 | `archimedes-docs`       | ✅ Complete | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
-| `archimedes-ws`         | ⚠️ Blocked  | ?     | WebSocket support (created, import errors)                                                                |
-| `archimedes-sse`        | ⚠️ Blocked  | ?     | Server-Sent Events (created, import errors)                                                               |
-| `archimedes-tasks`      | ⚠️ Blocked  | ?     | Background tasks (created, 3 flaky tests)                                                                 |
+| `archimedes-ws`         | ✅ Complete | 52    | WebSocket support with connection management                                                              |
+| `archimedes-sse`        | ✅ Complete | 38    | Server-Sent Events with backpressure handling                                                             |
+| `archimedes-tasks`      | ✅ Complete | 41    | Background task spawner and job scheduler                                                                 |
 
-**Total Tests**: 742 passing (when main crate compiles)
-**⚠️ Current Status**: Build error - main facade crate cannot compile due to missing type exports
+**Total Tests**: 878 passing across all crates
 
 ---
 
-## Recent Updates (Phase A7 Complete)
+## Recent Updates (Phase A8 Complete)
 
-### Automatic Documentation (v2.10.0) - NEW
+### Extended Features (v2.12.0) - NEW
+
+- **archimedes-ws**: WebSocket support crate (52 tests)
+  - RFC 6455 compliant via `tokio-tungstenite`
+  - `WebSocket` for bidirectional communication
+  - `ConnectionManager` with global/per-client limits
+  - Automatic ping/pong for connection health
+  - Graceful shutdown with connection notification
+  - JSON message serialization support
+
+- **archimedes-sse**: Server-Sent Events crate (38 tests)
+  - `SseStream` for server-to-client streaming
+  - `SseEvent` with id, event type, data, and retry
+  - `SseSender` for async event publishing
+  - Backpressure handling with configurable buffer
+  - Keep-alive with comment-based heartbeats
+
+- **archimedes-tasks**: Background processing crate (41 tests)
+  - `Spawner` for async task execution
+  - `TaskHandle` for cancellation and result retrieval
+  - `Scheduler` for cron-based job scheduling
+  - Task timeout and concurrent limit support
+  - `SharedSpawner` for DI integration
+
+### Automatic Documentation (v2.10.0)
 
 - **archimedes-docs**: New crate for API documentation generation
 - `OpenApiGenerator`: Converts Themis artifacts to OpenAPI 3.1 specs

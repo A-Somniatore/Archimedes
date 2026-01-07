@@ -192,6 +192,78 @@ match caller {
 
 ---
 
+## 📊 Spec vs Implementation Gap Analysis (2026-01-07)
+
+> **Source**: Architecture Review comparing spec.md to actual implementation
+> **Overall Score**: A (MVP feature-complete for HTTP/REST)
+
+### ✅ Fully Implemented (Matches Spec)
+
+| Spec Requirement | Evidence |
+|------------------|----------|
+| HTTP/1.1 & HTTP/2 Support | archimedes-server (hyper-based) |
+| Async/Tokio runtime | All crates |
+| Request ID generation (UUID v7) | archimedes-middleware/stages/request_id.rs |
+| Trace context (OpenTelemetry) | archimedes-telemetry |
+| Identity extraction (SPIFFE/JWT/ApiKey) | archimedes-extract |
+| Authorization middleware (OPA) | archimedes-authz (26 tests) |
+| Request validation | archimedes-middleware/stages/validation.rs |
+| Response validation | archimedes-sentinel |
+| Fixed 8-stage middleware pipeline | archimedes-middleware/pipeline.rs |
+| Handler registration by operationId | archimedes-server/handler.rs |
+| OPA/Rego policy evaluation | archimedes-authz (regorus) |
+| Policy bundle loading | archimedes-authz/bundle.rs |
+| Decision caching | archimedes-authz/cache.rs |
+| Contract artifact loading | archimedes-sentinel |
+| Prometheus metrics | archimedes-telemetry/metrics.rs |
+| Structured logging | archimedes-telemetry/logging.rs |
+| OpenTelemetry tracing | archimedes-telemetry/tracing.rs |
+| Health/Ready probes | archimedes-server/health.rs |
+| Graceful shutdown | archimedes-server/shutdown.rs |
+| High-performance router | archimedes-router (57 tests) |
+| Handler macros | archimedes-macros (#[handler]) |
+| Dependency injection | archimedes-core/di.rs |
+| API documentation generation | archimedes-docs (OpenAPI, Swagger, ReDoc) |
+| WebSocket Support | archimedes-ws (52 tests) |
+| Server-Sent Events | archimedes-sse (38 tests) |
+| Background Tasks | archimedes-tasks (41 tests) |
+
+### ⚠️ Partially Implemented
+
+| Spec Requirement | Gap | Impact |
+|------------------|-----|--------|
+| **mTLS authentication** | Identity middleware extracts SPIFFE but actual cert validation deferred to deployment layer | Medium |
+| **Enforced/Monitor modes** | Mode switching exists but needs full verification | Low |
+
+### ❌ Not Implemented (Missing from Spec)
+
+| Spec Requirement | Priority | Notes |
+|------------------|----------|-------|
+| **gRPC Support** | Post-MVP | ADR-006 explicitly defers to post-MVP. No tonic integration. |
+| **Control Plane Endpoint** | High | Spec §8.3 requires private endpoint for Eunomia to push policies. **Not found in codebase.** |
+| **Policy push with atomic rollback** | High | Spec requires atomic updates. Current: pull-only. |
+| **SPIFFE allowlist for control endpoint** | High | Depends on control plane endpoint |
+| **Contract-based WS message validation** | Medium | Spec §14.1 requires validating against Themis schemas |
+
+### 🔴 Critical: Control Plane Gap
+
+The spec (§8.3) requires Archimedes to expose a **private control-plane endpoint** for Eunomia to push policy bundles:
+
+```
+Archimedes exposes a private control-plane endpoint
+Eunomia calls this endpoint to push updates
+Security: mTLS, SPIFFE allowlist
+```
+
+**Current State**: This endpoint does NOT exist. Archimedes only supports pull-based policy loading via `BundleLoader`.
+
+**Options**:
+1. Implement control plane endpoint (matches spec)
+2. Update spec to reflect pull-only model (document deviation)
+3. Hybrid: pull on startup, gRPC push for hot-reload (post-MVP per ADR-006)
+
+---
+
 ## Key Decisions
 
 | Decision                                                                     | Impact                                               |
@@ -1329,11 +1401,13 @@ scheduler.start().await?;
 
 ---
 
-## Phase A9: Developer Experience (Weeks 33-36) 🛠️ NEW
+## Phase A9: Developer Experience (Weeks 33-36) 🛠️ DEFERRED
 
 > **Goal**: CLI tools, hot reload, and project scaffolding
+> **Status**: ⏳ DEFERRED - Prioritizing Phase A10 (Sidecar) for multi-language support
+> **Reason**: Sidecar is critical for enabling Python/Go/TypeScript services. CLI is nice-to-have.
 
-### Week 33-34: CLI Tool
+### Week 33-34: CLI Tool (DEFERRED)
 
 - [ ] `archimedes new <project>` - Scaffold new project
 - [ ] `archimedes generate handler` - Generate handler from contract
@@ -1369,10 +1443,11 @@ $ archimedes dev
 
 ---
 
-## Phase A10: Archimedes Sidecar (Weeks 37-39) 🚨 CRITICAL - MOVED FROM POST-MVP
+## Phase A10: Archimedes Sidecar (Weeks 37-39) 🚨 CRITICAL - IN PROGRESS
 
 > **Goal**: Enable Python, Go, TypeScript, and C++ services to use Archimedes via sidecar proxy
 > **Why Critical**: Archimedes is currently Rust-only, but services MUST be written in any language
+> **Status**: 🔄 STARTING - Prioritized over A9 due to critical importance
 
 ### Week 37: Sidecar Architecture & Design
 
