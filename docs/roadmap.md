@@ -371,8 +371,9 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 | A9: Developer Experience         | 4 weeks  | 33-36 | CLI tool, hot reload, templates      | A8 **(DEFERRED)**       |
 | **Multi-Language (Weeks 37-48)** | 🚨 **CRITICAL: Moved from post-MVP** |       |                                      |                         |
 | A10: Sidecar Foundation          | 3 weeks  | 37-39 | Archimedes sidecar binary            | A8 ✅ **COMPLETE**      |
-| A11: Type Generation             | 3 weeks  | 40-42 | Python, Go, TypeScript generators    | Themis codegen          |
-| A12: Multi-Language Integration  | 4 weeks  | 43-46 | Integration tests, deployment guides | A10, A11                |
+| A10.5: Pre-Production Hardening  | 1 week   | 40    | P1 backlog, hot-reload, testing      | A10 🔄 **IN PROGRESS**  |
+| A11: Type Generation             | 2 weeks  | 41-42 | Python, Go, TypeScript generators    | **Themis-owned**        |
+| A12: Multi-Language Integration  | 4 weeks  | 43-46 | Integration tests, deployment guides | A10.5, A11              |
 | **Buffer (Weeks 47-52)**         |          |       |                                      |                         |
 | Hardening & Buffer               | 6 weeks  | 47-52 | Performance tuning, contingency      | All                     |
 
@@ -386,6 +387,8 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 **🚨 CRITICAL CHANGE**: Multi-language support is NO LONGER post-MVP. It is now required for V1.0 release because services in Python, C++, Go, and TypeScript must be able to use Archimedes.
 
 **✅ Phase A10 COMPLETE**: Sidecar binary enables non-Rust services (Python, Go, TypeScript, C++) to use Archimedes middleware via reverse proxy pattern. 39 tests, Docker deployment ready.
+
+**🔄 Phase A10.5 IN PROGRESS**: Pre-production hardening addressing P1 technical debt.
 
 ### Cross-Component Timeline Alignment
 
@@ -1508,6 +1511,47 @@ $ archimedes dev
   - Hot-reload ready (config reload endpoint)
 - [x] Create Dockerfile for sidecar (multi-stage build)
 - [x] Create Kubernetes manifests (deployment, service, HPA, PDB)
+
+---
+
+## Phase A10.5: Pre-Production Hardening (Week 40) 🔧 NEW - IN PROGRESS
+
+> **Goal**: Address P1 backlog items before production release
+> **Priority**: MUST complete before any production deployment
+> **Status**: 🔄 STARTING
+
+### P1 Technical Debt Items
+
+- [ ] **File Watching for Hot-Reload** (per ADR-010)
+  - Add `notify` crate for file system watching
+  - Watch contract file for changes, reload `Sentinel`
+  - Watch policy bundle for changes, reload `PolicyEvaluator`
+  - Add to both native Archimedes and sidecar
+  - Tests for hot-reload functionality
+
+- [ ] **OPA Bundle Format Validation**
+  - Add integration test with actual `eunomia-compiler` output
+  - Validate `.manifest` JSON format
+  - Validate tar.gz bundle structure
+  - Document expected bundle format
+
+- [ ] **Monitor Mode Verification**
+  - E2E test for `validation_mode = "enforce"`
+  - E2E test for `validation_mode = "monitor"` (log-only)
+  - Verify metrics differ between modes
+  - Document mode switching behavior
+
+- [ ] **Handler Macro + Real Contracts**
+  - Test `#[handler]` macro with actual Themis artifact
+  - Verify operation binding with real contract
+  - Test error cases (missing operation, wrong schema)
+
+### A10.5 Deliverables
+
+- File watching hot-reload for contracts and policies
+- OPA bundle format validation tests
+- Monitor mode E2E tests
+- Handler macro integration tests with real contracts
 - [x] Create Docker Compose example for development
 
 ### A10 Deliverables
@@ -1521,12 +1565,32 @@ $ archimedes dev
 
 ---
 
-## Phase A11: Multi-Language Type Generation (Weeks 40-42) 🌐 NEW
+## Phase A11: Multi-Language Type Generation (Weeks 40-42) 🌐 THEMIS RESPONSIBILITY
 
 > **Goal**: Auto-generate types from JSON Schema for all languages
-> **Foundation**: Accelerate Themis type generation for Python, Go, TypeScript, C++
+> **Owner**: Themis team (contract tooling)
+> **Archimedes Role**: Provide example services that consume generated types
 
-### Week 40: Schema-to-Type Pipeline
+### ℹ️ Scope Clarification
+
+Phase A11 is primarily **Themis CLI functionality** - generating types from contract schemas. Archimedes benefits from this but doesn't own the implementation:
+
+| Task | Owner | Archimedes Role |
+|------|-------|-----------------|
+| JSON Schema generation from Rust types | Themis | Consumer of schemas |
+| Python type generator | Themis CLI | Example Python service |
+| Go type generator | Themis CLI | Example Go service |
+| TypeScript type generator | Themis CLI | Example TS service |
+| C++ type generator | Themis CLI | Example C++ service |
+
+### What Archimedes WILL Do in This Phase
+
+- [ ] Create example services in each language demonstrating sidecar usage
+- [ ] Document how generated types integrate with sidecar header parsing
+- [ ] Test sidecar with services using generated types
+- [ ] Validate `X-Caller-Identity` header parsing in each language
+
+### What Themis Will Do
 
 - [ ] **Automate JSON Schema generation from Rust types**
   - Add `schemars` derive to all themis-platform-types
@@ -1558,14 +1622,20 @@ $ archimedes dev
 
 ### A11 Deliverables
 
+**Themis Deliverables:**
 - Automated schema-to-type generators for Python, Go, TypeScript, C++
 - Integration with Themis CLI
 - CI pipeline for type generation
-- Example projects in each language
+
+**Archimedes Deliverables:**
+- Example Python service with sidecar
+- Example Go service with sidecar
+- Example TypeScript service with sidecar
+- Identity header parsing libraries/examples for each language
 
 ---
 
-## Phase A12: Multi-Language Integration (Weeks 43-46) 🧪 NEW
+## Phase A12: Multi-Language Integration (Weeks 43-46) 🧪 ARCHIMEDES + THEMIS
 
 > **Goal**: Prove end-to-end flow for each language with real integration tests
 
