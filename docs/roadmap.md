@@ -242,27 +242,46 @@ match caller {
 | Spec Requirement | Priority | Notes |
 |------------------|----------|-------|
 | **gRPC Support** | Post-MVP | ADR-006 explicitly defers to post-MVP. No tonic integration. |
-| **Control Plane Endpoint** | High | Spec §8.3 requires private endpoint for Eunomia to push policies. **Not found in codebase.** |
-| **Policy push with atomic rollback** | High | Spec requires atomic updates. Current: pull-only. |
-| **SPIFFE allowlist for control endpoint** | High | Depends on control plane endpoint |
+| **Control Plane Endpoint** | ~~High~~ **DECISION: Deferred** | See ADR-010 below - pull-only model for V1 |
+| **Policy push with atomic rollback** | ~~High~~ **DECISION: V1.1** | File-watch provides hot-reload without push endpoint |
+| **SPIFFE allowlist for control endpoint** | N/A | Not needed if pull-only |
 | **Contract-based WS message validation** | Medium | Spec §14.1 requires validating against Themis schemas |
 
-### 🔴 Critical: Control Plane Gap
+### 🟡 Design Decision: Control Plane Model (ADR-010)
 
-The spec (§8.3) requires Archimedes to expose a **private control-plane endpoint** for Eunomia to push policy bundles:
+> **Decision**: Use **pull-only model with file watching** for V1.0
+> **Rationale**: Simpler deployment, works with K8s ConfigMaps, no push endpoint security concerns
+> **Future**: Push endpoint can be added in V1.1 if needed for Eunomia integration
 
-```
-Archimedes exposes a private control-plane endpoint
-Eunomia calls this endpoint to push updates
-Security: mTLS, SPIFFE allowlist
-```
+The spec (§8.3) originally required a push endpoint, but we've decided to defer this:
 
-**Current State**: This endpoint does NOT exist. Archimedes only supports pull-based policy loading via `BundleLoader`.
+| Approach | V1.0 Implementation |
+|----------|---------------------|
+| **Contract Loading** | File-based via `ArtifactLoader` |
+| **Policy Loading** | File-based via `BundleLoader` |
+| **Hot Reload** | File watching (inotify/kqueue) |
+| **Deployment** | K8s ConfigMap/Secret mounting |
 
-**Options**:
-1. Implement control plane endpoint (matches spec)
-2. Update spec to reflect pull-only model (document deviation)
-3. Hybrid: pull on startup, gRPC push for hot-reload (post-MVP per ADR-006)
+**Why Pull-Only for V1.0**:
+1. Simpler security model (no inbound endpoint)
+2. Works with standard K8s patterns (ConfigMap updates)
+3. No need for SPIFFE allowlist complexity
+4. Eunomia can write to shared volume / ConfigMap
+
+---
+
+## 📋 P1 Technical Debt Backlog
+
+> **Source**: Staff Engineer Review (2026-01-07)
+> **Priority**: Address before production release
+
+| Item | Description | Owner | Target |
+|------|-------------|-------|--------|
+| **OPA Bundle Format Validation** | Add integration test validating `BundleLoader` against actual `eunomia-compiler` output | Archimedes | Pre-production |
+| **Error Code Unification** | Archimedes uses `ErrorCategory`, platform uses `ErrorCode` - unify to `ErrorCode` | Archimedes + Platform | V1.1 |
+| **Handler Macro + Real Contracts** | Test `#[handler]` macro with actual Themis artifacts, not mocks | Archimedes | Pre-production |
+| **WebSocket Message Validation** | Implement contract-based WS message validation per spec §14.1 | Archimedes | V1.1 |
+| **Monitor Mode Verification** | Full E2E test of enforce vs monitor validation modes | Archimedes | Pre-production |
 
 ---
 
@@ -270,12 +289,13 @@ Security: mTLS, SPIFFE allowlist
 
 | Decision                                                                     | Impact                                               |
 | ---------------------------------------------------------------------------- | ---------------------------------------------------- |
-| [ADR-009](../../docs/decisions/009-archimedes-sidecar-multi-language.md)     | **Sidecar pattern for Python/Go/TS/C++ services**    |
-| [ADR-008](../../docs/decisions/008-archimedes-full-framework.md)             | **Archimedes as internal standardized framework**    |
-| [ADR-005](../../docs/decisions/005-kubernetes-ingress-over-custom-router.md) | Archimedes handles contract enforcement, not routing |
-| [ADR-006](../../docs/decisions/006-grpc-post-mvp.md)                         | MVP is HTTP/REST only, gRPC is post-MVP              |
-| [ADR-004](../../docs/decisions/004-regorus-for-rego-parsing.md)              | Use Regorus for embedded OPA evaluation              |
-| [ADR-007](../../docs/decisions/007-apache-2-license.md)                      | Apache 2.0 license                                   |
+| [ADR-010](docs/decisions/010-pull-only-policy-model.md)                      | **Pull-only policy loading for V1.0 (no push endpoint)** |
+| [ADR-009](docs/decisions/009-archimedes-sidecar-multi-language.md)           | **Sidecar pattern for Python/Go/TS/C++ services**    |
+| [ADR-008](docs/decisions/008-archimedes-full-framework.md)                   | **Archimedes as internal standardized framework**    |
+| [ADR-005](docs/decisions/005-kubernetes-ingress-over-custom-router.md)       | Archimedes handles contract enforcement, not routing |
+| [ADR-006](docs/decisions/006-grpc-post-mvp.md)                               | MVP is HTTP/REST only, gRPC is post-MVP              |
+| [ADR-004](docs/decisions/004-regorus-for-rego-parsing.md)                    | Use Regorus for embedded OPA evaluation              |
+| [ADR-007](docs/decisions/007-apache-2-license.md)                            | Apache 2.0 license                                   |
 
 ## Vision: Internal Standardization
 
