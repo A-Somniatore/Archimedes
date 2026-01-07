@@ -1,0 +1,124 @@
+# =============================================================================
+# Archimedes Sidecar Example Configuration
+# =============================================================================
+# Copy this file to /etc/archimedes/config.toml or mount as a ConfigMap
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Service Configuration
+# -----------------------------------------------------------------------------
+[service]
+# Service name for telemetry and metrics
+name = "my-service"
+
+# Upstream application URL (where requests are forwarded)
+upstream = "http://localhost:8081"
+
+# Address to listen on
+listen_addr = "0.0.0.0:8080"
+
+# Request timeout in seconds
+timeout_secs = 30
+
+# Maximum request body size in bytes (default: 10MB)
+max_body_size = 10485760
+
+# -----------------------------------------------------------------------------
+# Contract Validation Configuration
+# -----------------------------------------------------------------------------
+[contract]
+# Path to the Themis contract JSON file
+path = "/etc/archimedes/contract.json"
+
+# Validation mode: "enforce" (reject invalid) or "monitor" (log only)
+validation_mode = "enforce"
+
+# Whether to validate response bodies
+validate_responses = true
+
+# Skip validation for these paths (health checks, metrics, etc.)
+skip_paths = ["/_archimedes/health", "/_archimedes/ready", "/_archimedes/metrics"]
+
+# -----------------------------------------------------------------------------
+# Authorization/Policy Configuration
+# -----------------------------------------------------------------------------
+[policy]
+# Path to OPA bundle (tar.gz format from eunomia-compiler)
+bundle_path = "/etc/archimedes/policy.tar.gz"
+
+# Default decision when policy evaluation fails: "allow" or "deny"
+default_decision = "deny"
+
+# Policy entrypoint (OPA package path)
+entrypoint = "data.themis.authz.allow"
+
+# Cache TTL for policy decisions in seconds
+cache_ttl_secs = 60
+
+# Maximum cache entries
+cache_max_entries = 10000
+
+# -----------------------------------------------------------------------------
+# Identity Extraction Configuration
+# -----------------------------------------------------------------------------
+[identity]
+# Identity sources to check (in order of preference)
+# Options: "mtls", "jwt", "apikey"
+sources = ["mtls", "jwt", "apikey"]
+
+# JWT configuration
+jwt_issuer = "https://auth.example.com"
+jwt_audience = "my-service"
+
+# Header for API key (default: X-Api-Key)
+apikey_header = "X-Api-Key"
+
+# Header to propagate identity downstream
+propagation_header = "X-Themis-Identity"
+
+# -----------------------------------------------------------------------------
+# Telemetry Configuration
+# -----------------------------------------------------------------------------
+[telemetry]
+# OpenTelemetry OTLP endpoint
+otlp_endpoint = "http://otel-collector:4317"
+
+# Service name for tracing
+service_name = "my-service"
+
+# Service version (optional, defaults to sidecar version)
+# service_version = "1.0.0"
+
+# Tracing sample rate (0.0 to 1.0)
+sample_rate = 1.0
+
+# Enable metrics collection
+metrics_enabled = true
+
+# Prometheus metrics port (if different from main port)
+# metrics_port = 9090
+
+# Log level: "trace", "debug", "info", "warn", "error"
+log_level = "info"
+
+# Log format: "json" or "pretty"
+log_format = "json"
+
+# -----------------------------------------------------------------------------
+# Health Check Configuration
+# -----------------------------------------------------------------------------
+[health]
+# Liveness check path
+liveness_path = "/_archimedes/health"
+
+# Readiness check path
+readiness_path = "/_archimedes/ready"
+
+# Upstream health check path (checked for readiness)
+upstream_health_path = "/health"
+
+# Health check timeout in seconds
+check_timeout_secs = 5
+
+# Check upstream health for readiness
+check_upstream = true

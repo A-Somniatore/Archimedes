@@ -1,0 +1,111 @@
+# =============================================================================
+# Archimedes Sidecar - Docker Compose Example
+# =============================================================================
+# This example shows how to run a Python Flask service with Archimedes sidecar
+# for local development.
+#
+# Usage:
+#   docker compose up
+#
+# The sidecar will listen on port 8080 and forward to the app on port 8081
+# =============================================================================
+
+version: "3.8"
+
+services:
+  # ---------------------------------------------------------------------------
+  # Application Service
+  # ---------------------------------------------------------------------------
+  # Your application (Python, Go, TypeScript, etc.) runs here
+  # It only needs to handle business logic - Archimedes handles everything else
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    # Internal port - only accessible via sidecar
+    expose:
+      - "8081"
+    environment:
+      - PORT=8081
+      - LOG_LEVEL=info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # Archimedes Sidecar
+  # ---------------------------------------------------------------------------
+  # Handles: contract validation, authorization, telemetry, identity
+  archimedes:
+    image: ghcr.io/themis-platform/archimedes-sidecar:latest
+    # Public port - all external traffic goes through sidecar
+    ports:
+      - "8080:8080"
+    environment:
+      # Core configuration
+      ARCHIMEDES_UPSTREAM: http://app:8081
+      ARCHIMEDES_SERVICE_NAME: my-service
+      ARCHIMEDES_LISTEN_ADDR: 0.0.0.0:8080
+      
+      # Contract validation
+      ARCHIMEDES_CONTRACT_PATH: /etc/archimedes/contract.json
+      ARCHIMEDES_VALIDATION_MODE: enforce
+      
+      # Authorization (optional - comment out if not using)
+      ARCHIMEDES_POLICY_BUNDLE_PATH: /etc/archimedes/policy.tar.gz
+      ARCHIMEDES_DEFAULT_DECISION: deny
+      
+      # Telemetry
+      ARCHIMEDES_OTLP_ENDPOINT: http://otel-collector:4317
+      RUST_LOG: info
+    volumes:
+      # Mount contract and policy files
+      - ./contracts:/etc/archimedes:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/archimedes-sidecar", "--health-check"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # OpenTelemetry Collector (Optional)
+  # ---------------------------------------------------------------------------
+  # Collects traces, metrics, and logs from Archimedes
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Prometheus metrics
+    volumes:
+      - ./otel-config.yaml:/etc/otelcol/config.yaml:ro
+    command: ["--config=/etc/otelcol/config.yaml"]
+
+  # ---------------------------------------------------------------------------
+  # Jaeger (Optional - for viewing traces)
+  # ---------------------------------------------------------------------------
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"  # UI
+      - "14268:14268"  # HTTP collector
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  default:
+    name: archimedes-network
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  contracts:
