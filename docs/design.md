@@ -1,7 +1,7 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.10.0  
-> **Status**: Implementation Phase (Phase A7 Complete)  
+> **Version**: 2.11.0  
+> **Status**: Implementation Phase (Phase A8 In Progress)  
 > **Last Updated**: 2026-01-07  
 > **Component**: archimedes
 
@@ -923,3 +923,256 @@ pub struct ThemisErrorEnvelope {
 - Complete service with real contracts
 - Policy updates and hot-reload
 - Graceful shutdown behavior
+
+---
+
+## 14. Real-Time Features (Phase A8)
+
+> **Status**: 🔜 Planned for Weeks 29-32
+
+### 14.1 WebSocket Architecture
+
+**Crate**: `archimedes-ws`
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     WebSocket Flow                               │
+│                                                                  │
+│  HTTP Upgrade    Identity    Authorization    WS Handler         │
+│  Request ──────► Middleware ──────► Check ──────► Loop          │
+│                      │                │              │           │
+│                      ▼                ▼              ▼           │
+│                  Extract          Validate      Message          │
+│                  Caller           Permission    Validation       │
+│                      │                │              │           │
+│                      └────────────────┴──────────────┘           │
+│                                  │                               │
+│                                  ▼                               │
+│                          Connection Manager                      │
+│                    (tracking, limits, shutdown)                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key Types**:
+
+```rust
+/// WebSocket connection with contract validation
+pub struct WebSocket {
+    inner: tokio_tungstenite::WebSocketStream<...>,
+    inbound_schema: Option<Schema>,
+    outbound_schema: Option<Schema>,
+    connection_id: ConnectionId,
+}
+
+/// WebSocket upgrade extractor
+pub struct WebSocketUpgrade {
+    config: WebSocketConfig,
+    on_upgrade: oneshot::Sender<WebSocket>,
+}
+
+/// WebSocket message types
+pub enum Message {
+    Text(String),
+    Binary(Vec<u8>),
+    Ping(Vec<u8>),
+    Pong(Vec<u8>),
+    Close(Option<CloseFrame>),
+}
+```
+
+**Middleware Integration**:
+- Identity middleware runs on HTTP upgrade request
+- Authorization middleware validates WS connection permission
+- Message validation happens per-message (optional, configurable)
+- Telemetry tracks connection lifecycle and message counts
+
+### 14.2 Server-Sent Events Architecture
+
+**Crate**: `archimedes-sse`
+
+```rust
+/// SSE stream for server-to-client events
+pub struct SseStream {
+    sender: mpsc::Sender<SseEvent>,
+    config: SseConfig,
+}
+
+/// Individual SSE event
+pub struct SseEvent {
+    pub id: Option<String>,
+    pub event: Option<String>,
+    pub data: String,
+    pub retry: Option<Duration>,
+}
+
+/// SSE response type for handlers
+pub struct Sse {
+    stream: SseStream,
+    keep_alive: Duration,
+}
+```
+
+**Handler Example**:
+
+```rust
+async fn event_stream(
+    auth: Auth,
+    sse: Sse,
+) -> impl IntoResponse {
+    // Spawn background task to push events
+    tokio::spawn(async move {
+        loop {
+            sse.send(SseEvent {
+                event: Some("update".into()),
+                data: json!({"status": "ok"}).to_string(),
+                ..Default::default()
+            }).await;
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+    });
+    
+    sse.into_response()
+}
+```
+
+### 14.3 Connection Management
+
+```rust
+/// Global connection manager
+pub struct ConnectionManager {
+    connections: DashMap<ConnectionId, ConnectionInfo>,
+    limits: ConnectionLimits,
+    shutdown: ShutdownSignal,
+}
+
+pub struct ConnectionLimits {
+    pub max_connections: usize,
+    pub max_per_client: usize,
+    pub idle_timeout: Duration,
+}
+
+pub struct ConnectionInfo {
+    pub id: ConnectionId,
+    pub client_id: Option<String>,
+    pub connected_at: Instant,
+    pub last_activity: Instant,
+    pub connection_type: ConnectionType,  // WebSocket | SSE
+}
+```
+
+---
+
+## 15. Background Processing (Phase A8)
+
+> **Status**: 🔜 Planned for Weeks 31-32
+
+### 15.1 Task System Architecture
+
+**Crate**: `archimedes-tasks`
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Task System                                  │
+│                                                                  │
+│  ┌────────────────┐  ┌────────────────┐  ┌──────────────────┐  │
+│  │  TaskSpawner   │  │   Scheduler    │  │  TaskRegistry    │  │
+│  │  (fire-forget) │  │  (cron-based)  │  │  (tracking)      │  │
+│  └───────┬────────┘  └───────┬────────┘  └────────┬─────────┘  │
+│          │                   │                    │             │
+│          └───────────────────┼────────────────────┘             │
+│                              ▼                                  │
+│                    ┌──────────────────┐                         │
+│                    │  Tokio Runtime   │                         │
+│                    │  (spawn_local or │                         │
+│                    │   spawn)         │                         │
+│                    └──────────────────┘                         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key Types**:
+
+```rust
+/// Task spawner with DI access
+pub struct TaskSpawner {
+    container: Arc<Container>,
+    registry: Arc<TaskRegistry>,
+    shutdown: ShutdownSignal,
+}
+
+impl TaskSpawner {
+    /// Spawn a fire-and-forget task
+    pub fn spawn<F>(&self, task: F) -> TaskHandle
+    where
+        F: Future<Output = ()> + Send + 'static;
+    
+    /// Spawn a task with result
+    pub fn spawn_with_result<F, T>(&self, task: F) -> JoinHandle<T>
+    where
+        F: Future<Output = T> + Send + 'static,
+        T: Send + 'static;
+}
+
+/// Handle for tracking spawned tasks
+pub struct TaskHandle {
+    id: TaskId,
+    abort_handle: AbortHandle,
+}
+
+/// Scheduled job configuration
+pub struct ScheduledJob {
+    pub name: &'static str,
+    pub cron: CronSchedule,
+    pub overlap_policy: OverlapPolicy,
+    pub timeout: Option<Duration>,
+}
+
+pub enum OverlapPolicy {
+    Skip,      // Skip if previous run still running
+    Queue,     // Queue for execution after current completes
+    Concurrent, // Allow concurrent executions
+}
+```
+
+### 15.2 Scheduler Implementation
+
+```rust
+/// Cron-based job scheduler
+pub struct Scheduler {
+    jobs: Vec<RegisteredJob>,
+    runtime: Handle,
+    shutdown: ShutdownSignal,
+}
+
+impl Scheduler {
+    pub fn register<F, Fut>(&mut self, job: ScheduledJob, handler: F)
+    where
+        F: Fn() -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<(), TaskError>> + Send;
+    
+    /// Start the scheduler loop
+    pub async fn run(&self) {
+        loop {
+            let next_job = self.find_next_due_job();
+            tokio::select! {
+                _ = tokio::time::sleep_until(next_job.next_run) => {
+                    self.execute_job(next_job).await;
+                }
+                _ = self.shutdown.recv() => {
+                    break;
+                }
+            }
+        }
+    }
+}
+```
+
+### 15.3 Task Telemetry
+
+```rust
+// Metrics emitted by task system
+task_spawned_total{task_type="ad-hoc|scheduled"}
+task_completed_total{task_type, status="success|error|cancelled"}
+task_duration_seconds{task_type}
+scheduled_job_runs_total{job_name, status}
+scheduled_job_last_run_timestamp{job_name}
+```

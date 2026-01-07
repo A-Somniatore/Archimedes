@@ -275,9 +275,131 @@ Archimedes binaries are not deployable unless fully compliant.
 
 ---
 
-## 14. Non-Goals (V1)
+## 14. Real-Time Communication (V1.1)
+
+> **Note**: These features are part of Phase A8, extending V1 capabilities.
+
+### 14.1 WebSocket Support
+
+Archimedes provides WebSocket support with contract-based message validation:
+
+- **Protocol**: RFC 6455 WebSocket over HTTP/1.1 upgrade
+- **Library**: `tokio-tungstenite` for async WebSocket handling
+- **Middleware**: Connection-level middleware (identity, authorization) applied on upgrade
+- **Validation**: Message schemas defined in Themis contracts
+
+#### WebSocket Lifecycle
+
+1. Client sends HTTP upgrade request
+2. Identity middleware extracts caller identity
+3. Authorization middleware validates connection permission
+4. Upgrade completes if authorized
+5. Messages validated against contract schemas
+6. Heartbeat/ping-pong for connection health
+7. Graceful close with proper close frames
+
+#### WebSocket Contract Integration
+
+```yaml
+# In Themis contract
+websocket:
+  chat:
+    path: /ws/chat
+    authRequired: true
+    messages:
+      clientMessage:
+        type: object
+        properties:
+          type: { enum: [message, typing, presence] }
+          content: { type: string }
+      serverMessage:
+        type: object
+        properties:
+          type: { enum: [message, error, presence] }
+          content: { type: string }
+          timestamp: { type: string, format: date-time }
+```
+
+### 14.2 Server-Sent Events (SSE)
+
+Archimedes provides SSE for server-to-client streaming:
+
+- **Protocol**: HTTP/1.1 or HTTP/2 with `text/event-stream` content type
+- **Backpressure**: Configurable buffer size with drop-oldest policy
+- **Reconnection**: Client-side `Last-Event-ID` header support
+- **Heartbeat**: Configurable keepalive comments
+
+#### SSE Event Format
+
+```
+id: <event-id>
+event: <event-type>
+data: <JSON payload validated against contract>
+retry: <reconnection delay in ms>
+```
+
+### 14.3 Connection Management
+
+- **Connection tracking**: All active connections tracked for graceful shutdown
+- **Idle timeout**: Configurable idle connection termination
+- **Max connections**: Per-client and global connection limits
+- **Metrics**: Connection count, duration, message throughput
+
+---
+
+## 15. Background Processing (V1.1)
+
+> **Note**: These features are part of Phase A8.
+
+### 15.1 Task Spawning
+
+Archimedes provides a managed task system for background work:
+
+- **Spawning**: `TaskSpawner::spawn()` for fire-and-forget tasks
+- **Tracking**: Optional task handles for cancellation and result retrieval
+- **Panic handling**: Panics logged and contained, don't crash server
+- **Shutdown**: Graceful task completion on server shutdown
+
+#### Task Constraints
+
+- Tasks MUST be `Send + 'static`
+- Tasks inherit the current span for tracing
+- Tasks have access to DI container services
+- Tasks are NOT subject to request middleware (no HTTP context)
+
+### 15.2 Scheduled Jobs
+
+Archimedes supports cron-based scheduled execution:
+
+- **Syntax**: Standard cron expressions (5-field or 6-field with seconds)
+- **Library**: `cron` crate for parsing, custom scheduler
+- **Overlap**: Configurable overlap policy (skip, queue, concurrent)
+- **Timezone**: UTC by default, configurable per job
+
+#### Scheduled Job Definition
+
+```rust
+#[archimedes::scheduled(cron = "0 0 * * *", overlap = "skip")]
+async fn daily_cleanup(db: Inject<Database>) -> Result<(), TaskError> {
+    db.delete_expired_sessions().await
+}
+```
+
+### 15.3 Task Queues (Future)
+
+> **Note**: Full task queue support deferred to V1.2
+
+Basic retry support in V1.1:
+- Fixed delay retry
+- Exponential backoff
+- Max retry count
+
+---
+
+## 16. Non-Goals (V1)
 
 - Plugin-based middleware systems
 - Runtime policy authoring
 - Dynamic handler registration
 - HTTP/3 support
+- Full distributed task queues (V1.2)

@@ -1,13 +1,13 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.10.0  
+> **Version**: 2.11.0  
 > **Created**: 2026-01-04  
 > **Last Updated**: 2026-01-07  
 > **Target Completion**: Week 48 (includes 4-week buffer)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!  
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
-> **UPDATE (2026-01-07)**: Phase A7 COMPLETE - Handler macros, contract binding, auto-docs all implemented (742 tests).
+> **UPDATE (2026-01-07)**: Phase A8 STARTED - Real-time features (WebSocket, SSE) and background processing.
 
 ---
 
