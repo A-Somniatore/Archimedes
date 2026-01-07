@@ -141,6 +141,44 @@ match caller {
 
 ---
 
+## 🔧 Staff Engineer Code Review (2026-01-07)
+
+> **Source**: Staff Engineer Cross-Component Review
+> **Status**: Tracked for team action
+
+### P0 - Test Failures (Must Fix)
+
+| Item | Description | Status |
+|------|-------------|--------|
+| **archimedes-tasks flaky tests** | 3 tests failing: `test_scheduler_basic`, `test_run_now`, `test_list_tasks_by_status`. Timeouts in async task spawner. | 🔴 Failing |
+
+### P1 - Archimedes-Specific Items
+
+| Item | Description | Status |
+|------|-------------|--------|
+| **OPA Bundle Format Validation** | Validate `BundleLoader` format against `eunomia-compiler` output. Eunomia writes `.manifest` JSON + policies as tar.gz. Archimedes expects same format - needs integration test. | ⏳ Backlog |
+| **Error Code Unification** | Archimedes uses `ErrorCategory`, platform uses `ErrorCode` - unify | ⏳ Backlog |
+| **Handler Macro + Real Contracts** | Test macros with actual Themis artifacts, not mocks | ⏳ Backlog |
+
+### ✅ Verified Working
+
+| Item | Description |
+|------|-------------|
+| **Platform types integration** | `archimedes-core` correctly imports `CallerIdentity`, `RequestId` from `themis-platform-types` |
+| **Policy types integration** | `archimedes-authz` correctly uses `PolicyInput`, `PolicyDecision` from `themis-platform-types` |
+| **Themis artifact integration** | `archimedes-sentinel` correctly imports from `themis-artifact`, `themis-core` |
+| **Edition/MSRV** | Updated to edition 2021, MSRV 1.75 ✅ |
+| **Git dependency** | Using GitHub reference for `themis-platform-types` ✅ |
+
+### P2 - Cross-Component Items
+
+| Item | Description | Owner |
+|------|-------------|-------|
+| **Health Check Standardization** | Define standard health check pattern for K8s deployment | Platform |
+| **gRPC Clarification** | Is Eunomia→Archimedes push via gRPC or HTTP? (ADR-006 says post-MVP) | Platform |
+
+---
+
 ## Key Decisions
 
 | Decision                                                                     | Impact                                               |

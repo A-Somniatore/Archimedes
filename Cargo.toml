@@ -15,12 +15,13 @@ members = [
     "crates/archimedes-docs",
     "crates/archimedes-ws",
     "crates/archimedes-sse",
+    "crates/archimedes-tasks",
 ]
 
 [workspace.package]
 version = "0.1.0"
-edition = "2024"
-rust-version = "1.85"
+edition = "2021"
+rust-version = "1.75"
 authors = ["Themis Platform Team"]
 license = "Apache-2.0"
 repository = "https://github.com/ThemisPlatform/archimedes"
@@ -29,7 +30,7 @@ categories = ["web-programming::http-server", "asynchronous"]
 
 [workspace.dependencies]
 # Shared platform types (from themis-platform-types crate)
-themis-platform-types = { path = "../themis-platform-types" }
+themis-platform-types = { git = "https://github.com/A-Somniatore/themis-platform-types", branch = "main" }
 
 # Internal crates
 archimedes = { path = "crates/archimedes" }
@@ -45,6 +46,7 @@ archimedes-sentinel = { path = "crates/archimedes-sentinel" }
 archimedes-authz = { path = "crates/archimedes-authz" }
 archimedes-ws = { path = "crates/archimedes-ws" }
 archimedes-sse = { path = "crates/archimedes-sse" }
+archimedes-tasks = { path = "crates/archimedes-tasks" }
 
 # Themis crates for contract integration
 themis-artifact = { path = "../themis/crates/themis-artifact" }
@@ -105,6 +107,12 @@ reqwest = { version = "0.12", features = ["json"] }
 
 # Time
 chrono = { version = "0.4", features = ["serde"] }
+
+# Synchronization
+parking_lot = "0.12"
+
+# Cron
+cron = "0.15"
 
 # Testing
 tokio-test = "0.4"
