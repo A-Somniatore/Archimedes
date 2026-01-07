@@ -1,0 +1,42 @@
+[package]
+name = "archimedes-docs"
+description = "Automatic API documentation generation for Archimedes - OpenAPI, Swagger UI, ReDoc"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["openapi", "swagger", "documentation", "api-docs"]
+categories = ["web-programming", "documentation"]
+
+[dependencies]
+# Core dependencies
+archimedes-core = { workspace = true }
+archimedes-sentinel = { workspace = true }
+themis-platform-types = { workspace = true }
+themis-core = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# HTTP types for serving docs
+http = { workspace = true }
+bytes = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+# Collections with preserved insertion order
+indexmap = { workspace = true }
+
+# Regex for path parameter extraction
+regex = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+tokio-test = { workspace = true }
+
+[lints]
+workspace = true

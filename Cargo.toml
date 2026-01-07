@@ -12,6 +12,7 @@ members = [
     "crates/archimedes-macros",
     "crates/archimedes-sentinel",
     "crates/archimedes-authz",
+    "crates/archimedes-docs",
 ]
 
 [workspace.package]
