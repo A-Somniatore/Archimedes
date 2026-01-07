@@ -1,7 +1,7 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.13.0
-> **Status**: Implementation Phase (Phase A10 In Progress)
+> **Version**: 2.14.0
+> **Status**: Implementation Phase (Phase A10 Complete)
 > **Last Updated**: 2025-01-09
 > **Component**: archimedes
 
@@ -26,24 +26,28 @@
 | `archimedes-ws`         | ✅ Complete   | 52    | WebSocket support with connection management                                                              |
 | `archimedes-sse`        | ✅ Complete   | 38    | Server-Sent Events with backpressure handling                                                             |
 | `archimedes-tasks`      | ✅ Complete   | 41    | Background task spawner and job scheduler                                                                 |
-| `archimedes-sidecar`    | 🔄 In Progress | 36    | Multi-language sidecar proxy (Phase A10)                                                                  |
+| `archimedes-sidecar`    | ✅ Complete   | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
 
-**Total Tests**: 914 passing across all crates (791 unit/integration + 123 doc-tests)
+**Total Tests**: 969 passing across all crates (791 unit/integration + 178 doc-tests)
 
 ---
 
-## Recent Updates (Phase A10 In Progress)
+## Recent Updates (Phase A10 Complete)
 
-### Sidecar Proxy (v2.13.0) - IN PROGRESS
+### Sidecar Proxy (v2.14.0) - COMPLETE
 
-- **archimedes-sidecar**: Multi-language support crate (36 tests)
+- **archimedes-sidecar**: Multi-language support crate (39 tests)
   - `SidecarServer`: HTTP proxy using `hyper`
   - `ProxyClient`: HTTP client for upstream forwarding (reqwest)
   - `HealthChecker`: Liveness and readiness endpoints
   - `PropagatedHeaders`: W3C Trace Context propagation
   - `SidecarConfig`: TOML/JSON configuration with env overrides
+  - `MiddlewarePipeline`: Sentinel and Authz integration
   - Header filtering (hop-by-hop, security-sensitive)
   - Internal endpoints (`/_archimedes/health`, `ready`, `metrics`)
+  - Dockerfile for containerized deployment
+  - Kubernetes manifests and Docker Compose examples
+  - ADR-009: Sidecar pattern documentation
 
 ### Extended Features (v2.12.0) - COMPLETE
 
