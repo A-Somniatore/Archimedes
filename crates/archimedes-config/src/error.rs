@@ -68,6 +68,17 @@ pub enum ConfigError {
     /// Validation error after loading.
     #[error("configuration validation failed: {0}")]
     ValidationError(String),
+
+    /// Invalid configuration for a component.
+    #[error("invalid configuration: {message}")]
+    InvalidConfig {
+        /// Description of the configuration error.
+        message: String,
+    },
+
+    /// I/O error.
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
 }
 
 impl ConfigError {

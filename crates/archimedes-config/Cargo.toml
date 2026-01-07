@@ -19,6 +19,10 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 toml = "0.8"
 
+# File watching for hot-reload
+notify = "8.0"
+tokio = { workspace = true }
+
 # Environment
 dotenvy = "0.15"
 

@@ -87,11 +87,13 @@ mod config;
 mod error;
 mod loader;
 mod schema;
+mod watcher;
 
 pub use config::*;
 pub use error::ConfigError;
 pub use loader::ConfigLoader;
 pub use schema::*;
+pub use watcher::{FileChangeEvent, FileChangeKind, FileWatcher, FileWatcherConfig};
 
 #[cfg(test)]
 mod tests {
