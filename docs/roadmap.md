@@ -1,17 +1,30 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.8.0  
+> **Version**: 2.9.0  
 > **Created**: 2026-01-04  
-> **Last Updated**: 2025-01-07  
+> **Last Updated**: 2026-01-07  
 > **Target Completion**: Week 48 (includes 4-week buffer)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!  
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
-> **UPDATE (2025-01-07)**: Phase A7 Week 25-26 complete - InvocationContext and macro integration wired.
+> **UPDATE (2026-01-07)**: Phase A5 Week 17-18 in progress - Sentinel complete, Authz crate created.
 
 ---
 
-## 🎉 Recent Progress (Phase A7 Handler Macros)
+## 🎉 Recent Progress (Phase A5 Integration)
+
+### Eunomia/OPA Integration (v2.9.0) - IN PROGRESS
+- **archimedes-authz** crate for OPA policy evaluation (26 tests)
+- **PolicyEvaluator** wrapping regorus (pure Rust OPA)
+- **DecisionCache** with TTL-based caching and stats
+- **BundleLoader** for OPA tar.gz bundle loading
+- **EvaluatorConfig** with production/development presets
+
+### Themis/Sentinel Integration (v2.8.1) - COMPLETE
+- **archimedes-sentinel** crate for contract validation (38 tests)
+- **ArtifactLoader** supporting file, JSON, registry sources
+- **OperationResolver** with regex path matching
+- **SchemaValidator** with type and required field checks
 
 ### InvocationContext & Integration (v2.8.0) - COMPLETE
 - **InvocationContext** type combining HTTP request details with middleware context
@@ -832,13 +845,27 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 - [ ] Replace mock validation with real validation
   > 🔜 **Next**: Wire sentinel into archimedes-middleware
 
-### Week 18: Eunomia Integration
+### Week 18: Eunomia Integration — IN PROGRESS
 
-- [ ] Create `archimedes-authz` crate
-- [ ] Integrate OPA evaluator
-- [ ] Implement policy bundle loading
-- [ ] Implement authorization decision caching
+- [x] Create `archimedes-authz` crate
+  > ✅ **Completed 2026-01-07**: Full authz implementation with 26 tests
+- [x] Integrate OPA evaluator
+  > ✅ **Completed 2026-01-07**: `PolicyEvaluator` wrapping regorus engine
+  > - Pure Rust OPA evaluation (no external process)
+  > - Policy loading from files or bundles
+  > - Evaluate queries returning `PolicyDecision`
+- [x] Implement policy bundle loading
+  > ✅ **Completed 2026-01-07**: `BundleLoader` with tar.gz support
+  > - Load OPA bundles from files
+  > - Parse bundle metadata and revision
+  > - Extract policies and data documents
+- [x] Implement authorization decision caching
+  > ✅ **Completed 2026-01-07**: `DecisionCache` with TTL support
+  > - Cache key based on caller + operation + resource
+  > - Configurable TTL and max entries
+  > - Stats tracking (hits, misses, evictions)
 - [ ] Replace mock authorization with real OPA
+  > 🔜 **Next**: Wire authz into archimedes-middleware
 
 ### Week 19: Control Plane
 
