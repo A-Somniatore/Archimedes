@@ -1,13 +1,14 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.11.0  
-> **Created**: 2026-01-04  
-> **Last Updated**: 2026-01-07  
-> **Target Completion**: Week 48 (includes 4-week buffer)
+> **Version**: 2.12.0
+> **Created**: 2026-01-04
+> **Last Updated**: 2026-01-08
+> **Target Completion**: Week 52 (extended for multi-language support)
 
-> ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!  
+> ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
 > **UPDATE (2026-01-07)**: Phase A8 STARTED - Real-time features (WebSocket, SSE) and background processing.
+> **⚠️ BLOCKER (2026-01-08)**: Build error in main facade crate - WebSocket/SSE/Tasks type exports need fixing.
 
 ---
 
@@ -146,10 +147,11 @@ match caller {
 > **Source**: Staff Engineer Cross-Component Review
 > **Status**: Tracked for team action
 
-### P0 - Test Failures (Must Fix)
+### P0 - Build Blockers (Must Fix Immediately)
 
 | Item | Description | Status |
 |------|-------------|--------|
+| **archimedes facade import error** | Main `archimedes` crate has unresolved imports: `CloseReason`, `WebSocketError`, `WebSocketId`, `WebSocketMessage` from archimedes-ws. Crate does not compile. | 🔴 BLOCKING |
 | **archimedes-tasks flaky tests** | 3 tests failing: `test_scheduler_basic`, `test_run_now`, `test_list_tasks_by_status`. Timeouts in async task spawner. | 🔴 Failing |
 
 ### P1 - Archimedes-Specific Items
@@ -247,33 +249,35 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Timeline Summary
 
-| Phase                       | Duration | Weeks | Description                       | Dependencies            |
-| --------------------------- | -------- | ----- | --------------------------------- | ----------------------- |
-| **MVP (Weeks 1-20)**        |          |       |                                   |                         |
-| A0: Shared Types            | 1 week   | 1     | Integrate `themis-platform-types` | Themis creates crate    |
-| A1: Foundation              | 3 weeks  | 2-4   | Core types, server scaffold       | `themis-platform-types` |
-| A2: Server & Routing        | 4 weeks  | 5-8   | HTTP server, routing, handlers    | None (mock contracts)   |
-| A3: Middleware              | 4 weeks  | 9-12  | Middleware pipeline, validation   | None (mock validation)  |
-| A4: Observability           | 4 weeks  | 13-16 | Metrics, tracing, logging, config | None                    |
-| A5: Integration             | 4 weeks  | 17-20 | Themis + Eunomia integration      | Themis, Eunomia         |
-| **Framework (Weeks 21-36)** |          |       |                                   |                         |
-| A6: Core Framework          | 4 weeks  | 21-24 | Custom router, extractors, DI     | MVP complete            |
-| A7: Handler Macros          | 4 weeks  | 25-28 | Handler macros, auto-docs         | A6                      |
-| A8: Extended Features       | 4 weeks  | 29-32 | WebSocket, SSE, background tasks  | A7                      |
-| A9: Developer Experience    | 4 weeks  | 33-36 | CLI tool, hot reload, templates   | A8                      |
-| **Stoa (Weeks 37-44)**      |          |       |                                   |                         |
-| Stoa UI                     | 8 weeks  | 37-44 | Visibility dashboard              | A9, Archimedes          |
-| **Buffer (Weeks 45-48)**    |          |       |                                   |                         |
-| Hardening & Buffer          | 4 weeks  | 45-48 | Performance tuning, contingency   | All                     |
+| Phase                            | Duration | Weeks | Description                          | Dependencies            |
+| -------------------------------- | -------- | ----- | ------------------------------------ | ----------------------- |
+| **MVP (Weeks 1-20)**             |          |       |                                      |                         |
+| A0: Shared Types                 | 1 week   | 1     | Integrate `themis-platform-types`    | Themis creates crate    |
+| A1: Foundation                   | 3 weeks  | 2-4   | Core types, server scaffold          | `themis-platform-types` |
+| A2: Server & Routing             | 4 weeks  | 5-8   | HTTP server, routing, handlers       | None (mock contracts)   |
+| A3: Middleware                   | 4 weeks  | 9-12  | Middleware pipeline, validation      | None (mock validation)  |
+| A4: Observability                | 4 weeks  | 13-16 | Metrics, tracing, logging, config    | None                    |
+| A5: Integration                  | 4 weeks  | 17-20 | Themis + Eunomia integration         | Themis, Eunomia         |
+| **Framework (Weeks 21-36)**      |          |       |                                      |                         |
+| A6: Core Framework               | 4 weeks  | 21-24 | Custom router, extractors, DI        | MVP complete            |
+| A7: Handler Macros               | 4 weeks  | 25-28 | Handler macros, auto-docs            | A6                      |
+| A8: Extended Features            | 4 weeks  | 29-32 | WebSocket, SSE, background tasks     | A7                      |
+| A9: Developer Experience         | 4 weeks  | 33-36 | CLI tool, hot reload, templates      | A8                      |
+| **Multi-Language (Weeks 37-48)** | 🚨 **CRITICAL: Moved from post-MVP** |       |                                      |                         |
+| A10: Sidecar Foundation          | 3 weeks  | 37-39 | Archimedes sidecar binary            | A9                      |
+| A11: Type Generation             | 3 weeks  | 40-42 | Python, Go, TypeScript generators    | Themis codegen          |
+| A12: Multi-Language Integration  | 4 weeks  | 43-46 | Integration tests, deployment guides | A10, A11                |
+| **Buffer (Weeks 47-52)**         |          |       |                                      |                         |
+| Hardening & Buffer               | 6 weeks  | 47-52 | Performance tuning, contingency      | All                     |
 
-**Total**: 48 weeks (12 months)
+**Total**: 52 weeks (13 months) - **Extended by 4 weeks for multi-language support**
 
-- MVP: Weeks 1-20
-- Full Framework: Weeks 21-36
-- Stoa UI: Weeks 37-44
-- Buffer: Weeks 45-48
+- MVP: Weeks 1-20 (Rust-only services)
+- Full Framework: Weeks 21-36 (Rust framework complete)
+- Multi-Language Support: Weeks 37-48 (Python, Go, TypeScript, C++ services)
+- Buffer: Weeks 47-52
 
-**Note**: Multi-language SDK generation (A10) deferred to V1.1 to ensure quality of core platform.
+**🚨 CRITICAL CHANGE**: Multi-language support is NO LONGER post-MVP. It is now required for V1.0 release because services in Python, C++, Go, and TypeScript must be able to use Archimedes.
 
 ### Cross-Component Timeline Alignment
 
@@ -1224,12 +1228,21 @@ let redoc = ReDoc::new("/redoc", &spec);
 
 ---
 
-## Phase A8: Extended Features (Weeks 29-32) 🔌 NEW
+## Phase A8: Extended Features (Weeks 29-32) 🔌 IN PROGRESS
 
 > **Goal**: Add WebSocket, SSE, background tasks, database integration
+> **Status**: Crates created, integration blocked by import errors
 
 ### Week 29-30: Real-Time Features
 
+- [x] Create `archimedes-ws` crate
+  > ✅ **Created 2026-01-07**: Crate structure exists
+- [x] Create `archimedes-sse` crate
+  > ✅ **Created 2026-01-07**: Crate structure exists
+- [x] Create `archimedes-tasks` crate
+  > ✅ **Created 2026-01-07**: Crate structure exists
+- [ ] **BLOCKED**: Fix type exports in main facade crate
+  > ⚠️ **Blocker**: Import errors for `CloseReason`, `WebSocketError`, `WebSocketId`, `WebSocketMessage`
 - [ ] WebSocket support with contract validation
 - [ ] Server-Sent Events (SSE)
 - [ ] Connection management and lifecycle
@@ -1247,6 +1260,10 @@ async fn chat_handler(ws: WebSocket, auth: Auth) {
 
 ### Week 31-32: Background Processing
 
+- [x] Create `archimedes-tasks` crate
+  > ✅ **Created 2026-01-07**: Basic structure exists
+- [ ] **BLOCKED**: Fix flaky async tests
+  > ⚠️ **Issue**: 3 tests timing out (`test_scheduler_basic`, `test_run_now`, `test_list_tasks_by_status`)
 - [ ] Background task spawning
 - [ ] Scheduled jobs (cron expressions)
 - [ ] Task queues with retry logic
@@ -1261,10 +1278,10 @@ async fn cleanup_expired_sessions(db: Inject<Database>) {
 
 ### A8 Deliverables
 
-- `archimedes-ws` - WebSocket support
-- `archimedes-sse` - Server-Sent Events
-- `archimedes-tasks` - Background task system
-- `archimedes-db` - Database connection pooling
+- `archimedes-ws` - WebSocket support ⚠️ (Created, not integrated)
+- `archimedes-sse` - Server-Sent Events ⚠️ (Created, not integrated)
+- `archimedes-tasks` - Background task system ⚠️ (Created, tests failing)
+- `archimedes-db` - Database connection pooling ⏳ (Not started)
 
 ---
 
@@ -1308,60 +1325,133 @@ $ archimedes dev
 
 ---
 
-## Phase A10: Multi-Language SDKs (Weeks 37-40) 🌍 NEW
+## Phase A10: Archimedes Sidecar (Weeks 37-39) 🚨 CRITICAL - MOVED FROM POST-MVP
 
-> **Goal**: Generate client SDKs for Python, TypeScript, Go, C++
+> **Goal**: Enable Python, Go, TypeScript, and C++ services to use Archimedes via sidecar proxy
+> **Why Critical**: Archimedes is currently Rust-only, but services MUST be written in any language
 
-### Week 37-38: Python and TypeScript SDKs
+### Week 37: Sidecar Architecture & Design
 
-- [ ] Python SDK generator (asyncio-based)
-- [ ] TypeScript SDK generator (fetch/axios)
-- [ ] Type-safe request/response types
-- [ ] Automatic retry and error handling
-- [ ] Authentication handling
+- [ ] **Write ADR-009**: Archimedes sidecar pattern for multi-language support
+- [ ] Design sidecar architecture:
+  - Request flow: Ingress → Sidecar → Application → Sidecar → Ingress
+  - Service discovery: How sidecar finds backing service (env var, K8s annotations)
+  - Wire protocol: HTTP between sidecar and application
+- [ ] Define sidecar API:
+  - Health check endpoint (`/health`, `/ready`)
+  - Metrics endpoint (`/metrics`)
+  - Configuration reloading
+- [ ] Create `archimedes-sidecar` crate scaffold
+- [ ] Document deployment patterns (K8s, Docker Compose, local dev)
 
-```python
-# Generated Python client
-from my_service import MyServiceClient, CreateUserRequest
+### Week 38-39: Sidecar Implementation
 
-client = MyServiceClient(base_url="https://api.example.com")
-user = await client.create_user(CreateUserRequest(name="Alice", email="alice@example.com"))
-```
-
-```typescript
-// Generated TypeScript client
-import { MyServiceClient, CreateUserRequest } from "./my-service-client";
-
-const client = new MyServiceClient({ baseUrl: "https://api.example.com" });
-const user = await client.createUser({
-  name: "Alice",
-  email: "alice@example.com",
-});
-```
-
-### Week 39-40: Go and C++ SDKs
-
-- [ ] Go SDK generator
-- [ ] C++ SDK generator (with Boost.Asio option)
-- [ ] gRPC client generation (for services using gRPC)
-- [ ] SDK versioning and compatibility
-
-```go
-// Generated Go client
-client := myservice.NewClient("https://api.example.com")
-user, err := client.CreateUser(ctx, &myservice.CreateUserRequest{
-    Name: "Alice",
-    Email: "alice@example.com",
-})
-```
+- [ ] Extract middleware logic into standalone binary
+  - RequestId middleware
+  - Identity extraction (mTLS, JWT, API key)
+  - Contract validation
+  - Policy evaluation (embedded regorus)
+  - Response validation
+  - Telemetry emission
+- [ ] Implement service proxy logic:
+  - Forward requests to `http://localhost:{port}`
+  - Preserve headers (except filtered ones)
+  - Timeout handling
+  - Circuit breaker (optional)
+- [ ] Add configuration management:
+  - Load contracts from filesystem or registry
+  - Load policies from filesystem or registry
+  - Hot-reload on contract/policy updates
+- [ ] Create Dockerfile for sidecar
+- [ ] Create Helm chart for sidecar deployment
 
 ### A10 Deliverables
 
-- `archimedes-codegen-python` - Python SDK generator
-- `archimedes-codegen-typescript` - TypeScript SDK generator
-- `archimedes-codegen-go` - Go SDK generator
-- `archimedes-codegen-cpp` - C++ SDK generator
-- SDK templates and runtime libraries
+- `archimedes-sidecar` - Standalone binary for non-Rust services
+- Sidecar Docker image
+- Sidecar Helm chart
+- ADR-009: Sidecar pattern for multi-language
+- Deployment guide for sidecar pattern
+
+---
+
+## Phase A11: Multi-Language Type Generation (Weeks 40-42) 🌐 NEW
+
+> **Goal**: Auto-generate types from JSON Schema for all languages
+> **Foundation**: Accelerate Themis type generation for Python, Go, TypeScript, C++
+
+### Week 40: Schema-to-Type Pipeline
+
+- [ ] **Automate JSON Schema generation from Rust types**
+  - Add `schemars` derive to all themis-platform-types
+  - Create CI job that regenerates schemas on type changes
+  - Create CI check that schemas match Rust types
+- [ ] **Create schema-to-Python generator**
+  - Use `datamodel-code-generator` or write custom generator
+  - Generate `@dataclass` from JSON Schema
+  - Generate validation using `pydantic`
+  - Test roundtrip: JSON → Python → JSON
+- [ ] **Create schema-to-Go generator**
+  - Use `quicktype` or write custom generator
+  - Generate Go structs with JSON tags
+  - Add validation using `go-playground/validator`
+  - Test roundtrip: JSON → Go → JSON
+
+### Week 41-42: TypeScript and C++
+
+- [ ] **Create schema-to-TypeScript generator**
+  - Use `quicktype` or `json-schema-to-typescript`
+  - Generate TypeScript interfaces
+  - Generate Zod schemas for runtime validation
+  - Test roundtrip: JSON → TypeScript → JSON
+- [ ] **Create schema-to-C++ generator** (Optional - lowest priority)
+  - Use `quicktype` or write custom generator
+  - Generate C++ classes with nlohmann/json serialization
+- [ ] Add type generation to Themis CLI
+- [ ] Create examples for each language
+
+### A11 Deliverables
+
+- Automated schema-to-type generators for Python, Go, TypeScript, C++
+- Integration with Themis CLI
+- CI pipeline for type generation
+- Example projects in each language
+
+---
+
+## Phase A12: Multi-Language Integration (Weeks 43-46) 🧪 NEW
+
+> **Goal**: Prove end-to-end flow for each language with real integration tests
+
+### Week 43-44: Python and Go Integration
+
+- [ ] Create example Python service (FastAPI)
+- [ ] Create example Go service (Gin/Echo)
+- [ ] Deploy both with Archimedes sidecar
+- [ ] Test full request flow (identity, contract, policy, telemetry)
+- [ ] Measure latency overhead (target: <2ms p99)
+- [ ] Document deployment guides
+
+### Week 45-46: TypeScript and Multi-Language E2E
+
+- [ ] Create example TypeScript service (Express/NestJS)
+- [ ] Create heterogeneous service mesh:
+  - Rust service (native Archimedes)
+  - Python service (sidecar)
+  - Go service (sidecar)
+  - TypeScript service (sidecar)
+- [ ] Test cross-service calls
+- [ ] Test distributed tracing
+- [ ] Performance benchmarks
+- [ ] Write multi-language deployment guide
+
+### A12 Deliverables
+
+- Integration tests for Python, Go, TypeScript
+- Performance benchmarks showing <2ms sidecar overhead
+- Deployment guides for each language
+- Example service repositories
+- Multi-language E2E test suite
 
 ---
 
@@ -1381,7 +1471,10 @@ user, err := client.CreateUser(ctx, &myservice.CreateUserRequest{
 | A7: FastAPI Parity    | Week 28 | Handler macros, auto-docs        | A6                      |
 | A8: Extended Features | Week 32 | WebSocket, SSE, background tasks | A7                      |
 | A9: Developer Exp     | Week 36 | CLI, hot reload, templates       | A8                      |
-| A10: Multi-Lang SDKs  | Week 40 | Python, TS, Go, C++ generators   | A9                      |
+| **Multi-Language**    |         |                                  |                         |
+| A10: Sidecar          | Week 39 | Sidecar for non-Rust services    | A9                      |
+| A11: Type Generation  | Week 42 | Python, Go, TypeScript, C++      | Themis codegen          |
+| A12: Integration      | Week 46 | Multi-language E2E tests         | A10, A11                |
 
 ---
 

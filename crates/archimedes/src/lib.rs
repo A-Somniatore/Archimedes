@@ -64,6 +64,15 @@ pub use archimedes_extract as extract;
 // Re-export macros - the handler attribute macro
 pub use archimedes_macros::handler;
 
+// Re-export WebSocket types
+pub use archimedes_ws as ws;
+
+// Re-export SSE types
+pub use archimedes_sse as sse;
+
+// Re-export background tasks types
+pub use archimedes_tasks as tasks;
+
 /// Prelude module for convenient imports.
 ///
 /// # Example
@@ -91,4 +100,20 @@ pub mod prelude {
 
     // Re-export handler macro
     pub use archimedes_macros::handler;
+
+    // Re-export WebSocket types
+    pub use archimedes_ws::{
+        CloseCode, CloseFrame, ConnectionId, ConnectionInfo, ConnectionManager,
+        ConnectionManagerConfig, ConnectionStats, ConnectionType, Message, WebSocket,
+        WebSocketConfig, WebSocketSender, WsError, WsResult,
+    };
+
+    // Re-export SSE types
+    pub use archimedes_sse::{SseConfig, SseError, SseEvent, SseSender, SseStream};
+
+    // Re-export background task types
+    pub use archimedes_tasks::{
+        JobId, Scheduler, SchedulerConfig, SharedSpawner, Spawner, SpawnerConfig, TaskHandle,
+        TaskId, TaskInfo, TaskStatus,
+    };
 }

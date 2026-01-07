@@ -1,9 +1,10 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.11.0  
-> **Status**: Implementation Phase (Phase A8 In Progress)  
-> **Last Updated**: 2026-01-07  
+> **Version**: 2.11.1
+> **Status**: Implementation Phase (Phase A8 In Progress - Build Error)
+> **Last Updated**: 2026-01-08
 > **Component**: archimedes
+> **⚠️ Build Status**: Main crate has import errors for WebSocket/SSE/Tasks types
 
 ---
 
@@ -23,8 +24,12 @@
 | `archimedes-sentinel`   | ✅ Complete | 38    | Themis contract integration                                                                               |
 | `archimedes-authz`      | ✅ Complete | 26    | Eunomia/OPA integration                                                                                   |
 | `archimedes-docs`       | ✅ Complete | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
+| `archimedes-ws`         | ⚠️ Blocked  | ?     | WebSocket support (created, import errors)                                                                |
+| `archimedes-sse`        | ⚠️ Blocked  | ?     | Server-Sent Events (created, import errors)                                                               |
+| `archimedes-tasks`      | ⚠️ Blocked  | ?     | Background tasks (created, 3 flaky tests)                                                                 |
 
-**Total Tests**: 742 passing
+**Total Tests**: 742 passing (when main crate compiles)
+**⚠️ Current Status**: Build error - main facade crate cannot compile due to missing type exports
 
 ---
 
