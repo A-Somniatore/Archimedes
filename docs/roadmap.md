@@ -7,11 +7,20 @@
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!  
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
-> **UPDATE (2026-01-07)**: Phase A5 Week 17-18 COMPLETE - Sentinel and Authz wired into middleware!
+> **UPDATE (2026-01-07)**: Phase A7 COMPLETE - Handler macros, contract binding, auto-docs all implemented (742 tests).
 
 ---
 
-## 🎉 Recent Progress (Phase A5 Integration)
+## 🎉 Recent Progress (Phase A7 Complete)
+
+### Automatic Documentation (v2.10.0) - ✅ COMPLETE
+- **archimedes-docs** crate for API documentation (29 tests)
+- **OpenApiGenerator** converts Themis artifacts to OpenAPI 3.1 specs
+- **SwaggerUi** generates interactive Swagger UI pages (CDN-loaded)
+- **ReDoc** generates beautiful ReDoc documentation pages
+- Full OpenAPI type system with schema conversion
+- Path parameter extraction from URL templates
+- 742 tests passing across all crates
 
 ### Eunomia/OPA Integration (v2.10.0) - ✅ COMPLETE
 - **archimedes-authz** crate for OPA policy evaluation (26 tests)
@@ -31,22 +40,17 @@
 - **ResponseValidationMiddleware::sentinel()** for response validation
 - Feature flag: `sentinel` in archimedes-middleware
 
-### InvocationContext & Integration (v2.8.0) - COMPLETE
+### Handler Macros & Contract Binding (v2.9.0) - ✅ COMPLETE
+- **archimedes-macros** crate with `#[handler]` attribute macro
+- **HandlerBinder** for validating handlers against contracts
+- Parsing utilities for handler attributes, parameters, function signatures
+- DI container integration (`Container`, `Inject<T>`)
+
+### InvocationContext & Integration (v2.8.0) - ✅ COMPLETE
 - **InvocationContext** type combining HTTP request details with middleware context
 - **BoxedHandler** signature updated to use `InvocationContext`
 - **ExtractionContext::from_invocation()** bridge method for extractors
-- Integration tests verifying full extraction pipeline (JSON, Path, Query, Headers, DI)
-- 643 tests passing across all crates
-
-### Handler Macros (v2.7.0) - IN PROGRESS
-- **archimedes-macros** crate created with `#[handler]` attribute macro
-- Parsing utilities for handler attributes, parameters, function signatures
-- Code generation skeleton for handler registration functions
-
-### Dependency Injection (v2.7.0) - COMPLETE
-- **archimedes-core** DI container with TypeId-based registry
-- `Container`, `Inject<T>`, `InjectionError` types
-- `Inject<T>` extractor in **archimedes-extract**
+- Integration tests verifying full extraction pipeline
 
 ---
 
@@ -1028,7 +1032,7 @@ async fn create_user(
 
 ---
 
-## Phase A7: FastAPI Parity (Weeks 25-28) 🐍 IN PROGRESS
+## Phase A7: FastAPI Parity (Weeks 25-28) 🐍 ✅ COMPLETE
 
 > **Goal**: Match FastAPI developer experience with handler macros
 > **Status**: 🔄 Week 25-26 - Handler Macros (Contract Binding Complete)
@@ -1103,19 +1107,70 @@ let handlers = binder.into_handlers();
 **Total**: 649 tests passing across all crates
 ```
 
-### Week 27-28: Automatic Documentation
+### Week 27-28: Automatic Documentation ✅ COMPLETE
 
-- [ ] OpenAPI spec generation from contracts + handlers
-- [ ] Swagger UI endpoint (`/docs`)
-- [ ] ReDoc endpoint (`/redoc`)
-- [ ] Interactive API console
+- [x] OpenAPI spec generation from contracts + handlers
+  > ✅ **Completed 2026-01-07**: `archimedes_docs::OpenApiGenerator`
+  >
+  > - Converts `LoadedArtifact` from archimedes-sentinel to OpenAPI 3.1 spec
+  > - Full OpenAPI type system (Info, Server, PathItem, Operation, Parameter, etc.)
+  > - Schema conversion from Themis Schema to OpenAPI Schema
+  > - Path parameter extraction from URL templates
+  > - Security scheme support (Bearer, API Key)
+- [x] Swagger UI endpoint (`/docs`)
+  > ✅ **Completed 2026-01-07**: `archimedes_docs::SwaggerUi`
+  >
+  > - CDN-loaded Swagger UI v5.18.2
+  > - Embedded OpenAPI spec (no separate JSON endpoint needed)
+  > - Configurable: deep linking, doc expansion, request duration
+  > - `html()` method returns complete HTML page
+- [x] ReDoc endpoint (`/redoc`)
+  > ✅ **Completed 2026-01-07**: `archimedes_docs::ReDoc`
+  >
+  > - CDN-loaded ReDoc v2.1.5
+  > - Customizable theme (colors, fonts)
+  > - Configurable: response expansion, search, download button
+  > - Beautiful three-panel documentation
+- [x] Interactive API console
+  > ✅ **Completed 2026-01-07**: Built into Swagger UI
+  >
+  > - Try-it-out functionality from Swagger UI
 - [ ] Schema explorer
+  > 🔜 **Deferred**: Schema viewer available in both Swagger UI and ReDoc
+
+```rust
+// OpenAPI generation example
+use archimedes_docs::{OpenApiGenerator, SwaggerUi, ReDoc};
+use archimedes_sentinel::ArtifactLoader;
+
+// Load contract
+let artifact = ArtifactLoader::from_file("api.yaml").await?;
+
+// Generate OpenAPI spec
+let generator = OpenApiGenerator::new()
+    .title("My API")
+    .version("1.0.0")
+    .server("https://api.example.com", Some("Production".to_string()))
+    .bearer_auth("bearerAuth");
+let spec = generator.generate(&artifact)?;
+
+// Create documentation endpoints
+let swagger = SwaggerUi::new("/docs", &spec);
+let redoc = ReDoc::new("/redoc", &spec);
+
+// Serve HTML at respective paths
+// swagger.html() -> Swagger UI HTML
+// redoc.html()   -> ReDoc HTML
+```
+
+**Tests**: 29 new tests in archimedes-docs
+**Total**: 742 tests passing across all crates
 
 ### A7 Deliverables
 
-- `archimedes-macros` - Proc macros for handler definitions
-- `archimedes-docs` - Auto-documentation system
-- Documentation UI assets
+- ✅ `archimedes-macros` - Proc macros for handler definitions
+- ✅ `archimedes-docs` - Auto-documentation system (OpenAPI, Swagger, ReDoc)
+- ✅ Documentation UI assets (CDN-loaded)
 
 ---
 

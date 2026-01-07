@@ -1,7 +1,7 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.9.0  
-> **Status**: Implementation Phase (Phase A7 Week 25-26 Complete)  
+> **Version**: 2.10.0  
+> **Status**: Implementation Phase (Phase A7 Complete)  
 > **Last Updated**: 2026-01-07  
 > **Component**: archimedes
 
@@ -19,17 +19,28 @@
 | `archimedes-config`     | ✅ Complete  | 52    | Typed configuration with TOML/JSON, env overrides                                    |
 | `archimedes-router`     | ✅ Complete  | 57    | High-performance radix tree router with method merging                               |
 | `archimedes-extract`    | ✅ Complete  | 109   | Request extractors, response builders, DI injection                                  |
-| `archimedes-macros`     | 🔄 Phase A7  | 14    | Handler macros for FastAPI-style definition (wiring complete)                        |
+| `archimedes-macros`     | ✅ Complete  | 14    | Handler macros for FastAPI-style definition (wiring complete)                        |
 | `archimedes-sentinel`   | ✅ Complete  | 38    | Themis contract integration                                                          |
-| `archimedes-authz`      | 🔄 Phase A5  | 25    | Eunomia/OPA integration (1 test needs Rego syntax fix)                               |
+| `archimedes-authz`      | ✅ Complete  | 26    | Eunomia/OPA integration                                                              |
+| `archimedes-docs`       | ✅ Complete  | 29    | OpenAPI generation, Swagger UI, ReDoc                                                |
 
-**Total Tests**: 649 passing (1 failing in authz due to Rego syntax)
+**Total Tests**: 742 passing
 
 ---
 
-## Recent Updates (Phase A7 Handler Macros)
+## Recent Updates (Phase A7 Complete)
 
-### Contract Binding (v2.9.0) - NEW
+### Automatic Documentation (v2.10.0) - NEW
+- **archimedes-docs**: New crate for API documentation generation
+- `OpenApiGenerator`: Converts Themis artifacts to OpenAPI 3.1 specs
+- `SwaggerUi`: Generates interactive Swagger UI pages (CDN-loaded)
+- `ReDoc`: Generates beautiful ReDoc documentation pages
+- Full OpenAPI type system (Info, Server, PathItem, Operation, Parameter, Schema)
+- Schema conversion from Themis Schema to OpenAPI Schema
+- Path parameter extraction from URL templates
+- 29 tests covering all functionality
+
+### Contract Binding (v2.9.0)
 - **archimedes-core**: Added `HandlerBinder` for contract binding validation
 - Validates handlers against contract operations at startup
 - Ensures all required operations have handlers (no missing handlers)
@@ -45,7 +56,7 @@
 - Optional DI container via `Arc<Container>`
 - `BoxedHandler` signature updated to use `InvocationContext`
 
-### Macro Wiring (v2.8.0) - NEW
+### Macro Wiring (v2.8.0)
 - **archimedes-extract**: Added `ExtractionContext::from_invocation()` bridge method
 - **archimedes-macros**: Handler codegen now works end-to-end with extractors
 - Integration tests verify full extraction pipeline (JSON, Path, Query, Headers, Inject)
