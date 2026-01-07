@@ -11,6 +11,7 @@ members = [
     "crates/archimedes-extract",
     "crates/archimedes-macros",
     "crates/archimedes-sentinel",
+    "crates/archimedes-authz",
 ]
 
 [workspace.package]
@@ -38,6 +39,7 @@ archimedes-router = { path = "crates/archimedes-router" }
 archimedes-extract = { path = "crates/archimedes-extract" }
 archimedes-macros = { path = "crates/archimedes-macros" }
 archimedes-sentinel = { path = "crates/archimedes-sentinel" }
+archimedes-authz = { path = "crates/archimedes-authz" }
 
 # Themis crates for contract integration
 themis-artifact = { path = "../themis/crates/themis-artifact" }
@@ -80,6 +82,16 @@ metrics-exporter-prometheus = "0.16"
 # Regex and collections
 regex = "1.11"
 indexmap = { version = "2.7", features = ["serde"] }
+
+# Compression and archives (for OPA bundles)
+flate2 = "1.0"
+tar = "0.4"
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json"] }
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
 
 # Testing
 tokio-test = "0.4"

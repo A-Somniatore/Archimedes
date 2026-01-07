@@ -1,0 +1,53 @@
+[package]
+name = "archimedes-authz"
+description = "Authorization integration for Archimedes - Eunomia/OPA policy evaluation"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["authorization", "opa", "policy", "eunomia", "archimedes"]
+categories = ["web-programming::http-server", "authentication"]
+
+[dependencies]
+# Internal crates
+archimedes-core = { workspace = true }
+
+# Shared platform types
+themis-platform-types = { workspace = true }
+
+# OPA/Rego evaluation
+regorus = "0.3"
+
+# Async runtime
+tokio = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# HTTP client for bundle fetching
+reqwest = { workspace = true }
+
+# Compression for OPA bundles
+flate2 = { workspace = true }
+tar = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+# Data structures
+indexmap = { workspace = true }
+
+# Time for evaluation metrics
+chrono = { workspace = true }
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+
+[lints]
+workspace = true
