@@ -1,39 +1,51 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.12.0
-> **Status**: Implementation Phase (Phase A8 Complete)
-> **Last Updated**: 2026-01-09
+> **Version**: 2.13.0
+> **Status**: Implementation Phase (Phase A10 In Progress)
+> **Last Updated**: 2025-01-09
 > **Component**: archimedes
 
 ---
 
 ## Implementation Status
 
-| Crate                   | Status      | Tests | Description                                                                                               |
-| ----------------------- | ----------- | ----- | --------------------------------------------------------------------------------------------------------- |
-| `archimedes`            | ✅ Complete | -     | Main facade crate (re-exports all crates)                                                                 |
-| `archimedes-core`       | ✅ Complete | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
-| `archimedes-server`     | ✅ Complete | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown                                    |
-| `archimedes-middleware` | ✅ Complete | 104   | All 8 middleware stages + pipeline                                                                        |
-| `archimedes-telemetry`  | ✅ Complete | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
-| `archimedes-config`     | ✅ Complete | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
-| `archimedes-router`     | ✅ Complete | 57    | High-performance radix tree router with method merging                                                    |
-| `archimedes-extract`    | ✅ Complete | 109   | Request extractors, response builders, DI injection                                                       |
-| `archimedes-macros`     | ✅ Complete | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
-| `archimedes-sentinel`   | ✅ Complete | 38    | Themis contract integration                                                                               |
-| `archimedes-authz`      | ✅ Complete | 26    | Eunomia/OPA integration                                                                                   |
-| `archimedes-docs`       | ✅ Complete | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
-| `archimedes-ws`         | ✅ Complete | 52    | WebSocket support with connection management                                                              |
-| `archimedes-sse`        | ✅ Complete | 38    | Server-Sent Events with backpressure handling                                                             |
-| `archimedes-tasks`      | ✅ Complete | 41    | Background task spawner and job scheduler                                                                 |
+| Crate                   | Status        | Tests | Description                                                                                               |
+| ----------------------- | ------------- | ----- | --------------------------------------------------------------------------------------------------------- |
+| `archimedes`            | ✅ Complete   | -     | Main facade crate (re-exports all crates)                                                                 |
+| `archimedes-core`       | ✅ Complete   | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
+| `archimedes-server`     | ✅ Complete   | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown                                    |
+| `archimedes-middleware` | ✅ Complete   | 104   | All 8 middleware stages + pipeline                                                                        |
+| `archimedes-telemetry`  | ✅ Complete   | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
+| `archimedes-config`     | ✅ Complete   | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
+| `archimedes-router`     | ✅ Complete   | 57    | High-performance radix tree router with method merging                                                    |
+| `archimedes-extract`    | ✅ Complete   | 109   | Request extractors, response builders, DI injection                                                       |
+| `archimedes-macros`     | ✅ Complete   | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
+| `archimedes-sentinel`   | ✅ Complete   | 38    | Themis contract integration                                                                               |
+| `archimedes-authz`      | ✅ Complete   | 26    | Eunomia/OPA integration                                                                                   |
+| `archimedes-docs`       | ✅ Complete   | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
+| `archimedes-ws`         | ✅ Complete   | 52    | WebSocket support with connection management                                                              |
+| `archimedes-sse`        | ✅ Complete   | 38    | Server-Sent Events with backpressure handling                                                             |
+| `archimedes-tasks`      | ✅ Complete   | 41    | Background task spawner and job scheduler                                                                 |
+| `archimedes-sidecar`    | 🔄 In Progress | 36    | Multi-language sidecar proxy (Phase A10)                                                                  |
 
-**Total Tests**: 878 passing across all crates
+**Total Tests**: 914 passing across all crates (791 unit/integration + 123 doc-tests)
 
 ---
 
-## Recent Updates (Phase A8 Complete)
+## Recent Updates (Phase A10 In Progress)
 
-### Extended Features (v2.12.0) - NEW
+### Sidecar Proxy (v2.13.0) - IN PROGRESS
+
+- **archimedes-sidecar**: Multi-language support crate (36 tests)
+  - `SidecarServer`: HTTP proxy using `hyper`
+  - `ProxyClient`: HTTP client for upstream forwarding (reqwest)
+  - `HealthChecker`: Liveness and readiness endpoints
+  - `PropagatedHeaders`: W3C Trace Context propagation
+  - `SidecarConfig`: TOML/JSON configuration with env overrides
+  - Header filtering (hop-by-hop, security-sensitive)
+  - Internal endpoints (`/_archimedes/health`, `ready`, `metrics`)
+
+### Extended Features (v2.12.0) - COMPLETE
 
 - **archimedes-ws**: WebSocket support crate (52 tests)
   - RFC 6455 compliant via `tokio-tungstenite`
