@@ -58,12 +58,14 @@ pub mod config;
 pub mod error;
 pub mod health;
 pub mod headers;
+pub mod middleware;
 pub mod proxy;
 pub mod server;
 
 pub use config::{SidecarConfig, SidecarConfigBuilder};
 pub use error::{SidecarError, SidecarResult};
 pub use health::{HealthChecker, HealthStatus, ReadinessStatus};
+pub use middleware::{MiddlewarePipeline, MiddlewareResult};
 pub use proxy::{ProxyClient, ProxyRequest, ProxyResponse};
 pub use server::SidecarServer;
 
