@@ -101,6 +101,7 @@
 
 mod body;
 mod context;
+pub mod cookie;
 mod error;
 mod extractor;
 mod form;
@@ -115,6 +116,7 @@ pub mod response;
 // Re-export main types
 pub use body::{BodyString, RawBody};
 pub use context::ExtractionContext;
+pub use cookie::{Cookie, Cookies, SameSite, SetCookie};
 pub use error::{ExtractionError, ExtractionSource};
 pub use extractor::FromRequest;
 pub use form::{Form, FormWithLimit};
