@@ -125,8 +125,8 @@ pub struct Router {
     /// Internal radix tree router
     inner: archimedes_router::Router,
 
-    /// Track operation IDs for has_operation queries
-    /// Maps operation_id -> route count (for tracking)
+    /// Track operation IDs for `has_operation` queries
+    /// Maps `operation_id` -> route count (for tracking)
     operation_ids: HashMap<String, usize>,
 }
 

@@ -1,7 +1,7 @@
 //! Lifecycle hooks for server startup and shutdown.
 //!
 //! This module provides callback registration for server lifecycle events,
-//! similar to FastAPI's lifespan events and Axum's on_shutdown.
+//! similar to `FastAPI`'s lifespan events and Axum's `on_shutdown`.
 //!
 //! # Example
 //!
