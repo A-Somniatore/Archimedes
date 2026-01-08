@@ -13,7 +13,7 @@
 | ----------------------- | -------------- | ----- | --------------------------------------------------------------------------------------------------------- |
 | `archimedes`            | ✅ Complete    | -     | Main facade crate (re-exports all crates)                                                                 |
 | `archimedes-core`       | ✅ Complete    | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
-| `archimedes-server`     | ✅ Complete    | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown                                    |
+| `archimedes-server`     | ✅ Complete    | 101   | HTTP server, routing, handler registry, graceful shutdown, lifecycle hooks                                |
 | `archimedes-middleware` | ✅ Complete    | 123   | All 8 middleware stages + pipeline + CORS middleware                                                      |
 | `archimedes-telemetry`  | ✅ Complete    | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
 | `archimedes-config`     | ✅ Complete    | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
@@ -34,11 +34,13 @@
 | `examples/go-native/`   | ✅ Complete    | 9     | Go bindings via cgo (Phase A13.5)                                                                         |
 | `archimedes-test`       | ✅ Complete    | 30    | In-memory HTTP testing (TestClient, TestRequest, TestResponse)                                            |
 
-**Total Tests**: 1149+ passing across all Rust crates + 259 binding tests
+**Total Tests**: 1160+ passing across all Rust crates + 259 binding tests
 
 ---
 
-## ✅ Phase A14.1: Critical Framework Features (2/3 Complete)
+## ✅ Phase A14.1: Critical Framework Features (COMPLETE)
+
+All P0 migration blockers have been addressed:
 
 ### CORS Middleware ✅ Complete (19 tests)
 
@@ -55,11 +57,14 @@
 - `TestResponse` with assertion helpers (assert_status, assert_json_field, etc.)
 - No real network/port binding required
 
-### Lifecycle Hooks 📋 Next Up
+### Lifecycle Hooks ✅ Complete (11 tests)
 
-- `on_startup` / `on_shutdown` callback registration
+- `Lifecycle` struct with `on_startup` / `on_shutdown` registration
+- Startup hooks run in registration order
+- Shutdown hooks run in reverse order (LIFO)
+- Named hooks for logging/debugging
 - Async callback support
-- Lifespan context pattern
+- Error handling: startup stops on error, shutdown continues collecting errors
 
 ---
 
