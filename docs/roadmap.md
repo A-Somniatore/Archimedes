@@ -34,9 +34,9 @@
 | Language       | Binding Technology | Phase | Status         | Replaces           |
 | -------------- | ------------------ | ----- | -------------- | ------------------ |
 | **Rust**       | Native             | -     | ✅ Complete    | -                  |
-| **Python**     | PyO3               | A13.2 | 🔄 In Progress | FastAPI, Flask     |
+| **Python**     | PyO3               | A13.2 | ✅ Complete    | FastAPI, Flask     |
 | **TypeScript** | napi-rs            | A13.3 | ✅ Complete    | Express, Fastify   |
-| **C++**        | C ABI              | A13.4 | 📋 Planned     | cpp-httplib, Crow  |
+| **C++**        | C ABI              | A13.4 | 🔄 In Progress | cpp-httplib, Crow  |
 | **Go**         | cgo                | A13.5 | 📋 Planned     | Gin, Chi, net/http |
 
 ### Multi-Language Example Services (v2.16.0) - 🔄 TRANSITIONAL
@@ -46,9 +46,9 @@
 | Language       | Directory                     | Current Framework | Future           | Phase | Port |
 | -------------- | ----------------------------- | ----------------- | ---------------- | ----- | ---- |
 | **Rust**       | `examples/rust-native`        | Archimedes        | ✅ Done          | -     | 8001 |
-| **Python**     | `examples/python-native`      | archimedes-py     | ✅ Basic Done    | A13.2 | 8002 |
-| **TypeScript** | `examples/typescript-sidecar` | Express           | @archimedes/node | A13.3 | 8004 |
-| **C++**        | `examples/cpp-sidecar`        | cpp-httplib       | libarchimedes    | A13.4 | 8005 |
+| **Python**     | `examples/python-native`      | archimedes-py     | ✅ Done          | A13.2 | 8002 |
+| **TypeScript** | `examples/typescript-native`  | @archimedes/node  | ✅ Done          | A13.3 | 8004 |
+| **C++**        | `examples/cpp-native`         | libarchimedes     | 🔄 In Progress   | A13.4 | 8005 |
 | **Go**         | `examples/go-sidecar`         | net/http          | archimedes-go    | A13.5 | 8003 |
 
 **Each example includes:**
