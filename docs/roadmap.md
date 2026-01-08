@@ -1879,13 +1879,13 @@ The sidecar pattern (Phase A10) works but has limitations:
 - [ ] Benchmark FFI call overhead (target: <100ns)
 - [x] Version the ABI (semver for C ABI)
 
-### Phase A13.2: Python Bindings - Full Rust Parity (Weeks 51-58) 🔄 IN PROGRESS
+### Phase A13.2: Python Bindings - Full Rust Parity (Weeks 51-58) ✅ NEAR COMPLETE
 
 > **Goal**: `pip install archimedes` - Python developers use Archimedes directly **with FULL Rust parity**
 > **Technology**: PyO3 (Rust-Python bindings)
-> **Status**: Core middleware integration complete (request ID, tracing, identity, error normalization)
-> **Tests**: 98 passing tests (context: 18, handlers: 16, config: 13, server: 26, middleware: 25)
-> **UPDATE 2026-01-11**: Middleware integration complete, error envelope format standardized
+> **Status**: Authorization and validation integration complete
+> **Tests**: 106 passing tests (context: 18, handlers: 16, config: 13, server: 26, middleware: 25, authz: 3, validation: 5)
+> **UPDATE 2026-01-11**: Authorization (OPA) and validation (Sentinel) integration complete
 
 #### CRITICAL: Full Rust Parity Requirements
 
@@ -1909,11 +1909,11 @@ Python bindings MUST have the same behavior as native Rust Archimedes. The goal 
 | Error Normalization       | ✅ Complete | ✅ Complete   | P0       | ThemisError envelope with request_id |
 | Graceful Shutdown         | ✅ Complete | ✅ Complete   | P1       | watch::channel shutdown           |
 | Configuration             | ✅ Complete | ✅ Complete   | P1       | YAML/JSON, env vars               |
-| Authorization (OPA)       | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-authz          |
-| Request Validation        | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-sentinel       |
-| Response Validation       | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-sentinel       |
-| Telemetry/Metrics         | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-telemetry      |
-| Contract-based Routing    | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-router         |
+| Authorization (OPA)       | ✅ Complete | ✅ Complete   | P1       | PyAuthorizer with archimedes-authz |
+| Request Validation        | ✅ Complete | ✅ Complete   | P1       | PySentinel.validate_request()     |
+| Response Validation       | ✅ Complete | ✅ Complete   | P1       | PySentinel.validate_response()    |
+| Contract-based Routing    | ✅ Complete | ✅ Complete   | P1       | PySentinel.resolve()              |
+| Telemetry/Metrics         | ✅ Complete | ❌ Missing    | P2       | Wire to archimedes-telemetry      |
 
 #### Rust→Python Mapping (For Parity)
 
@@ -1923,8 +1923,8 @@ Python bindings MUST have the same behavior as native Rust Archimedes. The goal 
 | archimedes-core        | archimedes-py/context.rs         | ✅ Complete |
 | archimedes-extract     | Not needed (Python dynamic)      | N/A         |
 | archimedes-middleware  | archimedes-py/middleware.rs      | ✅ Complete |
-| archimedes-sentinel    | Wire via FFI or re-implement     | ❌ Missing  |
-| archimedes-authz       | Wire via FFI or re-implement     | ❌ Missing  |
+| archimedes-sentinel    | archimedes-py/validation.rs      | ✅ Complete |
+| archimedes-authz       | archimedes-py/authz.rs           | ✅ Complete |
 | archimedes-telemetry   | Wire via FFI or OpenTelemetry-py | ❌ Missing  |
 | archimedes-router      | archimedes-py/server.rs (basic)  | ⚠️ Partial  |
 
@@ -1935,12 +1935,14 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 - **Core Classes**: `PyApp`, `PyConfig`, `PyRequestContext`, `PyIdentity`, `PyResponse`
 - **Server Module**: `PyServer` with hyper/tokio, graceful shutdown, health endpoints
 - **Middleware Module**: Request ID, tracing, identity extraction, error normalization
+- **Authorization Module**: `PyAuthorizer`, `PyPolicyDecision` for OPA policy evaluation
+- **Validation Module**: `PySentinel`, `PyValidationResult`, `PyOperationResolution`
 - **Handler System**: `HandlerRegistry` with decorator-based registration
 - **Configuration**: YAML/JSON config loading, environment variable support
 - **Error Handling**: `ErrorEnvelope` format with request_id correlation
 - **Type Stubs**: Complete `.pyi` files for IDE autocomplete support
 - **Build System**: maturin-based build with pyproject.toml
-- **Test Coverage**: 98 tests covering context, handlers, config, server, middleware
+- **Test Coverage**: 106 tests covering context, handlers, config, server, middleware, authz, validation
 
 #### Week 51-52: Core Python Module ✅ COMPLETE
 
@@ -1980,12 +1982,12 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 - [x] Error normalization middleware (ThemisError-style ErrorEnvelope)
 - [ ] Telemetry collection middleware (OpenTelemetry metrics)
 
-#### Week 57-58: Authorization & Validation 🔄 IN PROGRESS
+#### Week 57-58: Authorization & Validation ✅ COMPLETE
 
-- [ ] Authorization middleware (OPA/Eunomia integration)
-- [ ] Request validation middleware (JSON Schema via Sentinel)
-- [ ] Response validation middleware (JSON Schema via Sentinel)
-- [ ] Contract-based routing (Sentinel integration)
+- [x] Authorization middleware (PyAuthorizer with OPA via archimedes-authz)
+- [x] Request validation middleware (PySentinel with archimedes-sentinel)
+- [x] Response validation middleware (PySentinel.validate_response())
+- [x] Contract-based routing (PySentinel.resolve() for operation lookup)
 - [ ] pytest plugin for testing handlers
 - [ ] Migration guide: FastAPI → Archimedes
 - [ ] Benchmark: archimedes-py vs FastAPI
