@@ -620,7 +620,410 @@ The sidecar provides health endpoints:
 
 ---
 
-## 17. Non-Goals (V1)
+## 17. Native Language Bindings (V1.0)
+
+> **Priority**: P0 - Required for V1.0 release
+> **ADR**: [ADR-011](decisions/011-native-language-bindings.md)
+
+Archimedes provides native language bindings to enable Python, Go, TypeScript, and C++ services to use Archimedes directly, replacing framework-specific solutions like FastAPI, Gin, and Express.
+
+### 17.1 Overview
+
+Native bindings expose Archimedes functionality through a stable C ABI (Application Binary Interface), with language-specific wrappers providing idiomatic APIs.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           ARCHIMEDES CORE (Rust)                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ HTTP Server │ Router │ Middleware │ Validation │ AuthZ │ Telemetry  │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                      │                                       │
+│                              ┌───────┴───────┐                              │
+│                              │  C ABI Layer  │                              │
+│                              │  (stable)     │                              │
+│                              └───────────────┘                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       │
+            ┌──────────────┬───────────┼───────────┬──────────────┐
+            ▼              ▼           ▼           ▼              ▼
+     ┌───────────┐  ┌───────────┐ ┌─────────┐ ┌─────────┐  ┌───────────┐
+     │   PyO3    │  │   cgo     │ │ napi-rs │ │ C++ HDR │  │   WASM    │
+     │ (Python)  │  │   (Go)    │ │  (Node) │ │  (C++)  │  │ (Future)  │
+     └───────────┘  └───────────┘ └─────────┘ └─────────┘  └───────────┘
+```
+
+### 17.2 Supported Languages
+
+| Language   | Binding Technology | Package Name             | Status   |
+|------------|-------------------|--------------------------|----------|
+| Rust       | Native            | `archimedes`             | Complete |
+| Python     | PyO3              | `archimedes` (PyPI)      | Planned  |
+| Go         | cgo               | `archimedes-go`          | Planned  |
+| TypeScript | napi-rs           | `@archimedes/node` (npm) | Planned  |
+| C++        | C ABI + headers   | `libarchimedes`          | Planned  |
+
+### 17.3 C ABI Specification
+
+The C ABI defines the stable interface between Archimedes core and language bindings.
+
+#### 17.3.1 Core Types
+
+```c
+// archimedes.h
+
+#include <stdint.h>
+#include <stdbool.h>
+
+// Opaque handle types
+typedef struct archimedes_app_t* archimedes_app;
+typedef struct archimedes_request_t* archimedes_request;
+typedef struct archimedes_response_t* archimedes_response;
+
+// Configuration
+typedef struct {
+    const char* contract_path;      // Path to Themis contract
+    const char* policy_bundle_path; // Path to OPA policy bundle (optional)
+    const char* listen_addr;        // Listen address (default: "0.0.0.0")
+    uint16_t listen_port;           // Listen port (default: 8080)
+    uint16_t metrics_port;          // Metrics port (default: 9090)
+    bool enable_validation;         // Enable contract validation (default: true)
+    bool enable_authorization;      // Enable OPA authorization (default: true)
+} archimedes_config;
+
+// Request context (read-only)
+typedef struct {
+    const char* request_id;         // UUID v7 string
+    const char* trace_id;           // OpenTelemetry trace ID
+    const char* span_id;            // OpenTelemetry span ID
+    const char* operation_id;       // Matched operation from contract
+    const char* method;             // HTTP method
+    const char* path;               // Request path
+    const char* caller_identity_json; // JSON-encoded CallerIdentity
+} archimedes_request_context;
+
+// Response builder
+typedef struct {
+    int status_code;                // HTTP status code
+    const char* body;               // Response body (JSON)
+    size_t body_len;                // Body length
+    const char** header_names;      // Header names array
+    const char** header_values;     // Header values array
+    size_t header_count;            // Number of headers
+} archimedes_response_data;
+
+// Error codes
+typedef enum {
+    ARCHIMEDES_OK = 0,
+    ARCHIMEDES_ERR_INVALID_CONFIG = 1,
+    ARCHIMEDES_ERR_CONTRACT_LOAD = 2,
+    ARCHIMEDES_ERR_POLICY_LOAD = 3,
+    ARCHIMEDES_ERR_HANDLER_REGISTRATION = 4,
+    ARCHIMEDES_ERR_SERVER_START = 5,
+    ARCHIMEDES_ERR_INVALID_OPERATION = 6,
+    ARCHIMEDES_ERR_INTERNAL = 99,
+} archimedes_error;
+```
+
+#### 17.3.2 Handler Callback
+
+```c
+// Handler callback signature
+typedef archimedes_response_data (*archimedes_handler)(
+    const archimedes_request_context* ctx,
+    const char* body,
+    size_t body_len,
+    void* user_data
+);
+
+// Register a handler for an operation
+archimedes_error archimedes_register_handler(
+    archimedes_app app,
+    const char* operation_id,
+    archimedes_handler handler,
+    void* user_data
+);
+```
+
+#### 17.3.3 Lifecycle Functions
+
+```c
+// Create application instance
+archimedes_app archimedes_new(const archimedes_config* config);
+
+// Free application instance
+void archimedes_free(archimedes_app app);
+
+// Start the server (blocking)
+archimedes_error archimedes_run(archimedes_app app);
+
+// Start the server (non-blocking, returns immediately)
+archimedes_error archimedes_start(archimedes_app app);
+
+// Stop the server gracefully
+archimedes_error archimedes_stop(archimedes_app app);
+
+// Get last error message
+const char* archimedes_last_error(void);
+```
+
+#### 17.3.4 Memory Management
+
+```c
+// Allocate memory (for response bodies from handlers)
+void* archimedes_alloc(size_t size);
+
+// Free memory allocated by archimedes_alloc
+void archimedes_dealloc(void* ptr);
+
+// Free a string returned by Archimedes
+void archimedes_free_string(char* str);
+```
+
+### 17.4 Language-Specific APIs
+
+#### 17.4.1 Python API
+
+```python
+from archimedes import Archimedes, Request, Response, CallerIdentity
+
+app = Archimedes(
+    contract="contract.json",
+    policy_bundle="policy.tar.gz",  # optional
+)
+
+@app.operation("listUsers")
+async def list_users(request: Request) -> Response:
+    # Type-safe access to caller identity
+    caller: CallerIdentity = request.caller_identity
+    
+    # Request body already validated against contract
+    users = await db.get_users()
+    
+    # Response validated before sending
+    return Response.json({"users": users}, status=200)
+
+@app.operation("getUser")  
+async def get_user(request: Request) -> Response:
+    user_id = request.path_params["userId"]
+    user = await db.get_user(user_id)
+    if not user:
+        return Response.error("USER_NOT_FOUND", f"User {user_id} not found", status=404)
+    return Response.json(user)
+
+if __name__ == "__main__":
+    app.run(port=8080)
+```
+
+#### 17.4.2 Go API
+
+```go
+package main
+
+import (
+    "github.com/themis-platform/archimedes-go"
+)
+
+func main() {
+    app := archimedes.New(archimedes.Config{
+        Contract:     "contract.json",
+        PolicyBundle: "policy.tar.gz", // optional
+    })
+
+    app.Operation("listUsers", func(ctx *archimedes.Context) error {
+        // Type-safe access to caller identity
+        caller := ctx.CallerIdentity()
+        
+        users, err := db.GetUsers()
+        if err != nil {
+            return err
+        }
+        
+        return ctx.JSON(200, map[string]any{"users": users})
+    })
+
+    app.Operation("getUser", func(ctx *archimedes.Context) error {
+        userID := ctx.PathParam("userId")
+        user, err := db.GetUser(userID)
+        if err != nil {
+            return ctx.Error("USER_NOT_FOUND", "User not found", 404)
+        }
+        return ctx.JSON(200, user)
+    })
+
+    app.Run(":8080")
+}
+```
+
+#### 17.4.3 TypeScript API
+
+```typescript
+import { Archimedes, Request, Response } from '@archimedes/node';
+
+const app = new Archimedes({
+  contract: 'contract.json',
+  policyBundle: 'policy.tar.gz', // optional
+});
+
+app.operation('listUsers', async (request: Request): Promise<Response> => {
+  // Type-safe access to caller identity
+  const caller = request.callerIdentity;
+  
+  const users = await db.getUsers();
+  return Response.json({ users });
+});
+
+app.operation('getUser', async (request: Request): Promise<Response> => {
+  const userId = request.pathParams.userId;
+  const user = await db.getUser(userId);
+  
+  if (!user) {
+    return Response.error('USER_NOT_FOUND', `User ${userId} not found`, 404);
+  }
+  return Response.json(user);
+});
+
+app.listen(8080);
+```
+
+#### 17.4.4 C++ API
+
+```cpp
+#include <archimedes/archimedes.hpp>
+
+int main() {
+    archimedes::App app{archimedes::Config{
+        .contract = "contract.json",
+        .policy_bundle = "policy.tar.gz",  // optional
+    }};
+
+    app.operation("listUsers", [](const archimedes::Request& req) {
+        // Type-safe access to caller identity
+        auto caller = req.caller_identity();
+        
+        auto users = db.get_users();
+        return archimedes::Response::json({{"users", users}});
+    });
+
+    app.operation("getUser", [](const archimedes::Request& req) {
+        auto user_id = req.path_param("userId");
+        auto user = db.get_user(user_id);
+        
+        if (!user) {
+            return archimedes::Response::error("USER_NOT_FOUND", "User not found", 404);
+        }
+        return archimedes::Response::json(*user);
+    });
+
+    app.run(8080);
+}
+```
+
+### 17.5 What Bindings Provide
+
+All language bindings provide:
+
+| Feature                    | Description                                          |
+|----------------------------|------------------------------------------------------|
+| HTTP Server                | Full HTTP/1.1 and HTTP/2 support                     |
+| Contract Validation        | Automatic request/response validation                |
+| Authorization              | OPA policy evaluation built-in                       |
+| Identity Extraction        | SPIFFE, JWT, API key identity parsing                |
+| Request ID                 | UUID v7 generation and propagation                   |
+| Tracing                    | OpenTelemetry trace context                          |
+| Metrics                    | Prometheus metrics (automatic)                       |
+| Logging                    | Structured JSON logging                              |
+| Health Checks              | `/_archimedes/health` and `/_archimedes/ready`       |
+| Graceful Shutdown          | SIGTERM handling with connection draining            |
+
+### 17.6 What Applications Must NOT Do
+
+Applications using native bindings should NOT:
+
+- Implement their own request validation
+- Implement their own authorization logic
+- Generate their own request IDs
+- Set up their own telemetry exporters
+- Use additional web frameworks (FastAPI, Express, etc.)
+
+### 17.7 Migration from Existing Frameworks
+
+#### 17.7.1 From FastAPI (Python)
+
+```python
+# Before (FastAPI)
+from fastapi import FastAPI, Request
+app = FastAPI()
+
+@app.get("/users")
+async def list_users(request: Request):
+    # Manual validation
+    # Manual auth
+    return {"users": [...]}
+
+# After (Archimedes)
+from archimedes import Archimedes, Request, Response
+app = Archimedes(contract="contract.json")
+
+@app.operation("listUsers")  # Contract-defined
+async def list_users(request: Request) -> Response:
+    # Validation automatic
+    # Auth automatic
+    return Response.json({"users": [...]})
+```
+
+#### 17.7.2 From Express (TypeScript)
+
+```typescript
+// Before (Express)
+import express from 'express';
+const app = express();
+
+app.get('/users', async (req, res) => {
+  // Manual validation
+  // Manual auth
+  res.json({ users: [...] });
+});
+
+// After (Archimedes)
+import { Archimedes, Request, Response } from '@archimedes/node';
+const app = new Archimedes({ contract: 'contract.json' });
+
+app.operation('listUsers', async (request: Request) => {
+  // Validation automatic
+  // Auth automatic
+  return Response.json({ users: [...] });
+});
+```
+
+### 17.8 Performance Requirements
+
+| Metric                          | Requirement                    |
+|---------------------------------|--------------------------------|
+| FFI call overhead               | < 100ns per call               |
+| Handler invocation overhead     | < 1μs per request              |
+| Memory per connection           | < 10KB baseline                |
+| Throughput vs native frameworks | ≥ 1.5x (Go/TS), ≥ 2x (Python)  |
+
+### 17.9 Sidecar vs Native Bindings
+
+The sidecar pattern (§16) remains available for:
+
+- Gradual migration from existing frameworks
+- Languages without native binding support
+- Edge cases (WASM, exotic platforms)
+
+For new services, native bindings are preferred:
+
+| Aspect        | Sidecar           | Native Bindings |
+|---------------|-------------------|-----------------|
+| Latency       | +2-4ms per request| < 0.1ms         |
+| Deployment    | Two containers    | Single binary   |
+| Memory        | ~50MB overhead    | ~10MB overhead  |
+| Complexity    | Two processes     | One process     |
+
+---
+
+## 18. Non-Goals (V1)
 
 - Plugin-based middleware systems
 - Runtime policy authoring
