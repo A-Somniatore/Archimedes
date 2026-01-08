@@ -86,8 +86,8 @@ Archimedes provides **native bindings** for Python, TypeScript, C++, and Go (in 
 | A13.1 | C (FFI)    | libarchimedes.so      | Stable C ABI               | ✅ Complete    |
 | A13.2 | Python     | archimedes (PyPI)     | **FULL Rust parity** first | ✅ Complete    |
 | A13.3 | TypeScript | @archimedes/node      | Native Node.js bindings    | ✅ Complete    |
-| A13.4 | C++        | libarchimedes (vcpkg) | Modern C++17+ headers      | � In Progress |
-| A13.5 | Go         | archimedes-go         | Go module with cgo         | 📋 Planned     |
+| A13.4 | C++        | libarchimedes (vcpkg) | Modern C++17+ headers      | ✅ Complete    |
+| A13.5 | Go         | archimedes-go         | Go module with cgo         | ✅ Complete    |
 
 ### Why This Order?
 

@@ -2241,10 +2241,10 @@ Flask            | 3,000     | 15.0     | 80.0     | 200 MB
 
 ---
 
-## Phase A14: Framework Parity (Weeks 71-78) � IN PROGRESS
+## Phase A14: Framework Parity (Weeks 71-78) 🔄 IN PROGRESS
 
 > **Goal**: Achieve feature parity with FastAPI and Axum to enable seamless migrations
-> **Status**: 🔄 IN PROGRESS - Starting P0 migration blockers
+> **Status**: ✅ P0 COMPLETE - Starting P1 file handling features
 > **Rationale**: Services already written in FastAPI/Axum/Express need a migration path
 
 ### Why Framework Parity?
@@ -2499,20 +2499,20 @@ let router = Router::new()
 
 ### A14 Deliverables
 
-| Feature                | Crate                 | Priority | Status     |
-| ---------------------- | --------------------- | -------- | ---------- |
-| CORS middleware        | archimedes-middleware | P0       | 📋 Planned |
-| Test client            | archimedes-test       | P0       | 📋 Planned |
-| Lifecycle hooks        | archimedes-server     | P0       | 📋 Planned |
-| Multipart/file uploads | archimedes-extract    | P1       | 📋 Planned |
-| File download response | archimedes-extract    | P1       | 📋 Planned |
-| Cookie extractor       | archimedes-extract    | P1       | 📋 Planned |
-| Rate limiting          | archimedes-middleware | P1       | 📋 Planned |
-| Compression middleware | archimedes-middleware | P2       | 📋 Planned |
-| Static file serving    | archimedes-server     | P1       | 📋 Planned |
-| Sub-router nesting     | archimedes-router     | P2       | 📋 Planned |
-| Route prefixes/tags    | archimedes-router     | P2       | 📋 Planned |
-| Streaming responses    | archimedes-extract    | P2       | 📋 Planned |
+| Feature                | Crate                 | Priority | Status        | Tests |
+| ---------------------- | --------------------- | -------- | ------------- | ----- |
+| CORS middleware        | archimedes-middleware | P0       | ✅ Complete   | 19    |
+| Test client            | archimedes-test       | P0       | ✅ Complete   | 30    |
+| Lifecycle hooks        | archimedes-server     | P0       | ✅ Complete   | 11    |
+| Multipart/file uploads | archimedes-extract    | P1       | 🔄 In Progress| -     |
+| File download response | archimedes-extract    | P1       | 📋 Planned    | -     |
+| Cookie extractor       | archimedes-extract    | P1       | 📋 Planned    | -     |
+| Rate limiting          | archimedes-middleware | P1       | 📋 Planned    | -     |
+| Compression middleware | archimedes-middleware | P2       | 📋 Planned    | -     |
+| Static file serving    | archimedes-server     | P1       | 📋 Planned    | -     |
+| Sub-router nesting     | archimedes-router     | P2       | 📋 Planned    | -     |
+| Route prefixes/tags    | archimedes-router     | P2       | 📋 Planned    | -     |
+| Streaming responses    | archimedes-extract    | P2       | 📋 Planned    | -     |
 
 ---
 
@@ -2533,10 +2533,10 @@ let router = Router::new()
 | **Response validation**  | ✅          | Manual    | ✅ Contract | Auto from Themis        |
 | **Background tasks**     | ✅          | Via tokio | ✅ Superior | Built-in scheduler      |
 | **Scheduled jobs**       | External    | External  | ✅ Built-in | Cron expressions        |
-| **Startup hooks**        | ✅          | ✅        | ❌          | Phase A14.1             |
-| **Shutdown hooks**       | ✅          | ✅        | ⚠️          | Graceful shutdown only  |
+| **Startup hooks**        | ✅          | ✅        | ✅          | Phase A14.1 COMPLETE    |
+| **Shutdown hooks**       | ✅          | ✅        | ✅          | Phase A14.1 COMPLETE    |
 | **Middleware**           | ✅          | ✅ Tower  | ✅ Fixed    | Contract-enforced order |
-| **CORS**                 | ✅          | ✅        | ❌          | Phase A14.1             |
+| **CORS**                 | ✅          | ✅        | ✅          | Phase A14.1 COMPLETE    |
 | **Rate limiting**        | External    | External  | ❌          | Phase A14.3             |
 | **Compression**          | ✅          | ✅        | ❌          | Phase A14.3             |
 | **Static files**         | ✅          | ✅        | ❌          | Phase A14.3             |
@@ -2544,7 +2544,7 @@ let router = Router::new()
 | **SSE**                  | External    | External  | ✅          | Built-in                |
 | **OpenAPI docs**         | ✅ Auto     | External  | ✅ Contract | From Themis             |
 | **Swagger UI**           | ✅          | External  | ✅          | Built-in                |
-| **Test client**          | ✅          | ✅        | ❌          | Phase A14.1             |
+| **Test client**          | ✅          | ✅        | ✅          | Phase A14.1 COMPLETE    |
 | **OPA authorization**    | External    | External  | ✅ Built-in | Unique feature          |
 | **Contract enforcement** | ❌          | ❌        | ✅ Built-in | Unique feature          |
 | **Multi-language**       | Python only | Rust only | ✅ 5 langs  | Unique feature          |
