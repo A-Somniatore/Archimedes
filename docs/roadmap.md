@@ -1,13 +1,14 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.13.0
+> **Version**: 2.15.0
 > **Created**: 2026-01-04
 > **Last Updated**: 2026-01-09
 > **Target Completion**: Week 52 (extended for multi-language support)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
-> **UPDATE (2026-01-09)**: Phase A10 COMPLETE - Archimedes Sidecar for multi-language support (969 tests total).
+> **UPDATE (2026-01-09)**: Phase A10 COMPLETE - Archimedes Sidecar for multi-language support.
+> **UPDATE (2026-01-09)**: Phase A10.5 IN PROGRESS - 947 tests passing + new Phase A10.5 items.
 
 ---
 
@@ -39,13 +40,14 @@
 
 ### Eunomia/OPA Integration (v2.10.0) - ✅ COMPLETE
 
-- **archimedes-authz** crate for OPA policy evaluation (26 tests)
+- **archimedes-authz** crate for OPA policy evaluation (26 → 26 tests after bundle validation)
 - **PolicyEvaluator** wrapping regorus (pure Rust OPA)
 - **DecisionCache** with TTL-based caching and stats
-- **BundleLoader** for OPA tar.gz bundle loading
+- **BundleLoader** for OPA tar.gz bundle loading with comprehensive format validation
 - **EvaluatorConfig** with production/development presets
 - **AuthorizationMiddleware::opa()** wired into middleware pipeline
 - Feature flag: `opa` in archimedes-middleware
+- ✅ **NEW (2026-01-09)**: Bundle integration tests (11 tests) validating eunomia-compiler format
 
 ### Themis/Sentinel Integration (v2.9.0) - ✅ COMPLETE
 
@@ -70,6 +72,18 @@
 - **BoxedHandler** signature updated to use `InvocationContext`
 - **ExtractionContext::from_invocation()** bridge method for extractors
 - Integration tests verifying full extraction pipeline
+
+### Configuration Hot-Reload (v2.15.0) - ✅ COMPLETE
+
+- **archimedes-config** crate with FileWatcher for hot-reload (67 tests)
+- **FileWatcher** with notify crate for cross-platform file monitoring
+- **FileChangeEvent** and **FileChangeKind** for change notifications
+- **FileWatcherBuilder** for flexible watcher configuration
+- Debouncing to prevent reload storms
+- Extension filtering (watch only specific file types)
+- Recursive directory watching support
+- Async event handling with poll() and next() methods
+- Per ADR-010: Enables hot-reload of configuration and contracts without service restart
 
 ---
 
@@ -162,18 +176,18 @@ match caller {
 
 ### P0 - Build Blockers (Must Fix Immediately)
 
-| Item                               | Description                                                                                                                                                    | Status              |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| **archimedes facade import error** | Main `archimedes` crate has unresolved imports: `CloseReason`, `WebSocketError`, `WebSocketId`, `WebSocketMessage` from archimedes-ws. Crate does not compile. | ✅ FIXED 2026-01-09 |
-| **archimedes-tasks flaky tests**   | 3 tests failing: `test_scheduler_basic`, `test_run_now`, `test_list_tasks_by_status`. Timeouts in async task spawner.                                          | ✅ FIXED 2026-01-09 |
+| Item                               | Description                                                                                                                                                    | Status                 |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| **archimedes facade import error** | Main `archimedes` crate has unresolved imports: `CloseReason`, `WebSocketError`, `WebSocketId`, `WebSocketMessage` from archimedes-ws. Crate does not compile. | ✅ FIXED 2026-01-09    |
+| **archimedes-tasks flaky tests**   | 3 tests failing: `test_scheduler_basic`, `test_run_now`, `test_list_tasks_by_status`. Timeouts in async task spawner.                                          | ✅ FIXED 2026-01-09    |
 
 ### P1 - Archimedes-Specific Items
 
-| Item                               | Description                                                                                                                                                                      | Status     |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| **OPA Bundle Format Validation**   | Validate `BundleLoader` format against `eunomia-compiler` output. Eunomia writes `.manifest` JSON + policies as tar.gz. Archimedes expects same format - needs integration test. | ⏳ Backlog |
-| **Error Code Unification**         | Archimedes uses `ErrorCategory`, platform uses `ErrorCode` - unify                                                                                                               | ⏳ Backlog |
-| **Handler Macro + Real Contracts** | Test macros with actual Themis artifacts, not mocks                                                                                                                              | ⏳ Backlog |
+| Item                               | Description                                                                                                                                                                      | Status                    |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| **OPA Bundle Format Validation**   | Validate `BundleLoader` format against `eunomia-compiler` output. Eunomia writes `.manifest` JSON + policies as tar.gz. Archimedes expects same format - needs integration test. | ✅ DONE 2026-01-09 (11)   |
+| **Error Code Unification**         | Archimedes uses `ErrorCategory`, platform uses `ErrorCode` - unify                                                                                                               | 🔄 IN PROGRESS            |
+| **Handler Macro + Real Contracts** | Test macros with actual Themis artifacts, not mocks                                                                                                                              | ⏳ Next                    |
 
 ### ✅ Verified Working
 
