@@ -1,0 +1,62 @@
+[package]
+name = "archimedes-py"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Python bindings for Archimedes HTTP server framework"
+keywords = ["python", "pyo3", "ffi", "archimedes", "http"]
+categories = ["api-bindings", "web-programming::http-server"]
+
+[lib]
+# The native extension will be named _archimedes.so/.pyd
+# Python wrapper in python/archimedes/__init__.py imports from it
+name = "_archimedes"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# PyO3 for Python bindings
+# Note: extension-module is only for building the final .so/.pyd
+# For tests, we need auto-initialize
+pyo3 = { version = "0.24" }
+
+# Internal crates
+archimedes-ffi = { workspace = true }
+archimedes-core = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = "0.9"
+
+# Error handling
+thiserror = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+
+[features]
+default = []
+# Enable extension-module feature when building the Python module
+extension-module = ["pyo3/extension-module"]
+
+# Override workspace lints - Python bindings require unsafe for FFI
+[lints.rust]
+unsafe_code = "allow"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"

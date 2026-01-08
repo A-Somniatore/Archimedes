@@ -1,0 +1,50 @@
+[build-system]
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "archimedes"
+version = "0.1.0"
+description = "Python bindings for Archimedes HTTP server framework"
+readme = "README.md"
+authors = [
+    { name = "Themis Platform Team" }
+]
+license = { text = "MIT OR Apache-2.0" }
+keywords = ["http", "server", "framework", "contract-first", "api"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Rust",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.9"
+
+[project.urls]
+Homepage = "https://github.com/ThemisPlatform/archimedes"
+Repository = "https://github.com/ThemisPlatform/archimedes"
+Documentation = "https://github.com/ThemisPlatform/archimedes/tree/main/crates/archimedes-py"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
+
+[tool.maturin]
+# Build the extension module from the crate
+module-name = "archimedes"
+features = ["pyo3/extension-module"]
+python-source = "python"
+# Strip release builds for smaller binary
+strip = true
