@@ -28,6 +28,7 @@ archimedes-core = { workspace = true }
 archimedes-middleware = { workspace = true }
 archimedes-authz = { workspace = true }
 archimedes-sentinel = { workspace = true }
+archimedes-telemetry = { workspace = true }
 
 # Shared platform types
 themis-platform-types = { workspace = true }

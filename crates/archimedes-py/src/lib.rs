@@ -39,6 +39,7 @@ mod handlers;
 mod middleware;
 mod response;
 mod server;
+mod telemetry;
 mod validation;
 
 pub use authz::{PyAuthorizer, PyPolicyDecision};
@@ -51,6 +52,7 @@ pub use middleware::{
 };
 pub use response::PyResponse;
 pub use server::{PyServer, ServerError};
+pub use telemetry::{py_record_request, py_render_metrics, PyTelemetry, PyTelemetryConfig};
 pub use validation::{PyOperationResolution, PySentinel, PyValidationError, PyValidationResult};
 
 /// Archimedes application instance
@@ -275,6 +277,14 @@ fn archimedes_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyValidationResult>()?;
     m.add_class::<PyValidationError>()?;
     m.add_class::<PyOperationResolution>()?;
+
+    // Telemetry classes
+    m.add_class::<PyTelemetry>()?;
+    m.add_class::<PyTelemetryConfig>()?;
+
+    // Telemetry functions
+    m.add_function(wrap_pyfunction!(py_record_request, m)?)?;
+    m.add_function(wrap_pyfunction!(py_render_metrics, m)?)?;
 
     // Error type
     m.add("ArchimedesError", m.py().get_type::<PyArchimedesError>())?;

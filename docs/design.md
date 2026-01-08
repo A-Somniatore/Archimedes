@@ -1,8 +1,8 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 3.2.0
-> **Status**: Implementation Phase (Phase A13.2 In Progress, Phase A14 Planned)
-> **Last Updated**: 2026-01-11
+> **Version**: 3.3.0
+> **Status**: Implementation Phase (Phase A13.2 Complete, Phase A13.3 Next)
+> **Last Updated**: 2026-01-08
 > **Component**: archimedes
 
 ---
@@ -28,12 +28,12 @@
 | `archimedes-tasks`      | ✅ Complete    | 41    | Background task spawner and job scheduler                                                                 |
 | `archimedes-sidecar`    | ✅ Complete    | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
 | `archimedes-ffi`        | ✅ Complete    | 44    | C ABI for cross-language FFI (Phase A13.1)                                                                |
-| `archimedes-py`         | 🔄 In Progress | 69    | Python bindings via PyO3 - Full Rust parity (Phase A13.2)                                                 |
+| `archimedes-py`         | ✅ Complete    | 111   | Python bindings via PyO3 - Full Rust parity (Phase A13.2)                                                 |
 | `archimedes-node`       | 📋 Planned     | -     | Node.js/TypeScript bindings via napi-rs (Phase A13.3)                                                     |
 | `libarchimedes`         | 📋 Planned     | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
 | `archimedes-go`         | 📋 Planned     | -     | Go bindings via cgo (Phase A13.5)                                                                         |
 
-**Total Tests**: 1070+ passing across all crates (1019 + 51 new Python tests)
+**Total Tests**: 1024+ passing across all crates
 
 ---
 
@@ -53,7 +53,7 @@ Archimedes provides **native bindings** for Python, TypeScript, C++, and Go (in 
 | Phase | Language   | Package               | Goal                       | Status         |
 | ----- | ---------- | --------------------- | -------------------------- | -------------- |
 | A13.1 | C (FFI)    | libarchimedes.so      | Stable C ABI               | ✅ Complete    |
-| A13.2 | Python     | archimedes (PyPI)     | **FULL Rust parity** first | 🔄 In Progress |
+| A13.2 | Python     | archimedes (PyPI)     | **FULL Rust parity** first | ✅ Complete    |
 | A13.3 | TypeScript | @archimedes/node      | Native Node.js bindings    | 📋 Planned     |
 | A13.4 | C++        | libarchimedes (vcpkg) | Modern C++17+ headers      | 📋 Planned     |
 | A13.5 | Go         | archimedes-go         | Go module with cgo         | 📋 Planned     |
