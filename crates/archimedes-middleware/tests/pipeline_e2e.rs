@@ -11,6 +11,8 @@
 //! 6. Response Validation - Response schema validation
 //! 7. Telemetry - Metrics emission
 //! 8. Error Normalization - Error envelope conversion
+//!
+//! Also includes tests for enforce vs monitor validation modes per P1 backlog.
 
 use archimedes_core::CallerIdentity;
 use archimedes_middleware::{
@@ -23,7 +25,7 @@ use archimedes_middleware::{
         request_id::RequestIdMiddleware,
         telemetry::TelemetryMiddleware,
         tracing::TracingMiddleware,
-        validation::{MockSchema, ValidationMiddleware},
+        validation::{MockSchema, RequestBody, ValidationMiddleware},
     },
     types::Request,
 };
@@ -612,4 +614,289 @@ async fn test_multiple_errors_normalized_consistently() {
             expected_status
         );
     }
+}
+
+// ============================================================================
+// Enforce vs Monitor Mode Tests (P1 Backlog Item)
+// ============================================================================
+
+/// Build a pipeline with enforced request validation.
+fn build_enforce_validation_pipeline() -> Pipeline {
+    let request_id = RequestIdMiddleware::new();
+    let tracing = TracingMiddleware::new("enforce-test-service");
+    let identity = IdentityMiddleware::with_trust_domain("test.example.com");
+    let authorization = AuthorizationMiddleware::allow_all();
+
+    // Create a strict validation schema
+    let validation = ValidationMiddleware::with_schemas()
+        .add_request_schema(
+            "createUser",
+            MockSchema::builder()
+                .required("name")
+                .required("email")
+                .field("name", archimedes_middleware::stages::validation::FieldType::String)
+                .field("email", archimedes_middleware::stages::validation::FieldType::String)
+                .allow_additional(false)
+                .build(),
+        )
+        .build();
+
+    let telemetry = TelemetryMiddleware::new("enforce-test-service");
+    let error_normalization = ErrorNormalizationMiddleware::new();
+
+    Pipeline::builder()
+        .add_pre_handler_stage(request_id)
+        .add_pre_handler_stage(tracing)
+        .add_pre_handler_stage(identity)
+        .add_pre_handler_stage(authorization)
+        .add_pre_handler_stage(validation)
+        .add_post_handler_stage(telemetry)
+        .add_post_handler_stage(error_normalization)
+        .build()
+}
+
+/// Build a pipeline with monitor-only validation (logs but doesn't block).
+fn build_monitor_validation_pipeline() -> Pipeline {
+    let request_id = RequestIdMiddleware::new();
+    let tracing = TracingMiddleware::new("monitor-test-service");
+    let identity = IdentityMiddleware::with_trust_domain("test.example.com");
+    let authorization = AuthorizationMiddleware::allow_all();
+
+    // Allow-all validation simulates monitor mode (validation checked but not enforced)
+    let validation = ValidationMiddleware::allow_all();
+
+    let telemetry = TelemetryMiddleware::new("monitor-test-service");
+    let error_normalization = ErrorNormalizationMiddleware::new();
+
+    Pipeline::builder()
+        .add_pre_handler_stage(request_id)
+        .add_pre_handler_stage(tracing)
+        .add_pre_handler_stage(identity)
+        .add_pre_handler_stage(authorization)
+        .add_pre_handler_stage(validation)
+        .add_post_handler_stage(telemetry)
+        .add_post_handler_stage(error_normalization)
+        .build()
+}
+
+/// Test that enforced mode blocks invalid requests.
+#[tokio::test]
+async fn test_enforce_mode_blocks_invalid_request() {
+    let pipeline = build_enforce_validation_pipeline();
+    let mut ctx = MiddlewareContext::new();
+    ctx.set_operation_id("createUser".to_string());
+
+    // Missing required "email" field
+    let body = r#"{"name":"Alice"}"#;
+    let mut request = HttpRequest::builder()
+        .method("POST")
+        .uri("/users")
+        .header("content-type", "application/json")
+        .body(Full::new(Bytes::from(body)))
+        .unwrap();
+
+    // Store body in extensions for validation middleware
+    request.extensions_mut().insert(RequestBody(body.as_bytes().to_vec()));
+
+    let response = pipeline
+        .process(ctx, request, |_ctx, _req| {
+            Box::pin(async { success_response() })
+        })
+        .await;
+
+    // Should be blocked with 400 Bad Request
+    assert_eq!(
+        response.status(),
+        StatusCode::BAD_REQUEST,
+        "Enforced validation should block invalid request"
+    );
+}
+
+/// Test that enforced mode allows valid requests.
+#[tokio::test]
+async fn test_enforce_mode_allows_valid_request() {
+    let pipeline = build_enforce_validation_pipeline();
+    let mut ctx = MiddlewareContext::new();
+    ctx.set_operation_id("createUser".to_string());
+
+    // Valid request with all required fields
+    let body = r#"{"name":"Alice","email":"alice@example.com"}"#;
+    let mut request = HttpRequest::builder()
+        .method("POST")
+        .uri("/users")
+        .header("content-type", "application/json")
+        .body(Full::new(Bytes::from(body)))
+        .unwrap();
+
+    // Store body in extensions for validation middleware
+    request.extensions_mut().insert(RequestBody(body.as_bytes().to_vec()));
+
+    let response = pipeline
+        .process(ctx, request, |_ctx, _req| {
+            Box::pin(async { success_response() })
+        })
+        .await;
+
+    // Should succeed
+    assert_eq!(
+        response.status(),
+        StatusCode::OK,
+        "Enforced validation should allow valid request"
+    );
+}
+
+/// Test that monitor mode allows invalid requests to proceed.
+#[tokio::test]
+async fn test_monitor_mode_allows_invalid_request() {
+    let pipeline = build_monitor_validation_pipeline();
+    let mut ctx = MiddlewareContext::new();
+    ctx.set_operation_id("createUser".to_string());
+
+    // Invalid request - but monitor mode should allow it through
+    let body = r#"{"name":"Alice"}"#; // Missing email
+    let request = HttpRequest::builder()
+        .method("POST")
+        .uri("/users")
+        .header("content-type", "application/json")
+        .body(Full::new(Bytes::from(body)))
+        .unwrap();
+
+    let response = pipeline
+        .process(ctx, request, |_ctx, _req| {
+            Box::pin(async { success_response() })
+        })
+        .await;
+
+    // Should succeed in monitor mode
+    assert_eq!(
+        response.status(),
+        StatusCode::OK,
+        "Monitor mode should allow invalid requests through"
+    );
+}
+
+/// Test that monitor mode allows valid requests.
+#[tokio::test]
+async fn test_monitor_mode_allows_valid_request() {
+    let pipeline = build_monitor_validation_pipeline();
+    let mut ctx = MiddlewareContext::new();
+    ctx.set_operation_id("createUser".to_string());
+
+    let body = r#"{"name":"Alice","email":"alice@example.com"}"#;
+    let request = HttpRequest::builder()
+        .method("POST")
+        .uri("/users")
+        .header("content-type", "application/json")
+        .body(Full::new(Bytes::from(body)))
+        .unwrap();
+
+    let response = pipeline
+        .process(ctx, request, |_ctx, _req| {
+            Box::pin(async { success_response() })
+        })
+        .await;
+
+    assert_eq!(
+        response.status(),
+        StatusCode::OK,
+        "Monitor mode should allow valid requests"
+    );
+}
+
+/// Test enforce mode with additional unexpected fields.
+#[tokio::test]
+async fn test_enforce_mode_rejects_additional_fields() {
+    let pipeline = build_enforce_validation_pipeline();
+    let mut ctx = MiddlewareContext::new();
+    ctx.set_operation_id("createUser".to_string());
+
+    // Valid required fields but extra field not in schema
+    let body = r#"{"name":"Alice","email":"alice@example.com","unexpected":"field"}"#;
+    let mut request = HttpRequest::builder()
+        .method("POST")
+        .uri("/users")
+        .header("content-type", "application/json")
+        .body(Full::new(Bytes::from(body)))
+        .unwrap();
+
+    // Store body in extensions for validation middleware
+    request.extensions_mut().insert(RequestBody(body.as_bytes().to_vec()));
+
+    let response = pipeline
+        .process(ctx, request, |_ctx, _req| {
+            Box::pin(async { success_response() })
+        })
+        .await;
+
+    // Should be blocked because of no_additional_fields()
+    assert_eq!(
+        response.status(),
+        StatusCode::BAD_REQUEST,
+        "Enforced validation should reject additional fields when configured"
+    );
+}
+
+/// Test enforce mode with invalid field type.
+#[tokio::test]
+async fn test_enforce_mode_rejects_wrong_type() {
+    let pipeline = build_enforce_validation_pipeline();
+    let mut ctx = MiddlewareContext::new();
+    ctx.set_operation_id("createUser".to_string());
+
+    // Name should be string but is number
+    let body = r#"{"name":123,"email":"alice@example.com"}"#;
+    let mut request = HttpRequest::builder()
+        .method("POST")
+        .uri("/users")
+        .header("content-type", "application/json")
+        .body(Full::new(Bytes::from(body)))
+        .unwrap();
+
+    // Store body in extensions for validation middleware
+    request.extensions_mut().insert(RequestBody(body.as_bytes().to_vec()));
+
+    let response = pipeline
+        .process(ctx, request, |_ctx, _req| {
+            Box::pin(async { success_response() })
+        })
+        .await;
+
+    // Should be blocked because of type mismatch
+    assert_eq!(
+        response.status(),
+        StatusCode::BAD_REQUEST,
+        "Enforced validation should reject wrong field type"
+    );
+}
+
+/// Test validation with operation not in schema (should default allow).
+#[tokio::test]
+async fn test_enforce_mode_unknown_operation_allowed() {
+    let pipeline = build_enforce_validation_pipeline();
+    let mut ctx = MiddlewareContext::new();
+    ctx.set_operation_id("unknownOperation".to_string()); // Not in schema
+
+    let body = r#"{"anything":"goes"}"#;
+    let mut request = HttpRequest::builder()
+        .method("POST")
+        .uri("/unknown")
+        .header("content-type", "application/json")
+        .body(Full::new(Bytes::from(body)))
+        .unwrap();
+
+    // Store body in extensions for validation middleware
+    request.extensions_mut().insert(RequestBody(body.as_bytes().to_vec()));
+
+    let response = pipeline
+        .process(ctx, request, |_ctx, _req| {
+            Box::pin(async { success_response() })
+        })
+        .await;
+
+    // Unknown operations should be allowed (no schema = no validation)
+    assert_eq!(
+        response.status(),
+        StatusCode::OK,
+        "Operations without schema should be allowed"
+    );
 }
