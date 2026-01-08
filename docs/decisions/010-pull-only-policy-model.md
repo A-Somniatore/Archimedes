@@ -12,6 +12,7 @@ The Archimedes specification (§8.3) originally required a **private control-pla
 > "Archimedes exposes a private control-plane endpoint. Eunomia calls this endpoint to push updates. Security: mTLS, SPIFFE allowlist."
 
 This creates complexity:
+
 1. Archimedes must expose an inbound endpoint
 2. Must implement mTLS certificate validation
 3. Must maintain a SPIFFE allowlist
@@ -33,11 +34,13 @@ This creates complexity:
 Implement the control-plane endpoint as specified.
 
 **Pros:**
+
 - Matches original spec
 - Enables real-time policy updates
 - Eunomia has direct control
 
 **Cons:**
+
 - Security complexity (mTLS, SPIFFE allowlist)
 - Additional attack surface
 - Tight coupling with Eunomia
@@ -48,6 +51,7 @@ Implement the control-plane endpoint as specified.
 Archimedes loads policies from filesystem and watches for changes.
 
 **Pros:**
+
 - Simple deployment model
 - No inbound endpoints needed
 - Works with K8s ConfigMaps/Secrets
@@ -55,6 +59,7 @@ Archimedes loads policies from filesystem and watches for changes.
 - Standard operational patterns
 
 **Cons:**
+
 - Slight delay in policy propagation
 - Requires shared storage or volume mounts
 
@@ -63,10 +68,12 @@ Archimedes loads policies from filesystem and watches for changes.
 Support both models with push as an optional feature.
 
 **Pros:**
+
 - Maximum flexibility
 - Migration path to push
 
 **Cons:**
+
 - Code complexity
 - Two code paths to maintain
 
@@ -77,7 +84,7 @@ Support both models with push as an optional feature.
 For V1.0, Archimedes will use a pull-only model:
 
 1. **Contract Loading**: File-based via `ArtifactLoader`
-2. **Policy Loading**: File-based via `BundleLoader`  
+2. **Policy Loading**: File-based via `BundleLoader`
 3. **Hot Reload**: File system watching (notify crate)
 4. **Deployment**: K8s ConfigMap/Secret mounting
 
@@ -99,7 +106,7 @@ impl PolicyWatcher {
                 Err(e) => tracing::error!("Watch error: {:?}", e),
             }
         })?;
-        
+
         watcher.watch(path, RecursiveMode::NonRecursive)?;
         Ok(())
     }
@@ -174,6 +181,7 @@ spec:
 ## Future Considerations
 
 For V1.1, we may add an optional push endpoint if:
+
 - Real-time policy updates are required (<1s propagation)
 - Eunomia needs acknowledgment of successful policy load
 - Audit requirements mandate push-based updates
@@ -193,12 +201,14 @@ Update `spec.md` §8.3 to reflect this decision:
 ### 8.3 Policy Loading (Updated)
 
 **V1.0 Model**: Pull-only with file watching
+
 - Policies loaded from filesystem at startup
 - File watcher detects changes and reloads
 - Works with K8s ConfigMap/Secret mounting
 - See ADR-010 for rationale
 
 **V1.1+ (Optional)**: Push endpoint
+
 - Private gRPC endpoint for Eunomia
 - Protected via mTLS + SPIFFE allowlist
 - Atomic updates with rollback support

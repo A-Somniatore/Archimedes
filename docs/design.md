@@ -9,24 +9,24 @@
 
 ## Implementation Status
 
-| Crate                   | Status        | Tests | Description                                                                                               |
-| ----------------------- | ------------- | ----- | --------------------------------------------------------------------------------------------------------- |
-| `archimedes`            | ✅ Complete   | -     | Main facade crate (re-exports all crates)                                                                 |
-| `archimedes-core`       | ✅ Complete   | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
-| `archimedes-server`     | ✅ Complete   | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown                                    |
-| `archimedes-middleware` | ✅ Complete   | 104   | All 8 middleware stages + pipeline                                                                        |
-| `archimedes-telemetry`  | ✅ Complete   | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
-| `archimedes-config`     | ✅ Complete   | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
-| `archimedes-router`     | ✅ Complete   | 57    | High-performance radix tree router with method merging                                                    |
-| `archimedes-extract`    | ✅ Complete   | 109   | Request extractors, response builders, DI injection                                                       |
-| `archimedes-macros`     | ✅ Complete   | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
-| `archimedes-sentinel`   | ✅ Complete   | 38    | Themis contract integration                                                                               |
-| `archimedes-authz`      | ✅ Complete   | 26    | Eunomia/OPA integration                                                                                   |
-| `archimedes-docs`       | ✅ Complete   | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
-| `archimedes-ws`         | ✅ Complete   | 52    | WebSocket support with connection management                                                              |
-| `archimedes-sse`        | ✅ Complete   | 38    | Server-Sent Events with backpressure handling                                                             |
-| `archimedes-tasks`      | ✅ Complete   | 41    | Background task spawner and job scheduler                                                                 |
-| `archimedes-sidecar`    | ✅ Complete   | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
+| Crate                   | Status      | Tests | Description                                                                                               |
+| ----------------------- | ----------- | ----- | --------------------------------------------------------------------------------------------------------- |
+| `archimedes`            | ✅ Complete | -     | Main facade crate (re-exports all crates)                                                                 |
+| `archimedes-core`       | ✅ Complete | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
+| `archimedes-server`     | ✅ Complete | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown                                    |
+| `archimedes-middleware` | ✅ Complete | 104   | All 8 middleware stages + pipeline                                                                        |
+| `archimedes-telemetry`  | ✅ Complete | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
+| `archimedes-config`     | ✅ Complete | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
+| `archimedes-router`     | ✅ Complete | 57    | High-performance radix tree router with method merging                                                    |
+| `archimedes-extract`    | ✅ Complete | 109   | Request extractors, response builders, DI injection                                                       |
+| `archimedes-macros`     | ✅ Complete | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
+| `archimedes-sentinel`   | ✅ Complete | 38    | Themis contract integration                                                                               |
+| `archimedes-authz`      | ✅ Complete | 26    | Eunomia/OPA integration                                                                                   |
+| `archimedes-docs`       | ✅ Complete | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
+| `archimedes-ws`         | ✅ Complete | 52    | WebSocket support with connection management                                                              |
+| `archimedes-sse`        | ✅ Complete | 38    | Server-Sent Events with backpressure handling                                                             |
+| `archimedes-tasks`      | ✅ Complete | 41    | Background task spawner and job scheduler                                                                 |
+| `archimedes-sidecar`    | ✅ Complete | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
 
 **Total Tests**: 969 passing across all crates (791 unit/integration + 178 doc-tests)
 
@@ -52,6 +52,7 @@
 ### Extended Features (v2.12.0) - COMPLETE
 
 - **archimedes-ws**: WebSocket support crate (52 tests)
+
   - RFC 6455 compliant via `tokio-tungstenite`
   - `WebSocket` for bidirectional communication
   - `ConnectionManager` with global/per-client limits
@@ -60,6 +61,7 @@
   - JSON message serialization support
 
 - **archimedes-sse**: Server-Sent Events crate (38 tests)
+
   - `SseStream` for server-to-client streaming
   - `SseEvent` with id, event type, data, and retry
   - `SseSender` for async event publishing

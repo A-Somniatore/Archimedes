@@ -14,6 +14,7 @@ Archimedes is the enforcement framework for the Themis Platform, providing contr
 3. **Team adoption** is limited to teams with Rust expertise
 
 We need to enable services written in **any language** to benefit from:
+
 - Contract validation (request/response schema enforcement)
 - Authorization (OPA policy evaluation)
 - Observability (distributed tracing, metrics)
@@ -35,11 +36,13 @@ We need to enable services written in **any language** to benefit from:
 Generate native SDKs for each language (Python, Go, TypeScript, C++).
 
 **Pros:**
+
 - Native performance
 - Idiomatic API for each language
 - No network hop
 
 **Cons:**
+
 - Massive engineering effort (4x the work)
 - Version synchronization nightmare
 - Each SDK needs full OPA/regorus port
@@ -50,6 +53,7 @@ Generate native SDKs for each language (Python, Go, TypeScript, C++).
 Deploy Archimedes as a sidecar container alongside the application.
 
 **Pros:**
+
 - Single implementation (Rust)
 - Consistent behavior across all languages
 - Application changes minimal (just change upstream URL)
@@ -57,6 +61,7 @@ Deploy Archimedes as a sidecar container alongside the application.
 - Hot-reload contracts and policies
 
 **Cons:**
+
 - Network hop latency (~1-2ms)
 - Additional container resource usage
 - Deployment complexity
@@ -66,11 +71,13 @@ Deploy Archimedes as a sidecar container alongside the application.
 Integrate Archimedes middleware into an existing service mesh (Istio, Linkerd).
 
 **Pros:**
+
 - Leverages existing infrastructure
 - Zero application changes
 - Scales with service mesh
 
 **Cons:**
+
 - Service mesh is a heavy dependency
 - Contract validation doesn't fit mesh model
 - Limited customization
@@ -81,6 +88,7 @@ Integrate Archimedes middleware into an existing service mesh (Istio, Linkerd).
 **Chosen Option: Sidecar Proxy Pattern (Option 2)**
 
 The sidecar pattern provides the best balance of:
+
 - **Single codebase** to maintain
 - **Consistent behavior** across all languages
 - **Minimal application changes** (just proxy configuration)
@@ -199,7 +207,7 @@ services:
     build: .
     ports:
       - "8081:8081"
-  
+
   archimedes:
     image: ghcr.io/themis-platform/archimedes-sidecar:latest
     ports:

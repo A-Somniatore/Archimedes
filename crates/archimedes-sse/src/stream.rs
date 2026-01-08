@@ -224,9 +224,8 @@ impl SseStream {
 
     /// Get the retry comment for initial connection.
     fn initial_retry_bytes(&self) -> Option<Bytes> {
-        self.initial_retry.map(|duration| {
-            Bytes::from(format!("retry: {}\n\n", duration.as_millis()))
-        })
+        self.initial_retry
+            .map(|duration| Bytes::from(format!("retry: {}\n\n", duration.as_millis())))
     }
 }
 
@@ -287,10 +286,7 @@ pub fn sse_response(stream: SseStream) -> (http::HeaderMap, SseStream) {
         http::HeaderValue::from_static("keep-alive"),
     );
     // Disable buffering
-    headers.insert(
-        "X-Accel-Buffering",
-        http::HeaderValue::from_static("no"),
-    );
+    headers.insert("X-Accel-Buffering", http::HeaderValue::from_static("no"));
 
     (headers, stream)
 }
@@ -349,7 +345,10 @@ mod tests {
     async fn test_sender_send_event() {
         let (sender, mut stream) = SseStream::new();
 
-        sender.send_event("notification", "new message").await.unwrap();
+        sender
+            .send_event("notification", "new message")
+            .await
+            .unwrap();
 
         // Skip initial retry
         let _ = stream.next().await;

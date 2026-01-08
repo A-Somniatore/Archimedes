@@ -162,35 +162,35 @@ match caller {
 
 ### P0 - Build Blockers (Must Fix Immediately)
 
-| Item | Description | Status |
-|------|-------------|--------|
+| Item                               | Description                                                                                                                                                    | Status              |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | **archimedes facade import error** | Main `archimedes` crate has unresolved imports: `CloseReason`, `WebSocketError`, `WebSocketId`, `WebSocketMessage` from archimedes-ws. Crate does not compile. | ✅ FIXED 2026-01-09 |
-| **archimedes-tasks flaky tests** | 3 tests failing: `test_scheduler_basic`, `test_run_now`, `test_list_tasks_by_status`. Timeouts in async task spawner. | ✅ FIXED 2026-01-09 |
+| **archimedes-tasks flaky tests**   | 3 tests failing: `test_scheduler_basic`, `test_run_now`, `test_list_tasks_by_status`. Timeouts in async task spawner.                                          | ✅ FIXED 2026-01-09 |
 
 ### P1 - Archimedes-Specific Items
 
-| Item | Description | Status |
-|------|-------------|--------|
-| **OPA Bundle Format Validation** | Validate `BundleLoader` format against `eunomia-compiler` output. Eunomia writes `.manifest` JSON + policies as tar.gz. Archimedes expects same format - needs integration test. | ⏳ Backlog |
-| **Error Code Unification** | Archimedes uses `ErrorCategory`, platform uses `ErrorCode` - unify | ⏳ Backlog |
-| **Handler Macro + Real Contracts** | Test macros with actual Themis artifacts, not mocks | ⏳ Backlog |
+| Item                               | Description                                                                                                                                                                      | Status     |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| **OPA Bundle Format Validation**   | Validate `BundleLoader` format against `eunomia-compiler` output. Eunomia writes `.manifest` JSON + policies as tar.gz. Archimedes expects same format - needs integration test. | ⏳ Backlog |
+| **Error Code Unification**         | Archimedes uses `ErrorCategory`, platform uses `ErrorCode` - unify                                                                                                               | ⏳ Backlog |
+| **Handler Macro + Real Contracts** | Test macros with actual Themis artifacts, not mocks                                                                                                                              | ⏳ Backlog |
 
 ### ✅ Verified Working
 
-| Item | Description |
-|------|-------------|
-| **Platform types integration** | `archimedes-core` correctly imports `CallerIdentity`, `RequestId` from `themis-platform-types` |
-| **Policy types integration** | `archimedes-authz` correctly uses `PolicyInput`, `PolicyDecision` from `themis-platform-types` |
-| **Themis artifact integration** | `archimedes-sentinel` correctly imports from `themis-artifact`, `themis-core` |
-| **Edition/MSRV** | Updated to edition 2021, MSRV 1.75 ✅ |
-| **Git dependency** | Using GitHub reference for `themis-platform-types` ✅ |
+| Item                            | Description                                                                                    |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Platform types integration**  | `archimedes-core` correctly imports `CallerIdentity`, `RequestId` from `themis-platform-types` |
+| **Policy types integration**    | `archimedes-authz` correctly uses `PolicyInput`, `PolicyDecision` from `themis-platform-types` |
+| **Themis artifact integration** | `archimedes-sentinel` correctly imports from `themis-artifact`, `themis-core`                  |
+| **Edition/MSRV**                | Updated to edition 2021, MSRV 1.75 ✅                                                          |
+| **Git dependency**              | Using GitHub reference for `themis-platform-types` ✅                                          |
 
 ### P2 - Cross-Component Items
 
-| Item | Description | Owner |
-|------|-------------|-------|
-| **Health Check Standardization** | Define standard health check pattern for K8s deployment | Platform |
-| **gRPC Clarification** | Is Eunomia→Archimedes push via gRPC or HTTP? (ADR-006 says post-MVP) | Platform |
+| Item                             | Description                                                          | Owner    |
+| -------------------------------- | -------------------------------------------------------------------- | -------- |
+| **Health Check Standardization** | Define standard health check pattern for K8s deployment              | Platform |
+| **gRPC Clarification**           | Is Eunomia→Archimedes push via gRPC or HTTP? (ADR-006 says post-MVP) | Platform |
 
 ---
 
@@ -201,51 +201,51 @@ match caller {
 
 ### ✅ Fully Implemented (Matches Spec)
 
-| Spec Requirement | Evidence |
-|------------------|----------|
-| HTTP/1.1 & HTTP/2 Support | archimedes-server (hyper-based) |
-| Async/Tokio runtime | All crates |
-| Request ID generation (UUID v7) | archimedes-middleware/stages/request_id.rs |
-| Trace context (OpenTelemetry) | archimedes-telemetry |
-| Identity extraction (SPIFFE/JWT/ApiKey) | archimedes-extract |
-| Authorization middleware (OPA) | archimedes-authz (26 tests) |
-| Request validation | archimedes-middleware/stages/validation.rs |
-| Response validation | archimedes-sentinel |
-| Fixed 8-stage middleware pipeline | archimedes-middleware/pipeline.rs |
-| Handler registration by operationId | archimedes-server/handler.rs |
-| OPA/Rego policy evaluation | archimedes-authz (regorus) |
-| Policy bundle loading | archimedes-authz/bundle.rs |
-| Decision caching | archimedes-authz/cache.rs |
-| Contract artifact loading | archimedes-sentinel |
-| Prometheus metrics | archimedes-telemetry/metrics.rs |
-| Structured logging | archimedes-telemetry/logging.rs |
-| OpenTelemetry tracing | archimedes-telemetry/tracing.rs |
-| Health/Ready probes | archimedes-server/health.rs |
-| Graceful shutdown | archimedes-server/shutdown.rs |
-| High-performance router | archimedes-router (57 tests) |
-| Handler macros | archimedes-macros (#[handler]) |
-| Dependency injection | archimedes-core/di.rs |
-| API documentation generation | archimedes-docs (OpenAPI, Swagger, ReDoc) |
-| WebSocket Support | archimedes-ws (52 tests) |
-| Server-Sent Events | archimedes-sse (38 tests) |
-| Background Tasks | archimedes-tasks (41 tests) |
+| Spec Requirement                        | Evidence                                   |
+| --------------------------------------- | ------------------------------------------ |
+| HTTP/1.1 & HTTP/2 Support               | archimedes-server (hyper-based)            |
+| Async/Tokio runtime                     | All crates                                 |
+| Request ID generation (UUID v7)         | archimedes-middleware/stages/request_id.rs |
+| Trace context (OpenTelemetry)           | archimedes-telemetry                       |
+| Identity extraction (SPIFFE/JWT/ApiKey) | archimedes-extract                         |
+| Authorization middleware (OPA)          | archimedes-authz (26 tests)                |
+| Request validation                      | archimedes-middleware/stages/validation.rs |
+| Response validation                     | archimedes-sentinel                        |
+| Fixed 8-stage middleware pipeline       | archimedes-middleware/pipeline.rs          |
+| Handler registration by operationId     | archimedes-server/handler.rs               |
+| OPA/Rego policy evaluation              | archimedes-authz (regorus)                 |
+| Policy bundle loading                   | archimedes-authz/bundle.rs                 |
+| Decision caching                        | archimedes-authz/cache.rs                  |
+| Contract artifact loading               | archimedes-sentinel                        |
+| Prometheus metrics                      | archimedes-telemetry/metrics.rs            |
+| Structured logging                      | archimedes-telemetry/logging.rs            |
+| OpenTelemetry tracing                   | archimedes-telemetry/tracing.rs            |
+| Health/Ready probes                     | archimedes-server/health.rs                |
+| Graceful shutdown                       | archimedes-server/shutdown.rs              |
+| High-performance router                 | archimedes-router (57 tests)               |
+| Handler macros                          | archimedes-macros (#[handler])             |
+| Dependency injection                    | archimedes-core/di.rs                      |
+| API documentation generation            | archimedes-docs (OpenAPI, Swagger, ReDoc)  |
+| WebSocket Support                       | archimedes-ws (52 tests)                   |
+| Server-Sent Events                      | archimedes-sse (38 tests)                  |
+| Background Tasks                        | archimedes-tasks (41 tests)                |
 
 ### ⚠️ Partially Implemented
 
-| Spec Requirement | Gap | Impact |
-|------------------|-----|--------|
-| **mTLS authentication** | Identity middleware extracts SPIFFE but actual cert validation deferred to deployment layer | Medium |
-| **Enforced/Monitor modes** | Mode switching exists but needs full verification | Low |
+| Spec Requirement           | Gap                                                                                         | Impact |
+| -------------------------- | ------------------------------------------------------------------------------------------- | ------ |
+| **mTLS authentication**    | Identity middleware extracts SPIFFE but actual cert validation deferred to deployment layer | Medium |
+| **Enforced/Monitor modes** | Mode switching exists but needs full verification                                           | Low    |
 
 ### ❌ Not Implemented (Missing from Spec)
 
-| Spec Requirement | Priority | Notes |
-|------------------|----------|-------|
-| **gRPC Support** | Post-MVP | ADR-006 explicitly defers to post-MVP. No tonic integration. |
-| **Control Plane Endpoint** | ~~High~~ **DECISION: Deferred** | See ADR-010 below - pull-only model for V1 |
-| **Policy push with atomic rollback** | ~~High~~ **DECISION: V1.1** | File-watch provides hot-reload without push endpoint |
-| **SPIFFE allowlist for control endpoint** | N/A | Not needed if pull-only |
-| **Contract-based WS message validation** | Medium | Spec §14.1 requires validating against Themis schemas |
+| Spec Requirement                          | Priority                        | Notes                                                        |
+| ----------------------------------------- | ------------------------------- | ------------------------------------------------------------ |
+| **gRPC Support**                          | Post-MVP                        | ADR-006 explicitly defers to post-MVP. No tonic integration. |
+| **Control Plane Endpoint**                | ~~High~~ **DECISION: Deferred** | See ADR-010 below - pull-only model for V1                   |
+| **Policy push with atomic rollback**      | ~~High~~ **DECISION: V1.1**     | File-watch provides hot-reload without push endpoint         |
+| **SPIFFE allowlist for control endpoint** | N/A                             | Not needed if pull-only                                      |
+| **Contract-based WS message validation**  | Medium                          | Spec §14.1 requires validating against Themis schemas        |
 
 ### 🟡 Design Decision: Control Plane Model (ADR-010)
 
@@ -255,14 +255,15 @@ match caller {
 
 The spec (§8.3) originally required a push endpoint, but we've decided to defer this:
 
-| Approach | V1.0 Implementation |
-|----------|---------------------|
+| Approach             | V1.0 Implementation             |
+| -------------------- | ------------------------------- |
 | **Contract Loading** | File-based via `ArtifactLoader` |
-| **Policy Loading** | File-based via `BundleLoader` |
-| **Hot Reload** | File watching (inotify/kqueue) |
-| **Deployment** | K8s ConfigMap/Secret mounting |
+| **Policy Loading**   | File-based via `BundleLoader`   |
+| **Hot Reload**       | File watching (inotify/kqueue)  |
+| **Deployment**       | K8s ConfigMap/Secret mounting   |
 
 **Why Pull-Only for V1.0**:
+
 1. Simpler security model (no inbound endpoint)
 2. Works with standard K8s patterns (ConfigMap updates)
 3. No need for SPIFFE allowlist complexity
@@ -275,27 +276,27 @@ The spec (§8.3) originally required a push endpoint, but we've decided to defer
 > **Source**: Staff Engineer Review (2026-01-07)
 > **Priority**: Address before production release
 
-| Item | Description | Owner | Target |
-|------|-------------|-------|--------|
-| **OPA Bundle Format Validation** | Add integration test validating `BundleLoader` against actual `eunomia-compiler` output | Archimedes | Pre-production |
-| **Error Code Unification** | Archimedes uses `ErrorCategory`, platform uses `ErrorCode` - unify to `ErrorCode` | Archimedes + Platform | V1.1 |
-| **Handler Macro + Real Contracts** | Test `#[handler]` macro with actual Themis artifacts, not mocks | Archimedes | Pre-production |
-| **WebSocket Message Validation** | Implement contract-based WS message validation per spec §14.1 | Archimedes | V1.1 |
-| **Monitor Mode Verification** | Full E2E test of enforce vs monitor validation modes | Archimedes | Pre-production |
+| Item                               | Description                                                                             | Owner                 | Target         |
+| ---------------------------------- | --------------------------------------------------------------------------------------- | --------------------- | -------------- |
+| **OPA Bundle Format Validation**   | Add integration test validating `BundleLoader` against actual `eunomia-compiler` output | Archimedes            | Pre-production |
+| **Error Code Unification**         | Archimedes uses `ErrorCategory`, platform uses `ErrorCode` - unify to `ErrorCode`       | Archimedes + Platform | V1.1           |
+| **Handler Macro + Real Contracts** | Test `#[handler]` macro with actual Themis artifacts, not mocks                         | Archimedes            | Pre-production |
+| **WebSocket Message Validation**   | Implement contract-based WS message validation per spec §14.1                           | Archimedes            | V1.1           |
+| **Monitor Mode Verification**      | Full E2E test of enforce vs monitor validation modes                                    | Archimedes            | Pre-production |
 
 ---
 
 ## Key Decisions
 
-| Decision                                                                     | Impact                                               |
-| ---------------------------------------------------------------------------- | ---------------------------------------------------- |
-| [ADR-010](docs/decisions/010-pull-only-policy-model.md)                      | **Pull-only policy loading for V1.0 (no push endpoint)** |
-| [ADR-009](docs/decisions/009-archimedes-sidecar-multi-language.md)           | **Sidecar pattern for Python/Go/TS/C++ services**    |
-| [ADR-008](docs/decisions/008-archimedes-full-framework.md)                   | **Archimedes as internal standardized framework**    |
-| [ADR-005](docs/decisions/005-kubernetes-ingress-over-custom-router.md)       | Archimedes handles contract enforcement, not routing |
-| [ADR-006](docs/decisions/006-grpc-post-mvp.md)                               | MVP is HTTP/REST only, gRPC is post-MVP              |
-| [ADR-004](docs/decisions/004-regorus-for-rego-parsing.md)                    | Use Regorus for embedded OPA evaluation              |
-| [ADR-007](docs/decisions/007-apache-2-license.md)                            | Apache 2.0 license                                   |
+| Decision                                                               | Impact                                                   |
+| ---------------------------------------------------------------------- | -------------------------------------------------------- |
+| [ADR-010](docs/decisions/010-pull-only-policy-model.md)                | **Pull-only policy loading for V1.0 (no push endpoint)** |
+| [ADR-009](docs/decisions/009-archimedes-sidecar-multi-language.md)     | **Sidecar pattern for Python/Go/TS/C++ services**        |
+| [ADR-008](docs/decisions/008-archimedes-full-framework.md)             | **Archimedes as internal standardized framework**        |
+| [ADR-005](docs/decisions/005-kubernetes-ingress-over-custom-router.md) | Archimedes handles contract enforcement, not routing     |
+| [ADR-006](docs/decisions/006-grpc-post-mvp.md)                         | MVP is HTTP/REST only, gRPC is post-MVP                  |
+| [ADR-004](docs/decisions/004-regorus-for-rego-parsing.md)              | Use Regorus for embedded OPA evaluation                  |
+| [ADR-007](docs/decisions/007-apache-2-license.md)                      | Apache 2.0 license                                       |
 
 ## Vision: Internal Standardization
 
@@ -355,27 +356,27 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 
 ### Timeline Summary
 
-| Phase                            | Duration | Weeks | Description                          | Dependencies            |
-| -------------------------------- | -------- | ----- | ------------------------------------ | ----------------------- |
-| **MVP (Weeks 1-20)**             |          |       |                                      |                         |
-| A0: Shared Types                 | 1 week   | 1     | Integrate `themis-platform-types`    | Themis creates crate    |
-| A1: Foundation                   | 3 weeks  | 2-4   | Core types, server scaffold          | `themis-platform-types` |
-| A2: Server & Routing             | 4 weeks  | 5-8   | HTTP server, routing, handlers       | None (mock contracts)   |
-| A3: Middleware                   | 4 weeks  | 9-12  | Middleware pipeline, validation      | None (mock validation)  |
-| A4: Observability                | 4 weeks  | 13-16 | Metrics, tracing, logging, config    | None                    |
-| A5: Integration                  | 4 weeks  | 17-20 | Themis + Eunomia integration         | Themis, Eunomia         |
-| **Framework (Weeks 21-36)**      |          |       |                                      |                         |
-| A6: Core Framework               | 4 weeks  | 21-24 | Custom router, extractors, DI        | MVP complete            |
-| A7: Handler Macros               | 4 weeks  | 25-28 | Handler macros, auto-docs            | A6                      |
-| A8: Extended Features            | 4 weeks  | 29-32 | WebSocket, SSE, background tasks     | A7                      |
-| A9: Developer Experience         | 4 weeks  | 33-36 | CLI tool, hot reload, templates      | A8 **(DEFERRED)**       |
+| Phase                            | Duration                             | Weeks | Description                          | Dependencies            |
+| -------------------------------- | ------------------------------------ | ----- | ------------------------------------ | ----------------------- |
+| **MVP (Weeks 1-20)**             |                                      |       |                                      |                         |
+| A0: Shared Types                 | 1 week                               | 1     | Integrate `themis-platform-types`    | Themis creates crate    |
+| A1: Foundation                   | 3 weeks                              | 2-4   | Core types, server scaffold          | `themis-platform-types` |
+| A2: Server & Routing             | 4 weeks                              | 5-8   | HTTP server, routing, handlers       | None (mock contracts)   |
+| A3: Middleware                   | 4 weeks                              | 9-12  | Middleware pipeline, validation      | None (mock validation)  |
+| A4: Observability                | 4 weeks                              | 13-16 | Metrics, tracing, logging, config    | None                    |
+| A5: Integration                  | 4 weeks                              | 17-20 | Themis + Eunomia integration         | Themis, Eunomia         |
+| **Framework (Weeks 21-36)**      |                                      |       |                                      |                         |
+| A6: Core Framework               | 4 weeks                              | 21-24 | Custom router, extractors, DI        | MVP complete            |
+| A7: Handler Macros               | 4 weeks                              | 25-28 | Handler macros, auto-docs            | A6                      |
+| A8: Extended Features            | 4 weeks                              | 29-32 | WebSocket, SSE, background tasks     | A7                      |
+| A9: Developer Experience         | 4 weeks                              | 33-36 | CLI tool, hot reload, templates      | A8 **(DEFERRED)**       |
 | **Multi-Language (Weeks 37-48)** | 🚨 **CRITICAL: Moved from post-MVP** |       |                                      |                         |
-| A10: Sidecar Foundation          | 3 weeks  | 37-39 | Archimedes sidecar binary            | A8 ✅ **COMPLETE**      |
-| A10.5: Pre-Production Hardening  | 1 week   | 40    | P1 backlog, hot-reload, testing      | A10 🔄 **IN PROGRESS**  |
-| A11: Type Generation             | 2 weeks  | 41-42 | Python, Go, TypeScript generators    | **Themis-owned**        |
-| A12: Multi-Language Integration  | 4 weeks  | 43-46 | Integration tests, deployment guides | A10.5, A11              |
-| **Buffer (Weeks 47-52)**         |          |       |                                      |                         |
-| Hardening & Buffer               | 6 weeks  | 47-52 | Performance tuning, contingency      | All                     |
+| A10: Sidecar Foundation          | 3 weeks                              | 37-39 | Archimedes sidecar binary            | A8 ✅ **COMPLETE**      |
+| A10.5: Pre-Production Hardening  | 1 week                               | 40    | P1 backlog, hot-reload, testing      | A10 🔄 **IN PROGRESS**  |
+| A11: Type Generation             | 2 weeks                              | 41-42 | Python, Go, TypeScript generators    | **Themis-owned**        |
+| A12: Multi-Language Integration  | 4 weeks                              | 43-46 | Integration tests, deployment guides | A10.5, A11              |
+| **Buffer (Weeks 47-52)**         |                                      |       |                                      |                         |
+| Hardening & Buffer               | 6 weeks                              | 47-52 | Performance tuning, contingency      | All                     |
 
 **Total**: 52 weeks (13 months) - **Extended by 4 weeks for multi-language support**
 
@@ -1523,6 +1524,7 @@ $ archimedes dev
 ### P1 Technical Debt Items
 
 - [ ] **File Watching for Hot-Reload** (per ADR-010)
+
   - Add `notify` crate for file system watching
   - Watch contract file for changes, reload `Sentinel`
   - Watch policy bundle for changes, reload `PolicyEvaluator`
@@ -1530,12 +1532,14 @@ $ archimedes dev
   - Tests for hot-reload functionality
 
 - [ ] **OPA Bundle Format Validation**
+
   - Add integration test with actual `eunomia-compiler` output
   - Validate `.manifest` JSON format
   - Validate tar.gz bundle structure
   - Document expected bundle format
 
 - [ ] **Monitor Mode Verification**
+
   - E2E test for `validation_mode = "enforce"`
   - E2E test for `validation_mode = "monitor"` (log-only)
   - Verify metrics differ between modes
@@ -1575,13 +1579,13 @@ $ archimedes dev
 
 Phase A11 is primarily **Themis CLI functionality** - generating types from contract schemas. Archimedes benefits from this but doesn't own the implementation:
 
-| Task | Owner | Archimedes Role |
-|------|-------|-----------------|
-| JSON Schema generation from Rust types | Themis | Consumer of schemas |
-| Python type generator | Themis CLI | Example Python service |
-| Go type generator | Themis CLI | Example Go service |
-| TypeScript type generator | Themis CLI | Example TS service |
-| C++ type generator | Themis CLI | Example C++ service |
+| Task                                   | Owner      | Archimedes Role        |
+| -------------------------------------- | ---------- | ---------------------- |
+| JSON Schema generation from Rust types | Themis     | Consumer of schemas    |
+| Python type generator                  | Themis CLI | Example Python service |
+| Go type generator                      | Themis CLI | Example Go service     |
+| TypeScript type generator              | Themis CLI | Example TS service     |
+| C++ type generator                     | Themis CLI | Example C++ service    |
 
 ### What Archimedes WILL Do in This Phase
 
@@ -1623,11 +1627,13 @@ Phase A11 is primarily **Themis CLI functionality** - generating types from cont
 ### A11 Deliverables
 
 **Themis Deliverables:**
+
 - Automated schema-to-type generators for Python, Go, TypeScript, C++
 - Integration with Themis CLI
 - CI pipeline for type generation
 
 **Archimedes Deliverables:**
+
 - Example Python service with sidecar
 - Example Go service with sidecar
 - Example TypeScript service with sidecar

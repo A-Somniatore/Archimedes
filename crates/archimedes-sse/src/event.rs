@@ -53,8 +53,8 @@ impl SseEvent {
 
     /// Create an SSE event from a JSON-serializable value.
     pub fn json<T: Serialize>(value: &T) -> SseResult<Self> {
-        let data =
-            serde_json::to_string(value).map_err(|e| SseError::serialization_failed(e.to_string()))?;
+        let data = serde_json::to_string(value)
+            .map_err(|e| SseError::serialization_failed(e.to_string()))?;
         Ok(Self::new(data))
     }
 

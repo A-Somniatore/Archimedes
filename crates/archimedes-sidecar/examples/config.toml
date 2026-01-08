@@ -37,7 +37,11 @@ validation_mode = "enforce"
 validate_responses = true
 
 # Skip validation for these paths (health checks, metrics, etc.)
-skip_paths = ["/_archimedes/health", "/_archimedes/ready", "/_archimedes/metrics"]
+skip_paths = [
+    "/_archimedes/health",
+    "/_archimedes/ready",
+    "/_archimedes/metrics",
+]
 
 # -----------------------------------------------------------------------------
 # Authorization/Policy Configuration

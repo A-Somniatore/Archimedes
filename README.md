@@ -31,23 +31,23 @@ Archimedes is an opinionated Rust-based server framework that provides:
 
 **Phase A10 Complete** – 969 tests passing across 17 crates
 
-| Crate | Tests | Description |
-|-------|-------|-------------|
-| `archimedes-core` | 80 | Core types, DI, handler traits |
-| `archimedes-server` | 90 | HTTP server, routing, graceful shutdown |
-| `archimedes-middleware` | 104 | 8-stage fixed middleware pipeline |
-| `archimedes-router` | 57 | High-performance radix tree router |
-| `archimedes-extract` | 109 | Request extractors (Path, Query, Json, Headers) |
-| `archimedes-config` | 52 | TOML/JSON configuration with env overrides |
-| `archimedes-telemetry` | 25 | OpenTelemetry traces, Prometheus metrics |
-| `archimedes-sentinel` | 38 | Themis contract validation |
-| `archimedes-authz` | 26 | OPA policy evaluation (regorus) |
-| `archimedes-docs` | 29 | OpenAPI generation, Swagger UI, ReDoc |
-| `archimedes-macros` | 14 | `#[handler]` proc macro |
-| `archimedes-ws` | 52 | WebSocket support |
-| `archimedes-sse` | 38 | Server-Sent Events |
-| `archimedes-tasks` | 41 | Background tasks and scheduled jobs |
-| `archimedes-sidecar` | 39 | Multi-language sidecar proxy |
+| Crate                   | Tests | Description                                     |
+| ----------------------- | ----- | ----------------------------------------------- |
+| `archimedes-core`       | 80    | Core types, DI, handler traits                  |
+| `archimedes-server`     | 90    | HTTP server, routing, graceful shutdown         |
+| `archimedes-middleware` | 104   | 8-stage fixed middleware pipeline               |
+| `archimedes-router`     | 57    | High-performance radix tree router              |
+| `archimedes-extract`    | 109   | Request extractors (Path, Query, Json, Headers) |
+| `archimedes-config`     | 52    | TOML/JSON configuration with env overrides      |
+| `archimedes-telemetry`  | 25    | OpenTelemetry traces, Prometheus metrics        |
+| `archimedes-sentinel`   | 38    | Themis contract validation                      |
+| `archimedes-authz`      | 26    | OPA policy evaluation (regorus)                 |
+| `archimedes-docs`       | 29    | OpenAPI generation, Swagger UI, ReDoc           |
+| `archimedes-macros`     | 14    | `#[handler]` proc macro                         |
+| `archimedes-ws`         | 52    | WebSocket support                               |
+| `archimedes-sse`        | 38    | Server-Sent Events                              |
+| `archimedes-tasks`      | 41    | Background tasks and scheduled jobs             |
+| `archimedes-sidecar`    | 39    | Multi-language sidecar proxy                    |
 
 ---
 
@@ -109,7 +109,7 @@ async fn create_user(
 ### Mandatory Middleware (Cannot Be Disabled)
 
 1. **Request ID** – UUID v7 for every request
-2. **Tracing** – OpenTelemetry span initialization  
+2. **Tracing** – OpenTelemetry span initialization
 3. **Identity** – SPIFFE/JWT/API key extraction
 4. **Authorization** – OPA policy evaluation
 5. **Validation** – Contract schema validation
@@ -128,7 +128,7 @@ services:
     image: my-python-service:latest
     ports:
       - "8081:8081"
-  
+
   archimedes:
     image: ghcr.io/themis-platform/archimedes-sidecar:latest
     ports:
@@ -143,6 +143,7 @@ The sidecar handles all middleware concerns – your service just implements bus
 ### Built-in Observability
 
 Zero-config observability with automatic metrics per operation:
+
 - `archimedes_requests_total{operation_id, status}`
 - `archimedes_request_duration_seconds{operation_id}`
 - `archimedes_authorization_decisions_total{operation_id, decision}`
@@ -251,13 +252,13 @@ docker run -d \
 
 ## Extractors
 
-| Extractor | Description | Example |
-|-----------|-------------|---------|
-| `Path<T>` | URL path parameters | `Path<UserId>` |
-| `Query<T>` | Query string parameters | `Query<Pagination>` |
-| `Json<T>` | JSON request body | `Json<CreateUserRequest>` |
-| `Headers` | Request headers | `Headers` |
-| `Inject<T>` | DI container service | `Inject<Database>` |
+| Extractor   | Description             | Example                   |
+| ----------- | ----------------------- | ------------------------- |
+| `Path<T>`   | URL path parameters     | `Path<UserId>`            |
+| `Query<T>`  | Query string parameters | `Query<Pagination>`       |
+| `Json<T>`   | JSON request body       | `Json<CreateUserRequest>` |
+| `Headers`   | Request headers         | `Headers`                 |
+| `Inject<T>` | DI container service    | `Inject<Database>`        |
 
 ---
 
@@ -304,11 +305,11 @@ cargo doc --workspace --no-deps  # Generate docs
 
 ## Related Projects
 
-| Project | Description |
-|---------|-------------|
-| [Themis](../themis/) | Contract validation and code generation |
-| [Eunomia](../eunomia/) | Authorization policy platform |
-| [themis-platform-types](https://github.com/A-Somniatore/themis-platform-types) | Shared platform types |
+| Project                                                                        | Description                             |
+| ------------------------------------------------------------------------------ | --------------------------------------- |
+| [Themis](../themis/)                                                           | Contract validation and code generation |
+| [Eunomia](../eunomia/)                                                         | Authorization policy platform           |
+| [themis-platform-types](https://github.com/A-Somniatore/themis-platform-types) | Shared platform types                   |
 
 ---
 
