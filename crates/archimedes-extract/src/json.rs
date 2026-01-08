@@ -153,7 +153,7 @@ impl<T: DeserializeOwned> FromRequest for Json<T> {
 pub struct JsonWithLimit<T, const LIMIT: usize>(pub T);
 
 impl<T, const LIMIT: usize> JsonWithLimit<T, LIMIT> {
-    /// Consumes the JsonWithLimit and returns the inner value.
+    /// Consumes the `JsonWithLimit` and returns the inner value.
     #[must_use]
     pub fn into_inner(self) -> T {
         self.0

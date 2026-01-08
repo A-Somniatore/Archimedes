@@ -25,12 +25,14 @@ serde_urlencoded = "0.7"
 
 # Form/multipart parsing
 multer = "3.1"
+mime = "0.3"
 
 # Async traits
 async-trait = "0.1"
 
 # Futures
 futures-core = "0.3"
+futures-util = "0.3"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "macros"] }

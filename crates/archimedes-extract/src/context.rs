@@ -215,7 +215,6 @@ impl ExtractionContext {
 ///
 /// This builder is primarily useful for testing, allowing you to construct
 /// contexts with specific values for extracting data in unit tests.
-#[allow(dead_code)]
 #[derive(Debug, Default)]
 pub struct ExtractionContextBuilder {
     method: Option<Method>,
@@ -225,6 +224,7 @@ pub struct ExtractionContextBuilder {
     path_params: Params,
 }
 
+#[allow(dead_code)]
 impl ExtractionContextBuilder {
     /// Creates a new builder.
     #[must_use]

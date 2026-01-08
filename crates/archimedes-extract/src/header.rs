@@ -173,7 +173,7 @@ impl Headers {
         &self.0
     }
 
-    /// Consumes the Headers and returns the inner HeaderMap.
+    /// Consumes the Headers and returns the inner `HeaderMap`.
     #[must_use]
     pub fn into_inner(self) -> HeaderMap {
         self.0

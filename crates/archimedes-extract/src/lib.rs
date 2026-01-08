@@ -107,6 +107,7 @@ mod form;
 mod header;
 mod inject;
 mod json;
+pub mod multipart;
 mod path;
 mod query;
 pub mod response;
@@ -121,6 +122,7 @@ pub use header::{header, header_opt, ExtractTypedHeader, Header, Headers, TypedH
 pub use header::{Accept, Authorization, ContentType, UserAgent};
 pub use inject::Inject;
 pub use json::{Json, JsonWithLimit};
+pub use multipart::{Field, Multipart, MultipartConfig, UploadedFile};
 pub use path::{path_param, Path};
 pub use query::{Query, RawQuery};
 

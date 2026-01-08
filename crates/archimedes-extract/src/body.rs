@@ -50,7 +50,7 @@ impl RawBody {
         &self.0
     }
 
-    /// Consumes the RawBody and returns the inner Bytes.
+    /// Consumes the `RawBody` and returns the inner Bytes.
     #[must_use]
     pub fn into_inner(self) -> Bytes {
         self.0
@@ -140,7 +140,7 @@ impl BodyString {
         &self.0
     }
 
-    /// Consumes the BodyString and returns the inner String.
+    /// Consumes the `BodyString` and returns the inner String.
     #[must_use]
     pub fn into_inner(self) -> String {
         self.0

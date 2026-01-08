@@ -160,6 +160,28 @@ impl ExtractionError {
         }
     }
 
+    /// Creates an error for missing Content-Type header.
+    #[must_use]
+    pub fn missing_content_type(expected: &str) -> Self {
+        Self {
+            extraction_source: ExtractionSource::ContentType,
+            kind: ExtractionErrorKind::UnsupportedMediaType,
+            message: format!("missing Content-Type header, expected '{expected}'"),
+            field: None,
+        }
+    }
+
+    /// Creates an error for invalid Content-Type header.
+    #[must_use]
+    pub fn invalid_content_type(details: impl Into<String>) -> Self {
+        Self {
+            extraction_source: ExtractionSource::ContentType,
+            kind: ExtractionErrorKind::UnsupportedMediaType,
+            message: format!("invalid Content-Type header: {}", details.into()),
+            field: None,
+        }
+    }
+
     /// Creates a custom error.
     ///
     /// Use this for errors that don't fit the other categories,
@@ -199,6 +221,7 @@ impl ExtractionError {
 
     /// Returns the appropriate HTTP status code for this error.
     #[must_use]
+    #[allow(clippy::match_same_arms)]
     pub fn status_code(&self) -> StatusCode {
         match self.kind {
             ExtractionErrorKind::Missing => StatusCode::BAD_REQUEST,

@@ -138,7 +138,7 @@ impl<T: DeserializeOwned> FromRequest for Form<T> {
 pub struct FormWithLimit<T, const LIMIT: usize>(pub T);
 
 impl<T, const LIMIT: usize> FormWithLimit<T, LIMIT> {
-    /// Consumes the FormWithLimit and returns the inner value.
+    /// Consumes the `FormWithLimit` and returns the inner value.
     #[must_use]
     pub fn into_inner(self) -> T {
         self.0
