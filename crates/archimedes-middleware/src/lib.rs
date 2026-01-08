@@ -74,6 +74,7 @@ pub use types::{Request, Response, ResponseExt};
 
 // Re-export stage middleware
 pub use stages::{
-    AuthorizationMiddleware, ErrorNormalizationMiddleware, IdentityMiddleware, RequestIdMiddleware,
+    AllowedOrigins, AuthorizationMiddleware, CorsBuilder, CorsConfig, CorsMiddleware,
+    ErrorNormalizationMiddleware, IdentityMiddleware, RequestIdMiddleware,
     ResponseValidationMiddleware, TelemetryMiddleware, TracingMiddleware, ValidationMiddleware,
 };
