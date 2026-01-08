@@ -2412,24 +2412,26 @@ async fn get_session(cookies: Cookies) -> Result<Response, ThemisError> {
 }
 ```
 
-### Phase A14.3: Security & Performance (Weeks 76-77) 📋 P1
+### Phase A14.3: Security & Performance (Weeks 76-77) � IN PROGRESS
 
 > **Goal**: Production security requirements
+> **Status**: ✅ Rate limiting complete (27 tests), compression and static files pending
 
 #### Rate Limiting Middleware
 
-- [ ] Create `RateLimitMiddleware` with configurable limits
-- [ ] Support per-IP, per-user, per-API-key limits
-- [ ] Support sliding window algorithm
-- [ ] Return `429 Too Many Requests` with `Retry-After` header
-- [ ] Wire `RateLimitError` that already exists
+- [x] Create `RateLimitMiddleware` with configurable limits
+- [x] Support per-IP, per-user, per-API-key limits
+- [x] Support sliding window algorithm
+- [x] Return `429 Too Many Requests` with `Retry-After` header
+- [ ] Wire `RateLimitError` that already exists (P2 - future)
 
 ```rust
-// Target API
-let rate_limit = RateLimitConfig::builder()
-    .requests_per_second(100)
-    .burst_size(200)
-    .key_extractor(|ctx| ctx.identity.user_id().unwrap_or(ctx.client_ip))
+// Implemented API
+let rate_limit = RateLimitMiddleware::builder()
+    .limit(100)
+    .window_secs(60)
+    .per_ip()  // or .per_user(), .per_header("x-api-key"), .global()
+    .skip(|req| req.uri().path() == "/health")
     .build();
 ```
 
@@ -2512,7 +2514,7 @@ let router = Router::new()
 | Multipart/file uploads | archimedes-extract    | P1       | ✅ Complete   | 14    |
 | File download response | archimedes-extract    | P1       | ✅ Complete   | 13    |
 | Cookie extractor       | archimedes-extract    | P1       | ✅ Complete   | 16    |
-| Rate limiting          | archimedes-middleware | P1       | 📋 Planned    | -     |
+| Rate limiting          | archimedes-middleware | P1       | ✅ Complete   | 27    |
 | Compression middleware | archimedes-middleware | P2       | 📋 Planned    | -     |
 | Static file serving    | archimedes-server     | P1       | 📋 Planned    | -     |
 | Sub-router nesting     | archimedes-router     | P2       | 📋 Planned    | -     |
@@ -2543,7 +2545,7 @@ let router = Router::new()
 | **Shutdown hooks**       | ✅          | ✅        | ✅          | Phase A14.1 COMPLETE    |
 | **Middleware**           | ✅          | ✅ Tower  | ✅ Fixed    | Contract-enforced order |
 | **CORS**                 | ✅          | ✅        | ✅          | Phase A14.1 COMPLETE    |
-| **Rate limiting**        | External    | External  | ❌          | Phase A14.3             |
+| **Rate limiting**        | External    | External  | ✅          | Phase A14.3 COMPLETE    |
 | **Compression**          | ✅          | ✅        | ❌          | Phase A14.3             |
 | **Static files**         | ✅          | ✅        | ❌          | Phase A14.3             |
 | **WebSocket**            | ✅          | ✅        | ✅          | Full support            |
@@ -2578,7 +2580,7 @@ let router = Router::new()
 | **Shutdown hooks**       | ✅ atexit   | ✅ @after_server_stop | ❌ | ⚠️       | Graceful shutdown only     |
 | **Middleware**           | ✅ WSGI     | ✅ Middleware | Manual   | ✅ Fixed    | Contract-enforced order    |
 | **CORS**                 | ✅ Flask-CORS | ✅ Built-in | Manual   | ❌          | Phase A14.1                |
-| **Rate limiting**        | ✅ Flask-Limiter | ❌ External | ❌    | ❌          | Phase A14.3                |
+| **Rate limiting**        | ✅ Flask-Limiter | ❌ External | ❌    | ✅          | Phase A14.3 COMPLETE       |
 | **Compression**          | ❌ External | ✅ Built-in | Manual    | ❌          | Phase A14.3                |
 | **Static files**         | ✅ Built-in | ✅ Built-in | Manual    | ❌          | Phase A14.3                |
 | **Templates (Jinja2)**   | ✅ Built-in | ✅ Jinja2  | ❌          | ❌          | Not planned (API-only)     |
@@ -2614,8 +2616,8 @@ let router = Router::new()
 | **Flask-Migrate** | Database migrations | ❌ Out of scope | N/A |
 | **Flask-WTF** | Form validation with CSRF | ❌ Contract validation | N/A |
 | **Flask-RESTful** | REST API helpers | ✅ Contract-based | Done |
-| **Flask-CORS** | CORS handling | ❌ → Middleware | P0 (A14.1) |
-| **Flask-Limiter** | Rate limiting | ❌ → Middleware | P1 (A14.3) |
+| **Flask-CORS** | CORS handling | ✅ Middleware | Done (A14.1) |
+| **Flask-Limiter** | Rate limiting | ✅ Middleware | Done (A14.3) |
 | **Debug toolbar** | Development debugging | ❌ Not planned | Low |
 | **Error handlers** | Custom error pages | ✅ Error normalization | Done |
 | **Context locals** | Request/app context | ✅ RequestContext | Done |
@@ -2628,7 +2630,7 @@ let router = Router::new()
 | **Blueprints** | Route grouping | ❌ → Sub-routers | P2 (A14.4) |
 | **Blueprint groups** | Nested blueprints | ❌ | P2 |
 | **Middleware (request/response)** | Pre/post processing | ✅ Fixed pipeline | Done |
-| **Listeners** | Startup/shutdown events | ❌ → Lifecycle hooks | P0 (A14.1) |
+| **Listeners** | Startup/shutdown events | ✅ Lifecycle hooks | Done (A14.1) |
 | **Background tasks** | `app.add_task()` | ✅ Superior | Done |
 | **Streaming** | Request/response streaming | ⚠️ SSE only | P2 |
 | **WebSocket** | Native support | ✅ | Done |
