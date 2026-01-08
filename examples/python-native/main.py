@@ -173,4 +173,16 @@ if __name__ == "__main__":
     # - Telemetry emission
     print(f"Starting Archimedes Python server...")
     print(f"Registered operations: {app.operation_ids()}")
-    app.run()
+    print(f"Config: {config}")
+    
+    # NOTE: The HTTP server integration is currently a placeholder.
+    # Once archimedes-py is wired to archimedes-server, this will
+    # start an actual HTTP server on the configured port.
+    #
+    # For now, this demonstrates the API structure and handler registration.
+    # The handlers ARE registered and can be invoked programmatically.
+    
+    try:
+        app.run()
+    except Exception as e:
+        print(f"Server stopped: {e}")

@@ -3,53 +3,30 @@
 # This is the configuration file for the native Archimedes Python server.
 # No sidecar needed - all middleware runs in-process.
 
+# Path to the Themis contract artifact (required)
+contract_path: "../contract.json"
+
 # Server configuration
-server:
-  # Address to listen on
-  listen_addr: "0.0.0.0"
-  # Port to listen on  
-  listen_port: 8002
+listen_port: 8002
+listen_addr: "0.0.0.0"
 
-# Contract configuration (Themis)
-contract:
-  # Path to the Themis contract artifact
-  path: "../contract.json"
-  # Enable request validation (default: true)
-  validate_requests: true
-  # Enable response validation (default: false for performance)
-  validate_responses: false
+# Service name for telemetry
+service_name: "example-python-native"
 
-# Authorization configuration (Eunomia/OPA)
-authorization:
-  # Enable authorization (default: true)
-  enabled: true
-  # Path to OPA policy bundle (optional - can use inline policies)
-  # bundle_path: "./policies/bundle.tar.gz"
-  # Default decision for missing policies
-  default_allow: false
+# Logging configuration
+log_level: "info"
 
 # Telemetry configuration
-telemetry:
-  # Enable OpenTelemetry tracing
-  tracing_enabled: true
-  # OTLP endpoint for traces (optional)
-  # otlp_endpoint: "http://otel-collector:4317"
-  # Enable Prometheus metrics
-  metrics_enabled: true
-  # Metrics port (separate from main server)
-  metrics_port: 9092
-  # Log level (trace, debug, info, warn, error)
-  log_level: "info"
+enable_telemetry: false
+# otlp_endpoint: "http://otel-collector:4317"
 
-# Identity extraction configuration  
-identity:
-  # Enable mTLS identity extraction
-  mtls_enabled: false
-  # Enable JWT validation
-  jwt_enabled: true
-  # JWT issuer whitelist (optional)
-  # jwt_issuers: ["https://auth.example.com"]
-  # Enable API key authentication
-  api_key_enabled: true
-  # API key header name
-  api_key_header: "X-API-Key"
+# Validation configuration
+enable_validation: true
+
+# Authorization configuration (Eunomia/OPA)
+enable_authorization: false
+# opa_bundle_url: "./policies/bundle.tar.gz"
+
+# Request limits
+max_body_size: 1048576  # 1MB
+request_timeout_secs: 30
