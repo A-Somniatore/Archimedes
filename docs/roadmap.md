@@ -20,6 +20,9 @@
 > **🔥 UPDATE (2026-01-12)**: Phase A13.5 (Go Bindings) COMPLETE - archimedes-go module with cgo, go-native example, 9 tests.
 > **🔥 UPDATE (2026-01-12)**: Phase A13 COMPLETE - All 5 language bindings done (C FFI, Python, TypeScript, C++, Go).
 > **🔥 UPDATE (2026-01-12)**: Phase A14.1 P0 COMPLETE - CORS (19 tests), TestClient (30 tests), Lifecycle hooks (11 tests).
+> **🔥 UPDATE (2026-01-12)**: Phase A14.2 COMPLETE - Multipart (14 tests), Cookies (16 tests), FileResponse (13 tests).
+> **🔥 UPDATE (2026-01-12)**: Phase A14.3 P1 COMPLETE - Rate limiting (27 tests), Static files (31 tests). Only compression P2 remaining.
+> **📋 NEW (2026-01-12)**: Created `docs/features.md` - Comprehensive feature reference for testing and language binding parity.
 
 ---
 
@@ -2244,7 +2247,7 @@ Flask            | 3,000     | 15.0     | 80.0     | 200 MB
 ## Phase A14: Framework Parity (Weeks 71-78) 🔄 IN PROGRESS
 
 > **Goal**: Achieve feature parity with FastAPI and Axum to enable seamless migrations
-> **Status**: ✅ P0 COMPLETE, ✅ P1 File Handling COMPLETE - Starting P1 Security & Performance
+> **Status**: ✅ P0 COMPLETE, ✅ A14.2 File Handling COMPLETE, ✅ A14.3 P1 COMPLETE - Only P2 items remaining
 > **Rationale**: Services already written in FastAPI/Axum/Express need a migration path
 
 ### Why Framework Parity?
@@ -2412,10 +2415,10 @@ async fn get_session(cookies: Cookies) -> Result<Response, ThemisError> {
 }
 ```
 
-### Phase A14.3: Security & Performance (Weeks 76-77) � IN PROGRESS
+### Phase A14.3: Security & Performance (Weeks 76-77) ✅ P1 COMPLETE
 
 > **Goal**: Production security requirements
-> **Status**: ✅ Rate limiting complete (27 tests), static files complete (31 tests), compression pending
+> **Status**: ✅ Rate limiting complete (27 tests), ✅ Static files complete (31 tests), compression P2 pending
 
 #### Rate Limiting Middleware
 
@@ -2581,17 +2584,17 @@ let router = Router::new()
 | **Blueprints/routers**   | ✅ Blueprint| ✅ Blueprint| ❌         | ❌          | Phase A14.4                |
 | **JSON body**            | ✅ Manual   | ✅ Auto    | Manual      | ✅ Contract |                            |
 | **Form data**            | ✅          | ✅         | Manual      | ✅          |                            |
-| **File uploads**         | ✅          | ✅         | Manual      | ❌          | Phase A14.2                |
-| **Cookies**              | ✅          | ✅         | Manual      | ❌          | Phase A14.2                |
+| **File uploads**         | ✅          | ✅         | Manual      | ✅          | Phase A14.2 COMPLETE       |
+| **Cookies**              | ✅          | ✅         | Manual      | ✅          | Phase A14.2 COMPLETE       |
 | **Sessions**             | ✅ Built-in | ✅ External| ❌          | ❌          | Not planned (stateless)    |
 | **Request validation**   | ❌ External | ❌ External| ❌          | ✅ Contract | Archimedes unique          |
 | **Response validation**  | ❌          | ❌         | ❌          | ✅ Contract | Archimedes unique          |
 | **Background tasks**     | ❌ Celery   | ✅ add_task| ❌          | ✅ Superior | Built-in scheduler         |
 | **Scheduled jobs**       | ❌ Celery   | ❌ External| ❌          | ✅ Built-in | Cron expressions           |
-| **Startup hooks**        | ✅ before_first_request | ✅ @before_server_start | ❌ | ❌ | Phase A14.1    |
-| **Shutdown hooks**       | ✅ atexit   | ✅ @after_server_stop | ❌ | ⚠️       | Graceful shutdown only     |
+| **Startup hooks**        | ✅ before_first_request | ✅ @before_server_start | ❌ | ✅ | Phase A14.1 COMPLETE |
+| **Shutdown hooks**       | ✅ atexit   | ✅ @after_server_stop | ❌ | ✅ | Phase A14.1 COMPLETE       |
 | **Middleware**           | ✅ WSGI     | ✅ Middleware | Manual   | ✅ Fixed    | Contract-enforced order    |
-| **CORS**                 | ✅ Flask-CORS | ✅ Built-in | Manual   | ❌          | Phase A14.1                |
+| **CORS**                 | ✅ Flask-CORS | ✅ Built-in | Manual   | ✅          | Phase A14.1 COMPLETE       |
 | **Rate limiting**        | ✅ Flask-Limiter | ❌ External | ❌    | ✅          | Phase A14.3 COMPLETE       |
 | **Compression**          | ❌ External | ✅ Built-in | Manual    | ❌          | Phase A14.3                |
 | **Static files**         | ✅ Built-in | ✅ Built-in | Manual    | ✅          | Phase A14.3 COMPLETE       |
@@ -2600,7 +2603,7 @@ let router = Router::new()
 | **SSE**                  | ❌ External | ❌ Manual  | Manual      | ✅          | Built-in                   |
 | **OpenAPI docs**         | ❌ Flask-RESTx | ✅ External | ❌      | ✅ Contract | From Themis                |
 | **Swagger UI**           | ❌ External | ❌ External | ❌         | ✅          | Built-in                   |
-| **Test client**          | ✅ Built-in | ✅ Built-in | ❌        | ❌          | Phase A14.1                |
+| **Test client**          | ✅ Built-in | ✅ Built-in | ❌        | ✅          | Phase A14.1 COMPLETE       |
 | **OPA authorization**    | ❌          | ❌         | ❌          | ✅ Built-in | Unique feature             |
 | **Contract enforcement** | ❌          | ❌         | ❌          | ✅ Built-in | Unique feature             |
 | **Hot reload**           | ✅ Debug mode | ✅ Auto-reload | ❌   | ⚠️ Planned  | Phase A9                   |
@@ -2682,8 +2685,8 @@ let router = Router::new()
 | **Nested routers**       | ✅ scope()   | ✅ mount()   | ✅           | ✅ nest()   | ❌ A14.4    |
 | **JSON body**            | ✅           | ✅           | ✅           | ✅          | ✅ Contract |
 | **Form data**            | ✅           | ✅           | ✅           | ✅          | ✅          |
-| **File uploads**         | ✅ Multipart | ✅           | ✅           | ✅          | ❌ A14.2    |
-| **Cookies**              | ✅           | ✅ Private   | ✅           | ⚠️          | ❌ A14.2    |
+| **File uploads**         | ✅ Multipart | ✅           | ✅           | ✅          | ✅ A14.2  |
+| **Cookies**              | ✅           | ✅ Private   | ✅           | ⚠️          | ✅ A14.2  |
 | **Request guards**       | ✅           | ✅ Excellent | ✅ Filters   | ✅ Extract  | ✅ Contract |
 | **Validation**           | External     | External     | External     | External    | ✅ Contract |
 | **Middleware**           | ✅           | ✅ Fairings  | ✅ Filters   | ✅ Tower    | ✅ Fixed    |
@@ -2710,7 +2713,7 @@ let router = Router::new()
 | **Actor system** | Message-passing concurrency | ❌ Not needed (async) |
 | **Web sockets actors** | WS via actor messages | ✅ Direct async |
 | **Connection pooling** | Built-in DB pools | ⚠️ Via DI container |
-| **Multipart streaming** | Stream file uploads | ❌ A14.2 |
+| **Multipart streaming** | Stream file uploads | ✅ A14.2 |
 | **HTTP/2 push** | Server push | ❌ |
 | **Payload limits** | Per-resource limits | ✅ Config |
 | **Resource guards** | Type-safe auth | ✅ Contract + OPA |
@@ -2722,9 +2725,9 @@ let router = Router::new()
 | **Type-safe routing** | Compile-time route checking | ✅ Contract validation |
 | **Request guards** | FromRequest trait | ✅ Extractors |
 | **Responders** | Custom response types | ✅ Response builders |
-| **Fairings** | Lifecycle callbacks | ❌ A14.1 |
+| **Fairings** | Lifecycle callbacks | ✅ A14.1 |
 | **Managed state** | Type-safe app state | ✅ DI container |
-| **Private cookies** | Encrypted cookies | ❌ A14.2 |
+| **Private cookies** | Encrypted cookies | ⚠️ A14.2 (no encryption) |
 | **Forms with validation** | Form FromForm | ✅ Contract |
 | **Templating** | Built-in templates | ❌ (API-only) |
 
@@ -2887,13 +2890,13 @@ let router = Router::new()
 | **Route mounting**       | ✅           | ✅           | ✅           | ✅           | ❌ A14.4    |
 | **JSON body**            | ✅           | ✅           | ✅ via media | ✅           | ✅ Contract |
 | **Form data**            | ✅           | ✅           | ✅           | ✅           | ✅          |
-| **File uploads**         | ✅           | ✅           | ✅           | ✅           | ❌ A14.2    |
+| **File uploads**         | ✅           | ✅           | ✅           | ✅           | ✅ A14.2  |
 | **Middleware**           | ✅ ASGI      | ✅           | ✅           | ✅           | ✅ Fixed    |
-| **CORS**                 | ✅           | Manual       | ✅           | ✅           | ❌ A14.1    |
+| **CORS**                 | ✅           | Manual       | ✅           | ✅           | ✅ A14.1  |
 | **WebSocket**            | ✅           | ✅           | ❌           | ✅           | ✅          |
 | **SSE**                  | ✅           | ✅           | ❌           | ✅           | ✅          |
 | **Background tasks**     | ✅           | ✅ IOLoop    | ❌           | ✅           | ✅ Superior |
-| **Test client**          | ✅           | ✅           | ✅           | ✅           | ❌ A14.1    |
+| **Test client**          | ✅           | ✅           | ✅           | ✅           | ✅ A14.1  |
 | **OpenAPI**              | External     | ❌           | External     | External     | ✅ Contract |
 | **OPA authorization**    | ❌           | ❌           | ❌           | ❌           | ✅ Built-in |
 | **Contract enforcement** | ❌           | ❌           | ❌           | ❌           | ✅ Built-in |
@@ -2918,7 +2921,7 @@ let router = Router::new()
 | **IOLoop** | Event loop | ✅ Tokio runtime |
 | **Long polling** | Real-time updates | ✅ SSE/WebSocket |
 | **Coroutines** | Native async | ✅ async/await |
-| **Secure cookies** | Signed cookies | ❌ A14.2 |
+| **Secure cookies** | Signed cookies | ⚠️ A14.2 (no signing) |
 | **XSRF protection** | Built-in | ❌ (API-only) |
 | **User authentication** | Built-in | ✅ OPA |
 | **HTTP client** | Async client | ⚠️ Via reqwest |
@@ -2943,8 +2946,8 @@ let router = Router::new()
 | **HTTP client + server** | Both in one | ⚠️ Server only |
 | **Persistent sessions** | Client sessions | ⚠️ Via middleware |
 | **Web sockets** | Full duplex | ✅ |
-| **Multipart** | Streaming multipart | ❌ A14.2 |
-| **Signals** | Lifecycle hooks | ❌ A14.1 |
+| **Multipart** | Streaming multipart | ✅ A14.2 |
+| **Signals** | Lifecycle hooks | ✅ A14.1 |
 | **Middlewares** | Composable | ✅ Fixed |
 | **Pluggable routers** | Custom routing | ✅ Radix tree |
 
@@ -2962,13 +2965,13 @@ let router = Router::new()
 | **Path parameters**      | ✅           | ✅           | ✅           | ✅           | ✅ `{id}`   |
 | **JSON body**            | ✅ jsoncpp   | ✅ DTO       | ✅ nlohmann  | ✅           | ✅ Contract |
 | **Form data**            | ✅           | ✅           | ✅           | ✅           | ✅          |
-| **File uploads**         | ✅           | ✅           | ✅           | ✅           | ❌ A14.2    |
+| **File uploads**         | ✅           | ✅           | ✅           | ✅           | ✅ A14.2  |
 | **Validation**           | ❌           | ✅ DTO       | ❌           | ❌           | ✅ Contract |
 | **Middleware/Filters**   | ✅ Filters   | ✅ Interceptors | Manual   | ✅ Middleware | ✅ Fixed   |
-| **CORS**                 | ✅           | ✅           | Manual       | ✅           | ❌ A14.1    |
+| **CORS**                 | ✅           | ✅           | Manual       | ✅           | ✅ A14.1  |
 | **WebSocket**            | ✅           | ✅           | ❌           | ✅           | ✅          |
 | **Database ORM**         | ✅ Drogon ORM| ✅ ORM       | ❌           | ❌           | ❌          |
-| **Test utilities**       | ✅           | ✅           | ❌           | ❌           | ❌ A14.1    |
+| **Test utilities**       | ✅           | ✅           | ❌           | ❌           | ✅ A14.1  |
 | **OpenAPI**              | ❌           | ✅ Swagger   | ❌           | ❌           | ✅ Contract |
 | **OPA authorization**    | ❌           | ❌           | ❌           | ❌           | ✅ Built-in |
 | **Contract enforcement** | ❌           | ❌           | ❌           | ❌           | ✅ Built-in |
@@ -3004,7 +3007,7 @@ let router = Router::new()
 | **Single header** | Easy integration | ❌ |
 | **Sync model** | Thread-per-request | ✅ Async |
 | **SSL support** | OpenSSL | ✅ rustls |
-| **Multipart** | File uploads | ❌ A14.2 |
+| **Multipart** | File uploads | ✅ A14.2 |
 | **Minimal deps** | Just OpenSSL | ⚠️ Multiple crates |
 | **Simple API** | Beginner friendly | ⚠️ More complex |
 
