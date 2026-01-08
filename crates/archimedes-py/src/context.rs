@@ -209,6 +209,11 @@ impl PyRequestContext {
     pub fn identity_ref(&self) -> Option<&PyIdentity> {
         self.identity.as_ref()
     }
+
+    /// Get headers as a HashMap (Rust-native helper for authz)
+    pub fn headers_rs(&self) -> &HashMap<String, String> {
+        &self.headers
+    }
 }
 
 /// Identity information for authenticated requests

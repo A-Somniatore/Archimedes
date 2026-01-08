@@ -26,6 +26,11 @@ pyo3 = { version = "0.24" }
 archimedes-ffi = { workspace = true }
 archimedes-core = { workspace = true }
 archimedes-middleware = { workspace = true }
+archimedes-authz = { workspace = true }
+archimedes-sentinel = { workspace = true }
+
+# Shared platform types
+themis-platform-types = { workspace = true }
 
 # Async runtime
 tokio = { workspace = true, features = ["full"] }

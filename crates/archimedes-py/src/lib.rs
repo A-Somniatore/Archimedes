@@ -31,6 +31,7 @@
 use pyo3::prelude::*;
 use std::sync::Arc;
 
+mod authz;
 mod config;
 mod context;
 mod error;
@@ -39,6 +40,7 @@ mod middleware;
 mod response;
 mod server;
 
+pub use authz::{PyAuthorizer, PyPolicyDecision};
 pub use config::PyConfig;
 pub use context::{PyIdentity, PyRequestContext};
 pub use error::PyArchimedesError;
@@ -261,6 +263,10 @@ fn archimedes_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyRequestContext>()?;
     m.add_class::<PyIdentity>()?;
     m.add_class::<PyResponse>()?;
+
+    // Authorization classes
+    m.add_class::<PyAuthorizer>()?;
+    m.add_class::<PyPolicyDecision>()?;
 
     // Error type
     m.add("ArchimedesError", m.py().get_type::<PyArchimedesError>())?;
