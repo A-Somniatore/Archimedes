@@ -1,51 +1,90 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 3.0.0
-> **Status**: Implementation Phase (Phase A13 Planned)
-> **Last Updated**: 2026-01-10
+> **Version**: 3.1.0
+> **Status**: Implementation Phase (Phase A13.2 In Progress)
+> **Last Updated**: 2026-01-11
 > **Component**: archimedes
 
 ---
 
 ## Implementation Status
 
-| Crate                   | Status      | Tests | Description                                                                                               |
-| ----------------------- | ----------- | ----- | --------------------------------------------------------------------------------------------------------- |
-| `archimedes`            | ✅ Complete | -     | Main facade crate (re-exports all crates)                                                                 |
-| `archimedes-core`       | ✅ Complete | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
-| `archimedes-server`     | ✅ Complete | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown                                    |
-| `archimedes-middleware` | ✅ Complete | 104   | All 8 middleware stages + pipeline                                                                        |
-| `archimedes-telemetry`  | ✅ Complete | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
-| `archimedes-config`     | ✅ Complete | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
-| `archimedes-router`     | ✅ Complete | 57    | High-performance radix tree router with method merging                                                    |
-| `archimedes-extract`    | ✅ Complete | 109   | Request extractors, response builders, DI injection                                                       |
-| `archimedes-macros`     | ✅ Complete | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
-| `archimedes-sentinel`   | ✅ Complete | 38    | Themis contract integration                                                                               |
-| `archimedes-authz`      | ✅ Complete | 26    | Eunomia/OPA integration                                                                                   |
-| `archimedes-docs`       | ✅ Complete | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
-| `archimedes-ws`         | ✅ Complete | 52    | WebSocket support with connection management                                                              |
-| `archimedes-sse`        | ✅ Complete | 38    | Server-Sent Events with backpressure handling                                                             |
-| `archimedes-tasks`      | ✅ Complete | 41    | Background task spawner and job scheduler                                                                 |
-| `archimedes-sidecar`    | ✅ Complete | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
-| `archimedes-ffi`        | 📋 Planned  | -     | C ABI for cross-language FFI (Phase A13.1)                                                                |
-| `archimedes-python`     | 📋 Planned  | -     | Python bindings via PyO3 (Phase A13.2)                                                                    |
-| `archimedes-go`         | 📋 Planned  | -     | Go bindings via cgo (Phase A13.3)                                                                         |
-| `archimedes-node`       | 📋 Planned  | -     | Node.js bindings via napi-rs (Phase A13.4)                                                                |
-| `libarchimedes`         | 📋 Planned  | -     | C++ headers with C ABI (Phase A13.5)                                                                      |
+| Crate                   | Status         | Tests | Description                                                                                               |
+| ----------------------- | -------------- | ----- | --------------------------------------------------------------------------------------------------------- |
+| `archimedes`            | ✅ Complete    | -     | Main facade crate (re-exports all crates)                                                                 |
+| `archimedes-core`       | ✅ Complete    | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
+| `archimedes-server`     | ✅ Complete    | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown                                    |
+| `archimedes-middleware` | ✅ Complete    | 104   | All 8 middleware stages + pipeline                                                                        |
+| `archimedes-telemetry`  | ✅ Complete    | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
+| `archimedes-config`     | ✅ Complete    | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
+| `archimedes-router`     | ✅ Complete    | 57    | High-performance radix tree router with method merging                                                    |
+| `archimedes-extract`    | ✅ Complete    | 109   | Request extractors, response builders, DI injection                                                       |
+| `archimedes-macros`     | ✅ Complete    | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
+| `archimedes-sentinel`   | ✅ Complete    | 38    | Themis contract integration                                                                               |
+| `archimedes-authz`      | ✅ Complete    | 26    | Eunomia/OPA integration                                                                                   |
+| `archimedes-docs`       | ✅ Complete    | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
+| `archimedes-ws`         | ✅ Complete    | 52    | WebSocket support with connection management                                                              |
+| `archimedes-sse`        | ✅ Complete    | 38    | Server-Sent Events with backpressure handling                                                             |
+| `archimedes-tasks`      | ✅ Complete    | 41    | Background task spawner and job scheduler                                                                 |
+| `archimedes-sidecar`    | ✅ Complete    | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
+| `archimedes-ffi`        | ✅ Complete    | 44    | C ABI for cross-language FFI (Phase A13.1)                                                                |
+| `archimedes-py`         | 🔄 In Progress | 18    | Python bindings via PyO3 - Full Rust parity (Phase A13.2)                                                 |
+| `archimedes-node`       | 📋 Planned     | -     | Node.js/TypeScript bindings via napi-rs (Phase A13.3)                                                     |
+| `libarchimedes`         | 📋 Planned     | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
+| `archimedes-go`         | 📋 Planned     | -     | Go bindings via cgo (Phase A13.5)                                                                         |
 
 **Total Tests**: 1019 passing across all crates
 
 ---
 
-## 🚀 Phase A13: Native Language Bindings (PLANNED)
+## 🚀 Phase A13: Native Language Bindings (IN PROGRESS)
 
 ### Vision: One Framework, All Languages
 
-Archimedes will provide **native bindings** for Python, Go, TypeScript, and C++. This means:
+Archimedes provides **native bindings** for Python, TypeScript, C++, and Go (in that order). This means:
 
 - **No more FastAPI, Flask, Express, Gin** for internal services
 - **Archimedes IS the framework** - same behavior across all languages
 - **Single codebase** - Rust core with FFI bindings
+- **Full Rust parity** - Every language binding MUST have the same middleware, validation, and authorization
+
+### Phase Ordering (CRITICAL)
+
+| Phase | Language   | Package              | Goal                              | Status         |
+| ----- | ---------- | -------------------- | --------------------------------- | -------------- |
+| A13.1 | C (FFI)    | libarchimedes.so     | Stable C ABI                      | ✅ Complete    |
+| A13.2 | Python     | archimedes (PyPI)    | **FULL Rust parity** first        | 🔄 In Progress |
+| A13.3 | TypeScript | @archimedes/node     | Native Node.js bindings           | 📋 Planned     |
+| A13.4 | C++        | libarchimedes (vcpkg)| Modern C++17+ headers             | 📋 Planned     |
+| A13.5 | Go         | archimedes-go        | Go module with cgo                | 📋 Planned     |
+
+### Why This Order?
+
+1. **Python first**: Most common for rapid development, replaces FastAPI/Flask
+2. **TypeScript second**: Large Node.js ecosystem, replaces Express/Fastify
+3. **C++ third**: Performance-critical services, game engines
+4. **Go last**: Strong existing ecosystem (Gin, Chi already good)
+
+### Full Rust Parity Requirements
+
+Every language binding MUST have these features before moving to the next language:
+
+| Feature                   | Description                                    |
+| ------------------------- | ---------------------------------------------- |
+| HTTP Server               | Hyper-based server with routing                |
+| Handler Registration      | Decorator/function-based handler registration  |
+| Request Context           | Request ID, method, path, headers, body        |
+| Response Builder          | JSON, text, binary responses with status codes |
+| Request ID Middleware     | Generate/propagate X-Request-Id                |
+| Tracing Middleware        | OpenTelemetry spans with W3C trace context     |
+| Identity Middleware       | Extract caller identity from headers/JWT       |
+| Authorization Middleware  | OPA/Eunomia policy evaluation                  |
+| Request Validation        | JSON Schema validation against contract        |
+| Response Validation       | Validate responses against contract schemas    |
+| Error Normalization       | Consistent error format across all languages   |
+| Telemetry Collection      | Prometheus metrics, structured logging         |
+| Contract-based Routing    | Sentinel integration for operation routing     |
+| Graceful Shutdown         | Clean shutdown with in-flight request handling |
 
 ### Why Native Bindings Over Sidecar?
 

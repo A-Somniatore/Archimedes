@@ -1,16 +1,18 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.0.0
+> **Version**: 3.1.0
 > **Created**: 2026-01-04
-> **Last Updated**: 2026-01-10
-> **Target Completion**: Week 64 (extended for native language bindings)
+> **Last Updated**: 2026-01-11
+> **Target Completion**: Week 70 (extended for native language bindings with full Rust parity)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
 > **UPDATE (2026-01-09)**: Phase A10 COMPLETE - Archimedes Sidecar for multi-language support.
 > **UPDATE (2026-01-09)**: Phase A10.5 COMPLETE - P1 items addressed. 1019 tests passing (964 executed, 55 ignored).
 > **UPDATE (2026-01-10)**: Phase A12 (Example Services) STARTED - Created example services for Rust, Python, Go, TypeScript, and C++.
-> **🚨 CRITICAL UPDATE (2026-01-10)**: Phase A13 (Native Language Bindings) ADDED - Archimedes will replace FastAPI, Flask, Express, Gin, etc. internally. Python, Go, TypeScript, and C++ will get native bindings via FFI.
+> **UPDATE (2026-01-10)**: Phase A13.1 (Core FFI Layer) COMPLETE - 44 tests, archimedes-ffi crate with C ABI.
+> **UPDATE (2026-01-11)**: Phase A13.2 (Python Bindings) IN PROGRESS - Basic HTTP server working, middleware integration pending.
+> **🚨 CRITICAL UPDATE (2026-01-11)**: Phase A13 ordering finalized: Python (FULL Rust parity) → TypeScript → C++ → Go.
 
 ---
 
@@ -25,25 +27,25 @@
 - **Consistent behavior** across all languages (same middleware, validation, auth)
 - **Single codebase** to maintain (Rust core + language bindings)
 
-| Language       | Binding Technology | Status      | Replaces           |
-| -------------- | ------------------ | ----------- | ------------------ |
-| **Rust**       | Native             | ✅ Complete | -                  |
-| **Python**     | PyO3               | 🔄 Planned  | FastAPI, Flask     |
-| **Go**         | cgo                | 🔄 Planned  | Gin, Chi, net/http |
-| **TypeScript** | napi-rs            | 🔄 Planned  | Express, Fastify   |
-| **C++**        | C ABI              | 🔄 Planned  | cpp-httplib, Crow  |
+| Language       | Binding Technology | Phase   | Status         | Replaces           |
+| -------------- | ------------------ | ------- | -------------- | ------------------ |
+| **Rust**       | Native             | -       | ✅ Complete    | -                  |
+| **Python**     | PyO3               | A13.2   | 🔄 In Progress | FastAPI, Flask     |
+| **TypeScript** | napi-rs            | A13.3   | 📋 Planned     | Express, Fastify   |
+| **C++**        | C ABI              | A13.4   | 📋 Planned     | cpp-httplib, Crow  |
+| **Go**         | cgo                | A13.5   | 📋 Planned     | Gin, Chi, net/http |
 
 ### Multi-Language Example Services (v2.16.0) - 🔄 TRANSITIONAL
 
 > **Note**: These examples currently use language-native frameworks (FastAPI, Express, etc.) with the sidecar pattern. They will be migrated to native Archimedes bindings in Phase A13.
 
-| Language       | Directory                     | Current Framework | Future           | Port |
-| -------------- | ----------------------------- | ----------------- | ---------------- | ---- |
-| **Rust**       | `examples/rust-native`        | Archimedes        | ✅ Done          | 8001 |
-| **Python**     | `examples/python-sidecar`     | FastAPI           | archimedes-py    | 8002 |
-| **Go**         | `examples/go-sidecar`         | net/http          | archimedes-go    | 8003 |
-| **TypeScript** | `examples/typescript-sidecar` | Express           | @archimedes/node | 8004 |
-| **C++**        | `examples/cpp-sidecar`        | cpp-httplib       | libarchimedes    | 8005 |
+| Language       | Directory                     | Current Framework | Future           | Phase | Port |
+| -------------- | ----------------------------- | ----------------- | ---------------- | ----- | ---- |
+| **Rust**       | `examples/rust-native`        | Archimedes        | ✅ Done          | -     | 8001 |
+| **Python**     | `examples/python-native`      | archimedes-py     | ✅ Basic Done    | A13.2 | 8002 |
+| **TypeScript** | `examples/typescript-sidecar` | Express           | @archimedes/node | A13.3 | 8004 |
+| **C++**        | `examples/cpp-sidecar`        | cpp-httplib       | libarchimedes    | A13.4 | 8005 |
+| **Go**         | `examples/go-sidecar`         | net/http          | archimedes-go    | A13.5 | 8003 |
 
 **Each example includes:**
 
@@ -1874,14 +1876,36 @@ The sidecar pattern (Phase A10) works but has limitations:
 - [ ] Benchmark FFI call overhead (target: <100ns)
 - [x] Version the ABI (semver for C ABI)
 
-### Phase A13.2: Python Bindings (Weeks 51-54) ✅ COMPLETE
+### Phase A13.2: Python Bindings - Full Rust Parity (Weeks 51-58) 🔄 IN PROGRESS
 
-> **Goal**: `pip install archimedes` - Python developers use Archimedes directly
+> **Goal**: `pip install archimedes` - Python developers use Archimedes directly **with FULL Rust parity**
 > **Technology**: PyO3 (Rust-Python bindings)
-> **Completion Date**: January 2025
+> **Status**: Basic HTTP server working, middleware integration pending
 > **Tests**: 18 passing tests
 
-#### Implementation Summary
+#### CRITICAL: Full Rust Parity Requirements
+
+Python bindings MUST have the same behavior as native Rust Archimedes:
+
+| Feature                   | Rust Status | Python Status | Priority |
+| ------------------------- | ----------- | ------------- | -------- |
+| HTTP Server               | ✅ Complete | ✅ Basic      | P0       |
+| Handler Registration      | ✅ Complete | ✅ Complete   | P0       |
+| Request Context           | ✅ Complete | ✅ Complete   | P0       |
+| Response Builder          | ✅ Complete | ✅ Complete   | P0       |
+| Request ID Middleware     | ✅ Complete | ❌ Missing    | P0       |
+| Tracing/OpenTelemetry     | ✅ Complete | ❌ Missing    | P0       |
+| Identity Extraction       | ✅ Complete | ❌ Missing    | P0       |
+| Authorization (OPA)       | ✅ Complete | ❌ Missing    | P0       |
+| Request Validation        | ✅ Complete | ❌ Missing    | P0       |
+| Response Validation       | ✅ Complete | ❌ Missing    | P0       |
+| Error Normalization       | ✅ Complete | ❌ Missing    | P0       |
+| Telemetry Collection      | ✅ Complete | ❌ Missing    | P0       |
+| Contract-based Routing    | ✅ Complete | ❌ Missing    | P1       |
+| Graceful Shutdown         | ✅ Complete | ❌ Missing    | P1       |
+| Configuration (TOML/JSON) | ✅ Complete | ✅ YAML/JSON  | P1       |
+
+#### Implementation Summary (Basic Complete)
 
 Created `archimedes-py` crate with comprehensive Python bindings:
 
@@ -1892,7 +1916,7 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 - **Type Stubs**: Complete `.pyi` files for IDE autocomplete support
 - **Build System**: maturin-based build with pyproject.toml
 
-#### Week 51-52: Core Python Module
+#### Week 51-52: Core Python Module ✅ COMPLETE
 
 - [x] Create `archimedes-py` crate using PyO3 v0.24
 - [x] Python-native API design:
@@ -1914,21 +1938,114 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 - [x] Request/Response types with builder pattern
 - [x] Configuration system (from_file, from_env)
 
-#### Week 53-54: Python Ecosystem Integration
+#### Week 53-54: Python HTTP Server ✅ BASIC COMPLETE
 
 - [x] Create `archimedes` Python package structure (pyproject.toml)
 - [x] Module naming: `_archimedes` native + `archimedes` Python wrapper
-- [ ] pytest plugin for testing handlers (future)
-- [ ] OpenTelemetry Python integration (future)
-- [ ] Migration guide: FastAPI → Archimedes (future)
-- [ ] Benchmark: archimedes-py vs FastAPI (future)
+- [x] HTTP server with hyper (basic routing)
+- [x] Handler invocation from Python
+- [x] Example: `python-native` with 6 handlers + test.sh
 
-### Phase A13.3: Go Bindings (Weeks 55-57)
+#### Week 55-56: Middleware Integration 📋 PLANNED
+
+- [ ] Request ID middleware (generate UUID, add to context)
+- [ ] Tracing middleware (OpenTelemetry spans)
+- [ ] Identity extraction middleware (from headers/JWT)
+- [ ] Error normalization middleware
+- [ ] Telemetry collection middleware
+
+#### Week 57-58: Authorization & Validation 📋 PLANNED
+
+- [ ] Authorization middleware (OPA/Eunomia integration)
+- [ ] Request validation middleware (JSON Schema)
+- [ ] Response validation middleware
+- [ ] Contract-based routing (Sentinel integration)
+- [ ] pytest plugin for testing handlers
+- [ ] Migration guide: FastAPI → Archimedes
+- [ ] Benchmark: archimedes-py vs FastAPI
+
+### Phase A13.3: TypeScript/Node.js Bindings (Weeks 59-62)
+
+> **Goal**: `npm install @archimedes/node` - Node.js developers use Archimedes directly
+> **Technology**: napi-rs (Rust-Node.js bindings)
+
+#### Week 59-60: Core Node Module
+
+- [ ] Create `archimedes-node` crate using napi-rs
+- [ ] TypeScript-first API design:
+
+  ```typescript
+  import { Archimedes, Request, Response } from "@archimedes/node";
+
+  const app = new Archimedes({ contract: "contract.json" });
+
+  app.operation("listUsers", async (request: Request): Promise<Response> => {
+    // request.callerIdentity is typed!
+    // request.body is already validated!
+    const users = await db.getUsers();
+    return Response.json({ users });
+  });
+
+  app.listen(8080);
+  ```
+
+- [ ] Full TypeScript types (no `any`)
+- [ ] Native Promise support
+- [ ] Streaming support for SSE/WebSocket
+
+#### Week 61-62: Node Ecosystem Integration
+
+- [ ] Publish to npm as `@archimedes/node`
+- [ ] Jest/Vitest testing utilities
+- [ ] OpenTelemetry JS integration
+- [ ] Migration guide: Express/Fastify → Archimedes
+- [ ] Benchmark: @archimedes/node vs Fastify (target: 1.5x throughput)
+- [ ] Full middleware parity with Rust
+
+### Phase A13.4: C++ Bindings (Weeks 63-65)
+
+> **Goal**: `#include <archimedes/archimedes.hpp>` - C++ developers use Archimedes directly
+> **Technology**: Direct C ABI with C++ wrapper
+
+#### Week 63-64: C++ Headers
+
+- [ ] Create `libarchimedes` with C++ wrapper headers
+- [ ] Modern C++ API (C++17+):
+
+  ```cpp
+  #include <archimedes/archimedes.hpp>
+
+  int main() {
+      archimedes::App app{"contract.json"};
+
+      app.operation("listUsers", [](const archimedes::Request& req) {
+          // req.caller_identity() is typed!
+          // req.body() is already validated!
+          auto users = db.get_users();
+          return archimedes::Response::json({{"users", users}});
+      });
+
+      app.run(8080);
+  }
+  ```
+
+- [ ] RAII for resource management
+- [ ] CMake integration
+- [ ] vcpkg/conan package
+- [ ] Header-only option for simple cases
+
+#### Week 65: C++ Ecosystem Integration
+
+- [ ] Full middleware parity with Rust
+- [ ] Documentation and examples
+- [ ] Benchmark: libarchimedes vs cpp-httplib
+
+### Phase A13.5: Go Bindings (Weeks 66-69)
 
 > **Goal**: `go get github.com/themis-platform/archimedes-go` - Go developers use Archimedes directly
 > **Technology**: cgo (C bindings for Go)
 
-#### Week 55-56: Core Go Module
+#### Week 66-67: Core Go Module
 
 - [ ] Create `archimedes-go` module using cgo
 - [ ] Go-idiomatic API design:
@@ -1961,103 +2078,35 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 - [ ] Error handling with Go idioms
 - [ ] Static linking option (no cgo dependency in prod)
 
-#### Week 57: Go Ecosystem Integration
+#### Week 68-69: Go Ecosystem Integration
 
 - [ ] Create Go module with proper versioning
 - [ ] Testing utilities
 - [ ] OpenTelemetry Go integration
 - [ ] Migration guide: Gin/Chi → Archimedes
 - [ ] Benchmark: archimedes-go vs Gin (target: 1.5x throughput)
-
-### Phase A13.4: TypeScript/Node.js Bindings (Weeks 58-60)
-
-> **Goal**: `npm install @archimedes/node` - Node.js developers use Archimedes directly
-> **Technology**: napi-rs (Rust-Node.js bindings)
-
-#### Week 58-59: Core Node Module
-
-- [ ] Create `archimedes-node` crate using napi-rs
-- [ ] TypeScript-first API design:
-
-  ```typescript
-  import { Archimedes, Request, Response } from "@archimedes/node";
-
-  const app = new Archimedes({ contract: "contract.json" });
-
-  app.operation("listUsers", async (request: Request): Promise<Response> => {
-    // request.callerIdentity is typed!
-    // request.body is already validated!
-    const users = await db.getUsers();
-    return Response.json({ users });
-  });
-
-  app.listen(8080);
-  ```
-
-- [ ] Full TypeScript types (no `any`)
-- [ ] Native Promise support
-- [ ] Streaming support for SSE/WebSocket
-
-#### Week 60: Node Ecosystem Integration
-
-- [ ] Publish to npm as `@archimedes/node`
-- [ ] Jest/Vitest testing utilities
-- [ ] OpenTelemetry JS integration
-- [ ] Migration guide: Express/Fastify → Archimedes
-- [ ] Benchmark: @archimedes/node vs Fastify (target: 1.5x throughput)
-
-### Phase A13.5: C++ Bindings (Weeks 61-62)
-
-> **Goal**: `#include <archimedes/archimedes.hpp>` - C++ developers use Archimedes directly
-> **Technology**: Direct C ABI with C++ wrapper
-
-#### Week 61-62: C++ Headers
-
-- [ ] Create `libarchimedes` with C++ wrapper headers
-- [ ] Modern C++ API (C++17+):
-
-  ```cpp
-  #include <archimedes/archimedes.hpp>
-
-  int main() {
-      archimedes::App app{"contract.json"};
-
-      app.operation("listUsers", [](const archimedes::Request& req) {
-          // req.caller_identity() is typed!
-          // req.body() is already validated!
-          auto users = db.get_users();
-          return archimedes::Response::json({{"users", users}});
-      });
-
-      app.run(8080);
-  }
-  ```
-
-- [ ] RAII for resource management
-- [ ] CMake integration
-- [ ] vcpkg/conan package
-- [ ] Header-only option for simple cases
+- [ ] Full middleware parity with Rust
 
 ### A13 Deliverables
 
-| Deliverable            | Language   | Package Name           | Status     |
-| ---------------------- | ---------- | ---------------------- | ---------- |
-| Core FFI Layer         | C          | libarchimedes.so       | 📋 Planned |
-| Python Bindings        | Python     | archimedes (PyPI)      | 📋 Planned |
-| Go Bindings            | Go         | archimedes-go (module) | 📋 Planned |
-| TypeScript Bindings    | TypeScript | @archimedes/node (npm) | 📋 Planned |
-| C++ Bindings           | C++        | libarchimedes (vcpkg)  | 📋 Planned |
-| Migration Guides       | All        | docs/migration/        | 📋 Planned |
-| Performance Benchmarks | All        | benchmarks/            | 📋 Planned |
+| Deliverable            | Language   | Package Name           | Phase | Status         |
+| ---------------------- | ---------- | ---------------------- | ----- | -------------- |
+| Core FFI Layer         | C          | libarchimedes.so       | A13.1 | ✅ Complete    |
+| Python Bindings        | Python     | archimedes (PyPI)      | A13.2 | 🔄 In Progress |
+| TypeScript Bindings    | TypeScript | @archimedes/node (npm) | A13.3 | 📋 Planned     |
+| C++ Bindings           | C++        | libarchimedes (vcpkg)  | A13.4 | 📋 Planned     |
+| Go Bindings            | Go         | archimedes-go (module) | A13.5 | 📋 Planned     |
+| Migration Guides       | All        | docs/migration/        | -     | 📋 Planned     |
+| Performance Benchmarks | All        | benchmarks/            | -     | 📋 Planned     |
 
 ### Performance Targets
 
 | Language   | Metric                  | Target            |
 | ---------- | ----------------------- | ----------------- |
 | Python     | Requests/sec vs FastAPI | ≥2x improvement   |
-| Go         | Requests/sec vs Gin     | ≥1.5x improvement |
 | TypeScript | Requests/sec vs Fastify | ≥1.5x improvement |
 | C++        | FFI overhead per call   | <100ns            |
+| Go         | Requests/sec vs Gin     | ≥1.5x improvement |
 | All        | Memory per connection   | <10KB baseline    |
 
 ---
@@ -2084,11 +2133,11 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 | A12: Integration      | Week 46 | Multi-language E2E tests         | A10, A11                |
 | **Native Bindings**   |         |                                  |                         |
 | A13.1: Core FFI       | Week 50 | Stable C ABI for Archimedes      | A12                     |
-| A13.2: Python         | Week 54 | archimedes PyPI package          | A13.1                   |
-| A13.3: Go             | Week 57 | archimedes-go module             | A13.1                   |
-| A13.4: TypeScript     | Week 60 | @archimedes/node npm package     | A13.1                   |
-| A13.5: C++            | Week 62 | libarchimedes headers            | A13.1                   |
-| **V1.0 Release**      | Week 64 | All languages, production ready  | A13.5                   |
+| A13.2: Python         | Week 58 | archimedes PyPI (full parity)    | A13.1                   |
+| A13.3: TypeScript     | Week 62 | @archimedes/node npm package     | A13.1                   |
+| A13.4: C++            | Week 65 | libarchimedes headers            | A13.1                   |
+| A13.5: Go             | Week 69 | archimedes-go module             | A13.1                   |
+| **V1.0 Release**      | Week 70 | All languages, production ready  | A13.5                   |
 
 ---
 
