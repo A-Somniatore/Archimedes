@@ -50,6 +50,7 @@
 mod config;
 pub mod handler;
 mod health;
+mod lifecycle;
 mod router;
 mod server;
 pub mod shutdown;
@@ -57,6 +58,7 @@ pub mod shutdown;
 pub use config::{ServerConfig, ServerConfigBuilder};
 pub use handler::{HandlerError, HandlerRegistry, InvokeError};
 pub use health::{HealthCheck, HealthStatus, ReadinessCheck, ReadinessStatus};
+pub use lifecycle::{Lifecycle, LifecycleError, LifecycleHook, LifecycleResult};
 pub use router::{RouteMatch, Router};
 pub use server::{Server, ServerBuilder, ServerError};
 pub use shutdown::ShutdownSignal;
