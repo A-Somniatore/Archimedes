@@ -1,8 +1,8 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.3.0
+> **Version**: 3.4.0
 > **Created**: 2026-01-04
-> **Last Updated**: 2026-01-08
+> **Last Updated**: 2026-01-12
 > **Target Completion**: Week 78 (extended for framework parity features)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
@@ -11,10 +11,9 @@
 > **UPDATE (2026-01-09)**: Phase A10.5 COMPLETE - P1 items addressed. 1019 tests passing (964 executed, 55 ignored).
 > **UPDATE (2026-01-10)**: Phase A12 (Example Services) STARTED - Created example services for Rust, Python, Go, TypeScript, and C++.
 > **UPDATE (2026-01-10)**: Phase A13.1 (Core FFI Layer) COMPLETE - 44 tests, archimedes-ffi crate with C ABI.
-> **UPDATE (2026-01-11)**: Phase A13.2 (Python Bindings) IN PROGRESS - Basic HTTP server working, middleware integration pending.
+> **UPDATE (2026-01-11)**: Phase A13.2 (Python Bindings) COMPLETE - 111 tests, full middleware parity with PyO3.
 > **UPDATE (2026-01-11)**: Phase A13 ordering finalized: Python (FULL Rust parity) → TypeScript → C++ → Go.
 > **UPDATE (2026-01-11)**: Phase A14 (Framework Parity) ADDED - CORS, TestClient, file uploads, rate limiting, static files to match FastAPI/Axum.
-> **UPDATE (2026-01-08)**: Phase A13.6 (Performance Benchmarking) - Nice-to-have after all language bindings complete.
 > **🔥 UPDATE (2026-01-08)**: rust-native example rewritten to use Archimedes directly (not Axum) - 14 unit tests added.
 > **🔥 UPDATE (2026-01-12)**: Phase A13.3 (TypeScript/Node.js Bindings) COMPLETE - archimedes-node crate with napi-rs, 95 tests passing.
 
@@ -2116,15 +2115,15 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 
 ### A13 Deliverables
 
-| Deliverable            | Language   | Package Name           | Phase | Status         |
-| ---------------------- | ---------- | ---------------------- | ----- | -------------- |
-| Core FFI Layer         | C          | libarchimedes.so       | A13.1 | ✅ Complete    |
-| Python Bindings        | Python     | archimedes (PyPI)      | A13.2 | 🔄 In Progress |
-| TypeScript Bindings    | TypeScript | @archimedes/node (npm) | A13.3 | 📋 Planned     |
-| C++ Bindings           | C++        | libarchimedes (vcpkg)  | A13.4 | 📋 Planned     |
-| Go Bindings            | Go         | archimedes-go (module) | A13.5 | 📋 Planned     |
-| Migration Guides       | All        | docs/migration/        | -     | 📋 Planned     |
-| Performance Benchmarks | All        | benchmarks/            | -     | 📋 Planned     |
+| Deliverable            | Language   | Package Name           | Phase | Status         | Tests |
+| ---------------------- | ---------- | ---------------------- | ----- | -------------- | ----- |
+| Core FFI Layer         | C          | libarchimedes.so       | A13.1 | ✅ Complete    | 44    |
+| Python Bindings        | Python     | archimedes (PyPI)      | A13.2 | ✅ Complete    | 111   |
+| TypeScript Bindings    | TypeScript | @archimedes/node (npm) | A13.3 | ✅ Complete    | 95    |
+| C++ Bindings           | C++        | libarchimedes (vcpkg)  | A13.4 | 📋 Planned     | -     |
+| Go Bindings            | Go         | archimedes-go (module) | A13.5 | 📋 Planned     | -     |
+| Migration Guides       | All        | docs/migration/        | -     | 📋 Planned     | -     |
+| Performance Benchmarks | All        | benchmarks/            | -     | 📋 Planned     | -     |
 
 ### Performance Targets
 
