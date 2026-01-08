@@ -639,9 +639,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_list_tasks_by_status() {
-        let spawner = Spawner::with_config(
-            SpawnerConfig::new().without_timeout(),
-        );
+        let spawner = Spawner::with_config(SpawnerConfig::new().without_timeout());
 
         spawner.spawn_detached("completed", async {}).unwrap();
         let _long = spawner

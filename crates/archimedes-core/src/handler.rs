@@ -16,9 +16,8 @@ pub type BoxedFuture<T> = Pin<Box<dyn Future<Output = T> + Send>>;
 /// This is the type-erased handler signature used by the macro-generated code.
 /// Handlers receive an [`InvocationContext`] containing all HTTP request details
 /// and middleware context.
-pub type BoxedHandler = Box<
-    dyn Fn(InvocationContext) -> BoxedFuture<Result<Bytes, ThemisError>> + Send + Sync,
->;
+pub type BoxedHandler =
+    Box<dyn Fn(InvocationContext) -> BoxedFuture<Result<Bytes, ThemisError>> + Send + Sync>;
 
 /// Converts a handler result into a response body.
 ///

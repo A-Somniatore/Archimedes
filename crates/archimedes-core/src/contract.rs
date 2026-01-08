@@ -1213,11 +1213,9 @@ mod tests {
         assert_eq!(op.operation_id(), "createUser");
 
         // No match for DELETE
-        assert!(
-            contract
-                .match_operation(&Method::DELETE, "/users")
-                .is_none()
-        );
+        assert!(contract
+            .match_operation(&Method::DELETE, "/users")
+            .is_none());
     }
 
     // ==================== Operation Tests ====================
@@ -1341,15 +1339,13 @@ mod tests {
         ]);
 
         // Valid with all fields
-        assert!(
-            schema
-                .validate(&json!({
-                    "name": "Alice",
-                    "age": 30,
-                    "email": "alice@example.com"
-                }))
-                .is_ok()
-        );
+        assert!(schema
+            .validate(&json!({
+                "name": "Alice",
+                "age": 30,
+                "email": "alice@example.com"
+            }))
+            .is_ok());
 
         // Valid with only required fields
         assert!(schema.validate(&json!({"name": "Bob"})).is_ok());
@@ -1377,17 +1373,15 @@ mod tests {
         ]);
 
         // Valid
-        assert!(
-            user_schema
-                .validate(&json!({
-                    "name": "Alice",
-                    "address": {
-                        "street": "123 Main St",
-                        "city": "Springfield"
-                    }
-                }))
-                .is_ok()
-        );
+        assert!(user_schema
+            .validate(&json!({
+                "name": "Alice",
+                "address": {
+                    "street": "123 Main St",
+                    "city": "Springfield"
+                }
+            }))
+            .is_ok());
 
         // Invalid: missing nested required field
         let result = user_schema.validate(&json!({

@@ -209,7 +209,13 @@ pub fn user_schema() -> MockSchema {
 pub fn create_user_schema() -> MockSchema {
     MockSchema::object(vec![
         ("email", MockSchema::string().required()),
-        ("name", MockSchema::string().required().min_length(1).max_length(100)),
+        (
+            "name",
+            MockSchema::string()
+                .required()
+                .min_length(1)
+                .max_length(100),
+        ),
         ("password", MockSchema::string().required().min_length(8)),
     ])
 }
@@ -293,7 +299,11 @@ mod tests {
 
         // All operations should require auth
         for op in contract.operations() {
-            assert!(op.requires_auth(), "Operation {} should require auth", op.operation_id());
+            assert!(
+                op.requires_auth(),
+                "Operation {} should require auth",
+                op.operation_id()
+            );
         }
     }
 
@@ -302,7 +312,9 @@ mod tests {
         let contract = user_service_contract();
 
         // GET /users/123 -> getUser
-        let (op, params) = contract.match_operation(&Method::GET, "/users/123").unwrap();
+        let (op, params) = contract
+            .match_operation(&Method::GET, "/users/123")
+            .unwrap();
         assert_eq!(op.operation_id(), "getUser");
         assert_eq!(params.get("userId"), Some(&"123".to_string()));
 
@@ -315,12 +327,16 @@ mod tests {
         assert_eq!(op.operation_id(), "createUser");
 
         // PUT /users/456 -> updateUser
-        let (op, params) = contract.match_operation(&Method::PUT, "/users/456").unwrap();
+        let (op, params) = contract
+            .match_operation(&Method::PUT, "/users/456")
+            .unwrap();
         assert_eq!(op.operation_id(), "updateUser");
         assert_eq!(params.get("userId"), Some(&"456".to_string()));
 
         // DELETE /users/789 -> deleteUser
-        let (op, _) = contract.match_operation(&Method::DELETE, "/users/789").unwrap();
+        let (op, _) = contract
+            .match_operation(&Method::DELETE, "/users/789")
+            .unwrap();
         assert_eq!(op.operation_id(), "deleteUser");
     }
 
@@ -371,7 +387,9 @@ mod tests {
         let contract = order_service_contract();
 
         // GET /orders/ord-123 -> getOrder
-        let (op, params) = contract.match_operation(&Method::GET, "/orders/ord-123").unwrap();
+        let (op, params) = contract
+            .match_operation(&Method::GET, "/orders/ord-123")
+            .unwrap();
         assert_eq!(op.operation_id(), "getOrder");
         assert_eq!(params.get("orderId"), Some(&"ord-123".to_string()));
 

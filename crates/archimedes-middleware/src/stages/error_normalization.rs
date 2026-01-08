@@ -103,11 +103,7 @@ impl ErrorNormalizationMiddleware {
     }
 
     /// Normalizes an error response.
-    fn normalize_error_response(
-        &self,
-        ctx: &MiddlewareContext,
-        response: Response,
-    ) -> Response {
+    fn normalize_error_response(&self, ctx: &MiddlewareContext, response: Response) -> Response {
         let status = response.status();
 
         // Only normalize error responses (4xx and 5xx)
@@ -123,7 +119,12 @@ impl ErrorNormalizationMiddleware {
             self.internal_error_message.clone()
         } else {
             self.extract_message_from_response(&response)
-                .unwrap_or_else(|| status.canonical_reason().unwrap_or("Unknown error").to_string())
+                .unwrap_or_else(|| {
+                    status
+                        .canonical_reason()
+                        .unwrap_or("Unknown error")
+                        .to_string()
+                })
         };
 
         // Create normalized error response
@@ -193,7 +194,10 @@ impl Middleware for ErrorNormalizationMiddleware {
                 // Store normalized error info in context
                 ctx.set_extension(NormalizedError {
                     code: code.clone(),
-                    message: status.canonical_reason().unwrap_or("Unknown error").to_string(),
+                    message: status
+                        .canonical_reason()
+                        .unwrap_or("Unknown error")
+                        .to_string(),
                     status_code: status.as_u16(),
                     was_internal: status.is_server_error(),
                 });
@@ -235,15 +239,20 @@ mod tests {
     fn error_response(status: StatusCode) -> Response {
         HttpResponse::builder()
             .status(status)
-            .body(Full::new(Bytes::from(r#"{"error":"something went wrong"}"#)))
+            .body(Full::new(Bytes::from(
+                r#"{"error":"something went wrong"}"#,
+            )))
             .unwrap()
     }
 
-    fn create_handler() -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
+    fn create_handler(
+    ) -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
         |_ctx, _req| Box::pin(async { success_response() })
     }
 
-    fn create_error_handler(status: StatusCode) -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
+    fn create_error_handler(
+        status: StatusCode,
+    ) -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
         move |_ctx, _req| Box::pin(async move { error_response(status) })
     }
 
@@ -263,12 +272,30 @@ mod tests {
     fn test_status_to_code() {
         let middleware = ErrorNormalizationMiddleware::new();
 
-        assert_eq!(middleware.status_to_code(StatusCode::BAD_REQUEST), "BAD_REQUEST");
-        assert_eq!(middleware.status_to_code(StatusCode::UNAUTHORIZED), "UNAUTHORIZED");
-        assert_eq!(middleware.status_to_code(StatusCode::FORBIDDEN), "FORBIDDEN");
-        assert_eq!(middleware.status_to_code(StatusCode::NOT_FOUND), "NOT_FOUND");
-        assert_eq!(middleware.status_to_code(StatusCode::INTERNAL_SERVER_ERROR), "INTERNAL_ERROR");
-        assert_eq!(middleware.status_to_code(StatusCode::SERVICE_UNAVAILABLE), "SERVICE_UNAVAILABLE");
+        assert_eq!(
+            middleware.status_to_code(StatusCode::BAD_REQUEST),
+            "BAD_REQUEST"
+        );
+        assert_eq!(
+            middleware.status_to_code(StatusCode::UNAUTHORIZED),
+            "UNAUTHORIZED"
+        );
+        assert_eq!(
+            middleware.status_to_code(StatusCode::FORBIDDEN),
+            "FORBIDDEN"
+        );
+        assert_eq!(
+            middleware.status_to_code(StatusCode::NOT_FOUND),
+            "NOT_FOUND"
+        );
+        assert_eq!(
+            middleware.status_to_code(StatusCode::INTERNAL_SERVER_ERROR),
+            "INTERNAL_ERROR"
+        );
+        assert_eq!(
+            middleware.status_to_code(StatusCode::SERVICE_UNAVAILABLE),
+            "SERVICE_UNAVAILABLE"
+        );
     }
 
     #[tokio::test]

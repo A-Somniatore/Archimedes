@@ -116,11 +116,7 @@ impl HandlerBinder {
     /// ```rust,ignore
     /// binder.register("getUser", handler)?;
     /// ```
-    pub fn register(
-        &mut self,
-        operation_id: &str,
-        handler: BoxedHandler,
-    ) -> BinderResult<()> {
+    pub fn register(&mut self, operation_id: &str, handler: BoxedHandler) -> BinderResult<()> {
         // Check if operation exists in contract
         if !self.required_operations.contains(operation_id) {
             return Err(BinderError::UnknownOperation(operation_id.to_string()));
@@ -189,7 +185,9 @@ mod tests {
     fn create_test_handler() -> BoxedHandler {
         Box::new(|_ctx| {
             Box::pin(async { Ok(Bytes::new()) })
-                as std::pin::Pin<Box<dyn std::future::Future<Output = Result<Bytes, crate::ThemisError>> + Send>>
+                as std::pin::Pin<
+                    Box<dyn std::future::Future<Output = Result<Bytes, crate::ThemisError>> + Send>,
+                >
         })
     }
 

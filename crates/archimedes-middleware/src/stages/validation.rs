@@ -418,7 +418,9 @@ impl ValidationMiddleware {
                 if !Self::check_type(value, expected_type) {
                     errors.push(ValidationError {
                         field: field.clone(),
-                        message: format!("Field '{field}' has invalid type, expected {expected_type:?}"),
+                        message: format!(
+                            "Field '{field}' has invalid type, expected {expected_type:?}"
+                        ),
                         code: "INVALID_TYPE".to_string(),
                     });
                 }
@@ -547,7 +549,12 @@ impl ResponseValidationMiddleware {
     }
 
     /// Validates the response body against the operation schema.
-    fn validate_response(&self, operation_id: &str, _status_code: u16, body: &[u8]) -> ValidationResult {
+    fn validate_response(
+        &self,
+        operation_id: &str,
+        _status_code: u16,
+        body: &[u8],
+    ) -> ValidationResult {
         match &self.mode {
             ValidationMode::AllowAll => ValidationResult {
                 valid: true,
@@ -877,7 +884,8 @@ mod tests {
             .unwrap()
     }
 
-    fn create_handler() -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
+    fn create_handler(
+    ) -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
         |_ctx, _req| Box::pin(async { success_response() })
     }
 
@@ -1084,7 +1092,8 @@ mod tests {
     #[test]
     fn test_field_type_validation() {
         // Test all field types
-        let result = ValidationMiddleware::check_type(&serde_json::json!("test"), &FieldType::String);
+        let result =
+            ValidationMiddleware::check_type(&serde_json::json!("test"), &FieldType::String);
         assert!(result);
 
         let result = ValidationMiddleware::check_type(&serde_json::json!(42), &FieldType::Integer);
@@ -1093,13 +1102,18 @@ mod tests {
         let result = ValidationMiddleware::check_type(&serde_json::json!(3.14), &FieldType::Number);
         assert!(result);
 
-        let result = ValidationMiddleware::check_type(&serde_json::json!(true), &FieldType::Boolean);
+        let result =
+            ValidationMiddleware::check_type(&serde_json::json!(true), &FieldType::Boolean);
         assert!(result);
 
-        let result = ValidationMiddleware::check_type(&serde_json::json!([1, 2, 3]), &FieldType::Array);
+        let result =
+            ValidationMiddleware::check_type(&serde_json::json!([1, 2, 3]), &FieldType::Array);
         assert!(result);
 
-        let result = ValidationMiddleware::check_type(&serde_json::json!({"key": "value"}), &FieldType::Object);
+        let result = ValidationMiddleware::check_type(
+            &serde_json::json!({"key": "value"}),
+            &FieldType::Object,
+        );
         assert!(result);
 
         let result = ValidationMiddleware::check_type(&serde_json::json!(null), &FieldType::Any);

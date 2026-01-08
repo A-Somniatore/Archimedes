@@ -89,12 +89,13 @@ impl OperationResolver {
     /// Resolve an HTTP request to an operation.
     pub fn resolve(&self, method: &str, path: &str) -> SentinelResult<OperationResolution> {
         let method_upper = method.to_uppercase();
-        let routes = self.routes.get(&method_upper).ok_or_else(|| {
-            SentinelError::OperationNotFound {
-                method: method.to_string(),
-                path: path.to_string(),
-            }
-        })?;
+        let routes =
+            self.routes
+                .get(&method_upper)
+                .ok_or_else(|| SentinelError::OperationNotFound {
+                    method: method.to_string(),
+                    path: path.to_string(),
+                })?;
 
         // Try each route in order (already sorted by specificity)
         for route in routes {
@@ -307,7 +308,10 @@ mod tests {
 
         let resolution = resolver.resolve("GET", "/users/123").unwrap();
         assert_eq!(resolution.operation_id, "getUser");
-        assert_eq!(resolution.path_params.get("userId"), Some(&"123".to_string()));
+        assert_eq!(
+            resolution.path_params.get("userId"),
+            Some(&"123".to_string())
+        );
     }
 
     #[test]
@@ -317,7 +321,10 @@ mod tests {
 
         let resolution = resolver.resolve("GET", "/users/456/orders").unwrap();
         assert_eq!(resolution.operation_id, "getUserOrders");
-        assert_eq!(resolution.path_params.get("userId"), Some(&"456".to_string()));
+        assert_eq!(
+            resolution.path_params.get("userId"),
+            Some(&"456".to_string())
+        );
     }
 
     #[test]
@@ -338,7 +345,10 @@ mod tests {
         let resolver = OperationResolver::from_artifact(&artifact);
 
         let result = resolver.resolve("GET", "/nonexistent");
-        assert!(matches!(result, Err(SentinelError::OperationNotFound { .. })));
+        assert!(matches!(
+            result,
+            Err(SentinelError::OperationNotFound { .. })
+        ));
     }
 
     #[test]
@@ -347,7 +357,10 @@ mod tests {
         let resolver = OperationResolver::from_artifact(&artifact);
 
         let result = resolver.resolve("DELETE", "/users");
-        assert!(matches!(result, Err(SentinelError::OperationNotFound { .. })));
+        assert!(matches!(
+            result,
+            Err(SentinelError::OperationNotFound { .. })
+        ));
     }
 
     #[test]

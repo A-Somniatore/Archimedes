@@ -233,7 +233,10 @@ impl Router {
             .map(|(k, v)| (k.to_string(), v.to_string()))
             .collect();
 
-        Some(RouteMatch::new(route_match.operation_id.to_string(), params))
+        Some(RouteMatch::new(
+            route_match.operation_id.to_string(),
+            params,
+        ))
     }
 
     /// Checks if a specific operation ID is registered.

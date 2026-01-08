@@ -104,10 +104,7 @@ pub fn init_tracing(config: &TracingConfig) -> TelemetryResult<Option<TracerProv
             opentelemetry_semantic_conventions::attribute::SERVICE_VERSION,
             config.service_version.clone(),
         ),
-        KeyValue::new(
-            "deployment.environment",
-            config.environment.clone(),
-        ),
+        KeyValue::new("deployment.environment", config.environment.clone()),
     ]);
 
     // Build the OTLP exporter

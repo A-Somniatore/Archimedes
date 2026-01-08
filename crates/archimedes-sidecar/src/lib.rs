@@ -56,8 +56,8 @@
 
 pub mod config;
 pub mod error;
-pub mod health;
 pub mod headers;
+pub mod health;
 pub mod middleware;
 pub mod proxy;
 pub mod server;

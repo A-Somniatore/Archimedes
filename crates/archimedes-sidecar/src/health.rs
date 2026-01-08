@@ -171,9 +171,7 @@ impl HealthChecker {
 
     /// Perform a liveness check.
     pub fn liveness(&self) -> HealthResponse {
-        let checks = vec![
-            CheckResult::pass("process").with_message("sidecar is running"),
-        ];
+        let checks = vec![CheckResult::pass("process").with_message("sidecar is running")];
 
         let all_passed = checks.iter().all(|c| c.passed);
         let status = if all_passed {
@@ -241,11 +239,8 @@ impl HealthChecker {
                         .with_duration(duration)
                 } else {
                     self.upstream_healthy.store(false, Ordering::SeqCst);
-                    CheckResult::fail(
-                        "upstream",
-                        format!("unhealthy status: {}", resp.status()),
-                    )
-                    .with_duration(duration)
+                    CheckResult::fail("upstream", format!("unhealthy status: {}", resp.status()))
+                        .with_duration(duration)
                 }
             }
             Err(e) => {

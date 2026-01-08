@@ -103,10 +103,7 @@ mod tests {
         let (sender, mut stream) = SseStream::with_config(config);
 
         // Send various events
-        sender
-            .send(SseEvent::new("plain data"))
-            .await
-            .unwrap();
+        sender.send(SseEvent::new("plain data")).await.unwrap();
 
         sender
             .send(SseEvent::new("typed event").event("notification").id("1"))
@@ -156,10 +153,7 @@ mod tests {
             headers.get(http::header::CACHE_CONTROL).unwrap(),
             "no-cache"
         );
-        assert_eq!(
-            headers.get(http::header::CONNECTION).unwrap(),
-            "keep-alive"
-        );
+        assert_eq!(headers.get(http::header::CONNECTION).unwrap(), "keep-alive");
     }
 
     #[test]
@@ -177,9 +171,7 @@ mod tests {
 
     #[test]
     fn test_event_formatting() {
-        let event = SseEvent::new("hello\nworld")
-            .id("1")
-            .event("test");
+        let event = SseEvent::new("hello\nworld").id("1").event("test");
 
         let formatted = event.to_sse_string();
 

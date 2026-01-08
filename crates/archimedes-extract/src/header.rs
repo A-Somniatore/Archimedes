@@ -394,11 +394,13 @@ mod tests {
     #[test]
     fn test_typed_header_content_type() {
         let mut headers = HeaderMap::new();
-        headers.insert("content-type", "application/json; charset=utf-8".parse().unwrap());
+        headers.insert(
+            "content-type",
+            "application/json; charset=utf-8".parse().unwrap(),
+        );
 
         let ctx = make_ctx(headers);
-        let ExtractTypedHeader(ct) =
-            ExtractTypedHeader::<ContentType>::from_request(&ctx).unwrap();
+        let ExtractTypedHeader(ct) = ExtractTypedHeader::<ContentType>::from_request(&ctx).unwrap();
 
         assert!(ct.is_json());
         assert!(!ct.is_form());

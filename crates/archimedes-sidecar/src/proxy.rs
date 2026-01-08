@@ -214,8 +214,7 @@ impl ProxyResponse {
 
     /// Get the content length.
     pub fn content_length(&self) -> Option<usize> {
-        self.header("content-length")
-            .and_then(|v| v.parse().ok())
+        self.header("content-length").and_then(|v| v.parse().ok())
     }
 }
 
@@ -276,8 +275,7 @@ mod tests {
 
     #[test]
     fn test_proxy_request() {
-        let request = ProxyRequest::new(Method::GET, "/api/users")
-            .with_body("test body");
+        let request = ProxyRequest::new(Method::GET, "/api/users").with_body("test body");
 
         assert_eq!(request.method, Method::GET);
         assert_eq!(request.path, "/api/users");

@@ -91,9 +91,9 @@ pub mod tracing;
 
 pub use config::{TelemetryConfig, TelemetryConfigBuilder};
 pub use error::TelemetryError;
-pub use logging::{LogConfig, init_logging};
-pub use metrics::{MetricsConfig, MetricsRegistry, init_metrics};
-pub use tracing::{TracingConfig, init_tracing};
+pub use logging::{init_logging, LogConfig};
+pub use metrics::{init_metrics, MetricsConfig, MetricsRegistry};
+pub use tracing::{init_tracing, TracingConfig};
 
 /// Result type for telemetry operations.
 pub type TelemetryResult<T> = Result<T, TelemetryError>;
@@ -167,13 +167,13 @@ impl Drop for TelemetryGuard {
 pub fn init_telemetry(config: TelemetryConfig) -> TelemetryResult<TelemetryGuard> {
     // Initialize logging first
     init_logging(&config.logging)?;
-    
+
     // Initialize metrics
     init_metrics(&config.metrics)?;
-    
+
     // Initialize tracing
     let tracer_provider = init_tracing(&config.tracing)?;
-    
+
     Ok(TelemetryGuard::new(tracer_provider))
 }
 
@@ -194,7 +194,7 @@ mod tests {
             .service_version("1.0.0")
             .environment("test")
             .build();
-        
+
         assert_eq!(config.service_name, "test-service");
         assert_eq!(config.service_version, "1.0.0");
         assert_eq!(config.environment, "test");

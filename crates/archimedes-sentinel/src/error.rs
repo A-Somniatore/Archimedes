@@ -86,7 +86,10 @@ impl fmt::Display for SentinelError {
             Self::PathParameterError { parameter, message } => {
                 write!(f, "path parameter '{}' error: {}", parameter, message)
             }
-            Self::RequestValidation { operation_id, errors } => {
+            Self::RequestValidation {
+                operation_id,
+                errors,
+            } => {
                 write!(
                     f,
                     "request validation failed for '{}': {} error(s)",
@@ -192,14 +195,12 @@ mod tests {
     fn test_request_validation_display() {
         let err = SentinelError::RequestValidation {
             operation_id: "createUser".to_string(),
-            errors: vec![
-                ValidationError {
-                    path: "body.name".to_string(),
-                    message: "required".to_string(),
-                    schema_path: None,
-                    value: None,
-                },
-            ],
+            errors: vec![ValidationError {
+                path: "body.name".to_string(),
+                message: "required".to_string(),
+                schema_path: None,
+                value: None,
+            }],
         };
         assert!(err.to_string().contains("createUser"));
         assert!(err.to_string().contains("1 error"));

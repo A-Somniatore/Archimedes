@@ -374,9 +374,7 @@ impl HandlerRegistry {
             .get(operation_id)
             .ok_or_else(|| InvokeError::HandlerNotFound(operation_id.to_string()))?;
 
-        handler(ctx, body)
-            .await
-            .map_err(InvokeError::HandlerError)
+        handler(ctx, body).await.map_err(InvokeError::HandlerError)
     }
 }
 
@@ -446,7 +444,10 @@ mod tests {
         greeting: String,
     }
 
-    async fn test_handler(_ctx: RequestContext, req: TestRequest) -> Result<TestResponse, HandlerError> {
+    async fn test_handler(
+        _ctx: RequestContext,
+        req: TestRequest,
+    ) -> Result<TestResponse, HandlerError> {
         Ok(TestResponse {
             greeting: format!("Hello, {}!", req.name),
         })
@@ -583,7 +584,8 @@ mod tests {
         let not_found = InvokeError::HandlerNotFound("test".to_string());
         assert!(not_found.to_string().contains("No handler"));
 
-        let handler_err = InvokeError::HandlerError(HandlerError::DeserializationError("x".to_string()));
+        let handler_err =
+            InvokeError::HandlerError(HandlerError::DeserializationError("x".to_string()));
         assert!(handler_err.to_string().contains("Handler error"));
     }
 
@@ -603,7 +605,10 @@ mod tests {
         assert!(registry.is_empty());
     }
 
-    async fn failing_handler(_ctx: RequestContext, _req: TestRequest) -> Result<TestResponse, HandlerError> {
+    async fn failing_handler(
+        _ctx: RequestContext,
+        _req: TestRequest,
+    ) -> Result<TestResponse, HandlerError> {
         Err(HandlerError::Custom(Box::new(std::io::Error::new(
             std::io::ErrorKind::Other,
             "test error",

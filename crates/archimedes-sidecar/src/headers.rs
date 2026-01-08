@@ -373,7 +373,10 @@ mod tests {
     #[test]
     fn test_extract_trace_context_custom() {
         let mut headers = HeaderMap::new();
-        headers.insert(&HEADER_TRACE_ID, HeaderValue::from_static("custom-trace-id"));
+        headers.insert(
+            &HEADER_TRACE_ID,
+            HeaderValue::from_static("custom-trace-id"),
+        );
         headers.insert(&HEADER_SPAN_ID, HeaderValue::from_static("custom-span-id"));
 
         let ctx = extract_trace_context(&headers).unwrap();

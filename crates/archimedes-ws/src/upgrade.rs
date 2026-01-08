@@ -174,9 +174,8 @@ pub fn validate_upgrade_request<B>(request: &Request<B>) -> WsResult<String> {
         return Err(WsError::not_websocket("missing Upgrade: websocket header"));
     }
 
-    let key = get_websocket_key(request).ok_or_else(|| {
-        WsError::not_websocket("missing Sec-WebSocket-Key header")
-    })?;
+    let key = get_websocket_key(request)
+        .ok_or_else(|| WsError::not_websocket("missing Sec-WebSocket-Key header"))?;
 
     if !has_websocket_version(request) {
         return Err(WsError::not_websocket(
@@ -247,12 +246,8 @@ pub async fn complete_upgrade<S>(stream: S, config: WebSocketConfig) -> WebSocke
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
-    let ws_stream = WebSocketStream::from_raw_socket(
-        stream,
-        tungstenite::protocol::Role::Server,
-        None,
-    )
-    .await;
+    let ws_stream =
+        WebSocketStream::from_raw_socket(stream, tungstenite::protocol::Role::Server, None).await;
 
     WebSocket::new(ws_stream, config)
 }
@@ -266,12 +261,8 @@ pub async fn complete_upgrade_with_id<S>(
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
-    let ws_stream = WebSocketStream::from_raw_socket(
-        stream,
-        tungstenite::protocol::Role::Server,
-        None,
-    )
-    .await;
+    let ws_stream =
+        WebSocketStream::from_raw_socket(stream, tungstenite::protocol::Role::Server, None).await;
 
     WebSocket::with_id(ws_stream, config, connection_id)
 }

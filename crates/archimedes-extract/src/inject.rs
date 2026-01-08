@@ -84,16 +84,16 @@ impl<T: Send + Sync + 'static> FromRequest for Inject<T> {
             )
         })?;
 
-        container
-            .resolve::<T>()
-            .map(Inject)
-            .ok_or_else(|| {
-                ExtractionError::custom(
-                    ExtractionSource::Other,
-                    std::any::type_name::<T>(),
-                    format!("Service '{}' not registered in DI container", std::any::type_name::<T>()),
-                )
-            })
+        container.resolve::<T>().map(Inject).ok_or_else(|| {
+            ExtractionError::custom(
+                ExtractionSource::Other,
+                std::any::type_name::<T>(),
+                format!(
+                    "Service '{}' not registered in DI container",
+                    std::any::type_name::<T>()
+                ),
+            )
+        })
     }
 }
 
@@ -109,11 +109,7 @@ pub trait InjectExt {
 
 impl InjectExt for InjectionError {
     fn into_extraction_error(self) -> ExtractionError {
-        ExtractionError::custom(
-            ExtractionSource::Other,
-            self.type_name,
-            self.reason,
-        )
+        ExtractionError::custom(ExtractionSource::Other, self.type_name, self.reason)
     }
 }
 
@@ -132,7 +128,9 @@ mod tests {
 
     impl TestService {
         fn new(value: &str) -> Self {
-            Self { value: value.to_string() }
+            Self {
+                value: value.to_string(),
+            }
         }
     }
 

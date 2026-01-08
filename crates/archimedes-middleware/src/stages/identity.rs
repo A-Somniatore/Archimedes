@@ -222,8 +222,8 @@ mod tests {
             .unwrap()
     }
 
-    fn create_handler()
-    -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
+    fn create_handler(
+    ) -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
         |_ctx, _req| {
             Box::pin(async {
                 HttpResponse::builder()

@@ -152,8 +152,7 @@ impl ConfigLoader {
             return Err(ConfigError::file_not_found(path));
         }
 
-        let content = fs::read_to_string(path)
-            .map_err(|e| ConfigError::read_error(path, e))?;
+        let content = fs::read_to_string(path).map_err(|e| ConfigError::read_error(path, e))?;
 
         let file_config = Self::parse_file(&content, path)?;
         self.merge_config(file_config);
@@ -364,9 +363,8 @@ impl ConfigLoader {
 
     // Apply environment variable overrides
     fn apply_env_overrides(&mut self, prefix: &str) -> Result<(), ConfigError> {
-        let env_vars: HashMap<String, String> = env::vars()
-            .filter(|(k, _)| k.starts_with(prefix))
-            .collect();
+        let env_vars: HashMap<String, String> =
+            env::vars().filter(|(k, _)| k.starts_with(prefix)).collect();
 
         for (key, value) in env_vars {
             self.apply_env_var(&key, &value, prefix)?;
@@ -378,7 +376,8 @@ impl ConfigLoader {
     // Apply a single environment variable
     fn apply_env_var(&mut self, key: &str, value: &str, prefix: &str) -> Result<(), ConfigError> {
         // Remove prefix and split by double underscore
-        let key_without_prefix = key.strip_prefix(prefix)
+        let key_without_prefix = key
+            .strip_prefix(prefix)
             .and_then(|k| k.strip_prefix("__"))
             .ok_or_else(|| ConfigError::env_parse_error(key, "invalid key format"))?;
 
@@ -562,29 +561,20 @@ mod tests {
 
     #[test]
     fn test_loader_with_defaults() {
-        let config = ConfigLoader::new()
-            .with_defaults()
-            .load()
-            .unwrap();
+        let config = ConfigLoader::new().with_defaults().load().unwrap();
         assert_eq!(config.server.http_addr, "0.0.0.0:8080");
     }
 
     #[test]
     fn test_loader_with_development() {
-        let config = ConfigLoader::new()
-            .with_development()
-            .load()
-            .unwrap();
+        let config = ConfigLoader::new().with_development().load().unwrap();
         assert_eq!(config.telemetry.logging.level, "debug");
         assert_eq!(config.telemetry.logging.format, crate::LogFormat::Pretty);
     }
 
     #[test]
     fn test_loader_with_production() {
-        let config = ConfigLoader::new()
-            .with_production()
-            .load()
-            .unwrap();
+        let config = ConfigLoader::new().with_production().load().unwrap();
         assert_eq!(config.telemetry.logging.format, crate::LogFormat::Json);
     }
 
@@ -619,8 +609,7 @@ mod tests {
 
     #[test]
     fn test_loader_with_file_not_found() {
-        let result = ConfigLoader::new()
-            .with_file("/nonexistent/config.toml");
+        let result = ConfigLoader::new().with_file("/nonexistent/config.toml");
 
         assert!(result.is_err());
     }
@@ -639,8 +628,7 @@ mod tests {
 
     #[test]
     fn test_loader_load_unvalidated() {
-        let config = ConfigLoader::new()
-            .load_unvalidated();
+        let config = ConfigLoader::new().load_unvalidated();
 
         assert_eq!(config.server.http_addr, "0.0.0.0:8080");
     }
@@ -673,15 +661,21 @@ mod tests {
     #[test]
     fn test_apply_env_var_server_addr() {
         let mut loader = ConfigLoader::new();
-        loader.apply_env_var("TEST__SERVER__HTTP_ADDR", "192.168.1.1:9000", "TEST").unwrap();
+        loader
+            .apply_env_var("TEST__SERVER__HTTP_ADDR", "192.168.1.1:9000", "TEST")
+            .unwrap();
         assert_eq!(loader.config.server.http_addr, "192.168.1.1:9000");
     }
 
     #[test]
     fn test_apply_env_var_telemetry() {
         let mut loader = ConfigLoader::new();
-        loader.apply_env_var("TEST__TELEMETRY__SERVICE_NAME", "my-service", "TEST").unwrap();
-        loader.apply_env_var("TEST__TELEMETRY__LOGGING__LEVEL", "debug", "TEST").unwrap();
+        loader
+            .apply_env_var("TEST__TELEMETRY__SERVICE_NAME", "my-service", "TEST")
+            .unwrap();
+        loader
+            .apply_env_var("TEST__TELEMETRY__LOGGING__LEVEL", "debug", "TEST")
+            .unwrap();
         assert_eq!(loader.config.telemetry.service_name, "my-service");
         assert_eq!(loader.config.telemetry.logging.level, "debug");
     }
@@ -689,7 +683,9 @@ mod tests {
     #[test]
     fn test_apply_env_var_boolean() {
         let mut loader = ConfigLoader::new();
-        loader.apply_env_var("TEST__SERVER__HTTP2_ENABLED", "false", "TEST").unwrap();
+        loader
+            .apply_env_var("TEST__SERVER__HTTP2_ENABLED", "false", "TEST")
+            .unwrap();
         assert!(!loader.config.server.http2_enabled);
     }
 
@@ -703,17 +699,36 @@ mod tests {
     #[test]
     fn test_apply_env_var_authorization_mode() {
         let mut loader = ConfigLoader::new();
-        loader.apply_env_var("TEST__AUTHORIZATION__MODE", "opa", "TEST").unwrap();
-        loader.apply_env_var("TEST__AUTHORIZATION__OPA_ENDPOINT", "http://localhost:8181", "TEST").unwrap();
-        assert_eq!(loader.config.authorization.mode, crate::AuthorizationMode::Opa);
-        assert_eq!(loader.config.authorization.opa_endpoint, Some("http://localhost:8181".to_string()));
+        loader
+            .apply_env_var("TEST__AUTHORIZATION__MODE", "opa", "TEST")
+            .unwrap();
+        loader
+            .apply_env_var(
+                "TEST__AUTHORIZATION__OPA_ENDPOINT",
+                "http://localhost:8181",
+                "TEST",
+            )
+            .unwrap();
+        assert_eq!(
+            loader.config.authorization.mode,
+            crate::AuthorizationMode::Opa
+        );
+        assert_eq!(
+            loader.config.authorization.opa_endpoint,
+            Some("http://localhost:8181".to_string())
+        );
     }
 
     #[test]
     fn test_apply_env_var_log_format() {
         let mut loader = ConfigLoader::new();
-        loader.apply_env_var("TEST__TELEMETRY__LOGGING__FORMAT", "pretty", "TEST").unwrap();
-        assert_eq!(loader.config.telemetry.logging.format, crate::LogFormat::Pretty);
+        loader
+            .apply_env_var("TEST__TELEMETRY__LOGGING__FORMAT", "pretty", "TEST")
+            .unwrap();
+        assert_eq!(
+            loader.config.telemetry.logging.format,
+            crate::LogFormat::Pretty
+        );
     }
 
     #[test]
@@ -769,10 +784,19 @@ mod tests {
         assert_eq!(config.server.http_addr, "0.0.0.0:8080");
         assert_eq!(config.server.shutdown_timeout_secs, 60);
         assert_eq!(config.telemetry.service_name, "example-service");
-        assert_eq!(config.telemetry.tracing.otlp_endpoint, Some("http://jaeger:4317".to_string()));
+        assert_eq!(
+            config.telemetry.tracing.otlp_endpoint,
+            Some("http://jaeger:4317".to_string())
+        );
         assert!((config.telemetry.tracing.sampling_ratio - 0.5).abs() < f64::EPSILON);
         assert_eq!(config.authorization.mode, crate::AuthorizationMode::Rbac);
-        assert_eq!(config.authorization.allow_anonymous, vec!["healthCheck", "readiness"]);
-        assert_eq!(config.contract.contract_path, Some("/etc/contracts/api.json".to_string()));
+        assert_eq!(
+            config.authorization.allow_anonymous,
+            vec!["healthCheck", "readiness"]
+        );
+        assert_eq!(
+            config.contract.contract_path,
+            Some("/etc/contracts/api.json".to_string())
+        );
     }
 }

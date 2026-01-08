@@ -186,7 +186,12 @@ impl Scheduler {
     /// * `name` - Human-readable job name
     /// * `cron_expr` - Cron expression (e.g., "0 0 * * * *" for every hour)
     /// * `func` - Async function to execute
-    pub fn register<F, Fut>(&self, name: impl Into<String>, cron_expr: &str, func: F) -> TaskResult<JobId>
+    pub fn register<F, Fut>(
+        &self,
+        name: impl Into<String>,
+        cron_expr: &str,
+        func: F,
+    ) -> TaskResult<JobId>
     where
         F: Fn() -> Fut + Send + Sync + 'static,
         Fut: Future<Output = ()> + Send + 'static,
@@ -235,20 +240,14 @@ impl Scheduler {
 
     /// Enable a job.
     pub fn enable(&self, id: JobId) -> TaskResult<()> {
-        let entry = self
-            .jobs
-            .get(&id)
-            .ok_or_else(|| TaskError::not_found(id))?;
+        let entry = self.jobs.get(&id).ok_or_else(|| TaskError::not_found(id))?;
         entry.info.write().enabled = true;
         Ok(())
     }
 
     /// Disable a job.
     pub fn disable(&self, id: JobId) -> TaskResult<()> {
-        let entry = self
-            .jobs
-            .get(&id)
-            .ok_or_else(|| TaskError::not_found(id))?;
+        let entry = self.jobs.get(&id).ok_or_else(|| TaskError::not_found(id))?;
         entry.info.write().enabled = false;
         Ok(())
     }
@@ -268,23 +267,18 @@ impl Scheduler {
 
     /// Run a job immediately (out of schedule).
     pub fn run_now(&self, id: JobId) -> TaskResult<()> {
-        let entry = self
-            .jobs
-            .get(&id)
-            .ok_or_else(|| TaskError::not_found(id))?;
+        let entry = self.jobs.get(&id).ok_or_else(|| TaskError::not_found(id))?;
 
         let func = entry.func.clone();
         let info_lock = entry.value().info.clone();
 
-        self.spawner.spawn_detached(
-            format!("job-{}", id),
-            async move {
+        self.spawner
+            .spawn_detached(format!("job-{}", id), async move {
                 info_lock.write().last_run = Some(Utc::now());
                 func().await;
                 let mut info = info_lock.write();
                 info.run_count += 1;
-            },
-        )?;
+            })?;
 
         self.total_executed.fetch_add(1, Ordering::Relaxed);
         Ok(())
@@ -384,10 +378,7 @@ impl Scheduler {
         }
 
         // Shutdown spawner
-        self.spawner
-            .inner()
-            .shutdown(Duration::from_secs(30))
-            .await;
+        self.spawner.inner().shutdown(Duration::from_secs(30)).await;
 
         info!("scheduler stopped");
     }
@@ -486,8 +477,12 @@ mod tests {
     fn test_list_jobs() {
         let scheduler = Scheduler::new();
 
-        scheduler.register("job1", "0 * * * * *", || async {}).unwrap();
-        scheduler.register("job2", "0 0 * * * *", || async {}).unwrap();
+        scheduler
+            .register("job1", "0 * * * * *", || async {})
+            .unwrap();
+        scheduler
+            .register("job2", "0 0 * * * *", || async {})
+            .unwrap();
 
         let jobs = scheduler.list_jobs();
         assert_eq!(jobs.len(), 2);

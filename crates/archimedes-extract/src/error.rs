@@ -143,9 +143,7 @@ impl ExtractionError {
         Self {
             extraction_source: ExtractionSource::Body,
             kind: ExtractionErrorKind::PayloadTooLarge,
-            message: format!(
-                "payload too large: max {max_size} bytes, got {actual_size} bytes"
-            ),
+            message: format!("payload too large: max {max_size} bytes, got {actual_size} bytes"),
             field: None,
         }
     }
@@ -157,9 +155,7 @@ impl ExtractionError {
         Self {
             extraction_source: ExtractionSource::ContentType,
             kind: ExtractionErrorKind::UnsupportedMediaType,
-            message: format!(
-                "unsupported content type: expected '{expected}', got '{actual_str}'"
-            ),
+            message: format!("unsupported content type: expected '{expected}', got '{actual_str}'"),
             field: None,
         }
     }
@@ -256,11 +252,8 @@ mod tests {
 
     #[test]
     fn test_invalid_type_error() {
-        let err = ExtractionError::invalid_type(
-            ExtractionSource::Query,
-            "limit",
-            "expected integer",
-        );
+        let err =
+            ExtractionError::invalid_type(ExtractionSource::Query, "limit", "expected integer");
 
         assert_eq!(err.source(), ExtractionSource::Query);
         assert_eq!(err.field(), Some("limit"));
@@ -310,10 +303,7 @@ mod tests {
 
     #[test]
     fn test_unsupported_media_type_error() {
-        let err = ExtractionError::unsupported_media_type(
-            "application/json",
-            Some("text/plain"),
-        );
+        let err = ExtractionError::unsupported_media_type("application/json", Some("text/plain"));
 
         assert_eq!(err.source(), ExtractionSource::ContentType);
         assert_eq!(err.status_code(), StatusCode::UNSUPPORTED_MEDIA_TYPE);

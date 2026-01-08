@@ -167,7 +167,8 @@ impl Message {
 
     /// Create a text message from a JSON-serializable value.
     pub fn from_json<T: Serialize>(value: &T) -> WsResult<Self> {
-        let text = serde_json::to_string(value).map_err(|e| WsError::EncodeFailed(e.to_string()))?;
+        let text =
+            serde_json::to_string(value).map_err(|e| WsError::EncodeFailed(e.to_string()))?;
         Ok(Self::Text(text))
     }
 

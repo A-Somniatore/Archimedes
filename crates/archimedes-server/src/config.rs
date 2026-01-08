@@ -274,9 +274,7 @@ mod tests {
 
     #[test]
     fn test_builder_http_addr() {
-        let config = ServerConfig::builder()
-            .http_addr("127.0.0.1:3000")
-            .build();
+        let config = ServerConfig::builder().http_addr("127.0.0.1:3000").build();
 
         assert_eq!(config.http_addr(), "127.0.0.1:3000");
     }
@@ -292,36 +290,28 @@ mod tests {
 
     #[test]
     fn test_builder_keep_alive_disabled() {
-        let config = ServerConfig::builder()
-            .keep_alive_timeout(None)
-            .build();
+        let config = ServerConfig::builder().keep_alive_timeout(None).build();
 
         assert!(config.keep_alive_timeout().is_none());
     }
 
     #[test]
     fn test_builder_max_connections() {
-        let config = ServerConfig::builder()
-            .max_connections(Some(1000))
-            .build();
+        let config = ServerConfig::builder().max_connections(Some(1000)).build();
 
         assert_eq!(config.max_connections(), Some(1000));
     }
 
     #[test]
     fn test_builder_http2_disabled() {
-        let config = ServerConfig::builder()
-            .http2_enabled(false)
-            .build();
+        let config = ServerConfig::builder().http2_enabled(false).build();
 
         assert!(!config.http2_enabled());
     }
 
     #[test]
     fn test_socket_addr_parsing() {
-        let config = ServerConfig::builder()
-            .http_addr("127.0.0.1:8080")
-            .build();
+        let config = ServerConfig::builder().http_addr("127.0.0.1:8080").build();
 
         let addr = config.socket_addr().unwrap();
         assert_eq!(addr.port(), 8080);
@@ -349,10 +339,7 @@ mod tests {
 
         assert_eq!(config.http_addr(), "0.0.0.0:9090");
         assert_eq!(config.shutdown_timeout(), Duration::from_secs(45));
-        assert_eq!(
-            config.keep_alive_timeout(),
-            Some(Duration::from_secs(120))
-        );
+        assert_eq!(config.keep_alive_timeout(), Some(Duration::from_secs(120)));
         assert_eq!(config.max_connections(), Some(500));
         assert!(config.http2_enabled());
     }

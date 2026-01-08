@@ -201,8 +201,7 @@ impl ExtractionContext {
     /// Returns the Content-Length header value.
     #[must_use]
     pub fn content_length(&self) -> Option<u64> {
-        self.header("content-length")
-            .and_then(|v| v.parse().ok())
+        self.header("content-length").and_then(|v| v.parse().ok())
     }
 
     /// Checks if the request body is empty.

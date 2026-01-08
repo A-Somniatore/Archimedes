@@ -166,7 +166,9 @@ mod tests {
         let tasks: Vec<_> = (0..5)
             .map(|i| {
                 let s = spawner.clone();
-                tokio::spawn(async move { s.spawn(format!("task-{}", i), async move { i }).unwrap() })
+                tokio::spawn(
+                    async move { s.spawn(format!("task-{}", i), async move { i }).unwrap() },
+                )
             })
             .collect();
 

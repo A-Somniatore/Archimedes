@@ -398,28 +398,16 @@ mod humantime_serde {
     fn parse_duration(s: &str) -> Result<Duration, String> {
         let s = s.trim();
         if let Some(stripped) = s.strip_suffix("ms") {
-            let n: u64 = stripped
-                .trim()
-                .parse()
-                .map_err(|_| "invalid duration")?;
+            let n: u64 = stripped.trim().parse().map_err(|_| "invalid duration")?;
             Ok(Duration::from_millis(n))
         } else if let Some(stripped) = s.strip_suffix('s') {
-            let n: u64 = stripped
-                .trim()
-                .parse()
-                .map_err(|_| "invalid duration")?;
+            let n: u64 = stripped.trim().parse().map_err(|_| "invalid duration")?;
             Ok(Duration::from_secs(n))
         } else if let Some(stripped) = s.strip_suffix('m') {
-            let n: u64 = stripped
-                .trim()
-                .parse()
-                .map_err(|_| "invalid duration")?;
+            let n: u64 = stripped.trim().parse().map_err(|_| "invalid duration")?;
             Ok(Duration::from_secs(n * 60))
         } else if let Some(stripped) = s.strip_suffix('h') {
-            let n: u64 = stripped
-                .trim()
-                .parse()
-                .map_err(|_| "invalid duration")?;
+            let n: u64 = stripped.trim().parse().map_err(|_| "invalid duration")?;
             Ok(Duration::from_secs(n * 3600))
         } else {
             // Assume seconds
@@ -457,14 +445,10 @@ mod tests {
 
     #[test]
     fn test_config_validation() {
-        let config = SidecarConfig::builder()
-            .upstream_url("")
-            .build();
+        let config = SidecarConfig::builder().upstream_url("").build();
         assert!(config.is_err());
 
-        let config = SidecarConfig::builder()
-            .upstream_url("invalid-url")
-            .build();
+        let config = SidecarConfig::builder().upstream_url("invalid-url").build();
         assert!(config.is_err());
 
         let config = SidecarConfig::builder()

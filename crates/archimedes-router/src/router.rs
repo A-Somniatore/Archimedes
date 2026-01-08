@@ -241,15 +241,21 @@ mod tests {
         );
 
         assert_eq!(
-            router.match_route(&Method::GET, "/users").map(|m| m.operation_id),
+            router
+                .match_route(&Method::GET, "/users")
+                .map(|m| m.operation_id),
             Some("listUsers")
         );
         assert_eq!(
-            router.match_route(&Method::POST, "/users").map(|m| m.operation_id),
+            router
+                .match_route(&Method::POST, "/users")
+                .map(|m| m.operation_id),
             Some("createUser")
         );
         assert_eq!(
-            router.match_route(&Method::DELETE, "/users").map(|m| m.operation_id),
+            router
+                .match_route(&Method::DELETE, "/users")
+                .map(|m| m.operation_id),
             Some("deleteAllUsers")
         );
     }
@@ -268,10 +274,7 @@ mod tests {
     fn test_router_complex_paths() {
         let mut router = Router::new();
         router.insert("/api/v1/users", MethodRouter::new().get("listUsers"));
-        router.insert(
-            "/api/v1/users/{userId}",
-            MethodRouter::new().get("getUser"),
-        );
+        router.insert("/api/v1/users/{userId}", MethodRouter::new().get("getUser"));
         router.insert(
             "/api/v1/users/{userId}/posts",
             MethodRouter::new().get("listUserPosts"),

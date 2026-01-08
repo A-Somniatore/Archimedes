@@ -76,9 +76,9 @@ impl BundleLoader {
         info!(path = %path.display(), "loading bundle from file");
 
         // Read file contents
-        let content = tokio::fs::read(path).await.map_err(|e| {
-            AuthzError::bundle_load(path, format!("failed to read file: {}", e))
-        })?;
+        let content = tokio::fs::read(path)
+            .await
+            .map_err(|e| AuthzError::bundle_load(path, format!("failed to read file: {}", e)))?;
 
         Self::from_tar_gz(&content, path.to_string_lossy().to_string())
     }
@@ -94,16 +94,18 @@ impl BundleLoader {
         let mut bundle = Bundle::new("unknown");
         let mut found_manifest = false;
 
-        for entry_result in archive.entries().map_err(|e| {
-            AuthzError::BundleParse(format!("failed to read archive: {}", e))
-        })? {
-            let mut entry = entry_result.map_err(|e| {
-                AuthzError::BundleParse(format!("failed to read entry: {}", e))
-            })?;
+        for entry_result in archive
+            .entries()
+            .map_err(|e| AuthzError::BundleParse(format!("failed to read archive: {}", e)))?
+        {
+            let mut entry = entry_result
+                .map_err(|e| AuthzError::BundleParse(format!("failed to read entry: {}", e)))?;
 
-            let entry_path = entry.path().map_err(|e| {
-                AuthzError::BundleParse(format!("invalid path in archive: {}", e))
-            })?.to_string_lossy().to_string();
+            let entry_path = entry
+                .path()
+                .map_err(|e| AuthzError::BundleParse(format!("invalid path in archive: {}", e)))?
+                .to_string_lossy()
+                .to_string();
 
             let mut content = String::new();
             entry.read_to_string(&mut content).map_err(|e| {
@@ -112,9 +114,8 @@ impl BundleLoader {
 
             if entry_path.ends_with("/.manifest") || entry_path == ".manifest" {
                 // Parse manifest
-                let manifest: OpaManifest = serde_json::from_str(&content).map_err(|e| {
-                    AuthzError::BundleParse(format!("invalid manifest: {}", e))
-                })?;
+                let manifest: OpaManifest = serde_json::from_str(&content)
+                    .map_err(|e| AuthzError::BundleParse(format!("invalid manifest: {}", e)))?;
                 bundle.metadata.revision = manifest.revision.unwrap_or_default();
                 bundle.metadata.roots = manifest.roots;
                 found_manifest = true;
@@ -123,9 +124,8 @@ impl BundleLoader {
                 debug!(path = %entry_path, "loading policy");
                 bundle.policies.insert(entry_path, content);
             } else if entry_path.ends_with("/data.json") || entry_path == "data.json" {
-                let data: serde_json::Value = serde_json::from_str(&content).map_err(|e| {
-                    AuthzError::BundleParse(format!("invalid data.json: {}", e))
-                })?;
+                let data: serde_json::Value = serde_json::from_str(&content)
+                    .map_err(|e| AuthzError::BundleParse(format!("invalid data.json: {}", e)))?;
                 debug!(path = %entry_path, "loading data");
                 bundle.data.insert(entry_path, data);
             }
@@ -152,16 +152,14 @@ impl BundleLoader {
     ) -> AuthzResult<Bundle> {
         info!(
             registry = registry_url,
-            service,
-            version,
-            "loading bundle from registry"
+            service, version, "loading bundle from registry"
         );
 
         let url = format!("{}/v1/bundles/{}/{}", registry_url, service, version);
 
-        let response = reqwest::get(&url).await.map_err(|e| {
-            AuthzError::Registry(format!("failed to fetch bundle: {}", e))
-        })?;
+        let response = reqwest::get(&url)
+            .await
+            .map_err(|e| AuthzError::Registry(format!("failed to fetch bundle: {}", e)))?;
 
         if !response.status().is_success() {
             return Err(AuthzError::Registry(format!(
@@ -171,9 +169,10 @@ impl BundleLoader {
             )));
         }
 
-        let bytes = response.bytes().await.map_err(|e| {
-            AuthzError::Registry(format!("failed to read response: {}", e))
-        })?;
+        let bytes = response
+            .bytes()
+            .await
+            .map_err(|e| AuthzError::Registry(format!("failed to read response: {}", e)))?;
 
         Self::from_tar_gz(&bytes, format!("{}:{}", service, version))
     }

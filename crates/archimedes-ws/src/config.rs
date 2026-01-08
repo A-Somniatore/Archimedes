@@ -27,12 +27,12 @@ pub struct WebSocketConfig {
 impl Default for WebSocketConfig {
     fn default() -> Self {
         Self {
-            max_message_size: 64 * 1024 * 1024,  // 64 MB
-            max_frame_size: 16 * 1024 * 1024,    // 16 MB
+            max_message_size: 64 * 1024 * 1024, // 64 MB
+            max_frame_size: 16 * 1024 * 1024,   // 16 MB
             heartbeat_interval: Duration::from_secs(30),
             connection_timeout: Duration::from_secs(60),
-            write_buffer_size: 128 * 1024,       // 128 KB
-            read_buffer_size: 128 * 1024,        // 128 KB
+            write_buffer_size: 128 * 1024, // 128 KB
+            read_buffer_size: 128 * 1024,  // 128 KB
             accept_unmasked_frames: false,
         }
     }

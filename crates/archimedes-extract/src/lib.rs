@@ -99,30 +99,30 @@
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
 
+mod body;
 mod context;
 mod error;
 mod extractor;
-mod inject;
-mod path;
-mod query;
-mod json;
 mod form;
 mod header;
-mod body;
+mod inject;
+mod json;
+mod path;
+mod query;
 pub mod response;
 
 // Re-export main types
+pub use body::{BodyString, RawBody};
 pub use context::ExtractionContext;
 pub use error::{ExtractionError, ExtractionSource};
 pub use extractor::FromRequest;
-pub use inject::Inject;
-pub use path::{Path, path_param};
-pub use query::{Query, RawQuery};
-pub use json::{Json, JsonWithLimit};
 pub use form::{Form, FormWithLimit};
-pub use header::{Header, Headers, TypedHeader, ExtractTypedHeader, header, header_opt};
-pub use header::{ContentType, Accept, Authorization, UserAgent};
-pub use body::{RawBody, BodyString};
+pub use header::{header, header_opt, ExtractTypedHeader, Header, Headers, TypedHeader};
+pub use header::{Accept, Authorization, ContentType, UserAgent};
+pub use inject::Inject;
+pub use json::{Json, JsonWithLimit};
+pub use path::{path_param, Path};
+pub use query::{Query, RawQuery};
 
 // Re-export useful types from dependencies
 pub use archimedes_router::Params;

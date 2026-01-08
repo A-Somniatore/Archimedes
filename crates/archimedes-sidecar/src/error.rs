@@ -182,7 +182,10 @@ impl SidecarError {
     pub fn is_recoverable(&self) -> bool {
         matches!(
             self,
-            Self::Upstream { .. } | Self::Proxy { .. } | Self::Request(_) | Self::HealthCheck { .. }
+            Self::Upstream { .. }
+                | Self::Proxy { .. }
+                | Self::Request(_)
+                | Self::HealthCheck { .. }
         )
     }
 

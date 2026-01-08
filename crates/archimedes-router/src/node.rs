@@ -147,7 +147,8 @@ impl Node {
                     child.insert_segments(remaining, methods);
                     self.static_children.push(child);
                     // Keep sorted for binary search
-                    self.static_children.sort_by(|a, b| a.segment.cmp(&b.segment));
+                    self.static_children
+                        .sort_by(|a, b| a.segment.cmp(&b.segment));
                 }
             }
             SegmentKind::Param(name) => {
@@ -161,7 +162,10 @@ impl Node {
             }
             SegmentKind::Wildcard(name) => {
                 // Create or reuse wildcard child (must be last segment)
-                assert!(remaining.is_empty(), "Wildcard must be the last segment in path");
+                assert!(
+                    remaining.is_empty(),
+                    "Wildcard must be the last segment in path"
+                );
                 if let Some(child) = &mut self.wildcard_child {
                     // Merge with existing wildcard
                     if let Some(existing) = &mut child.methods {
@@ -296,7 +300,10 @@ mod tests {
         assert_eq!(segments[0], ("files".to_string(), SegmentKind::Static));
         assert_eq!(
             segments[1],
-            ("*path".to_string(), SegmentKind::Wildcard("path".to_string()))
+            (
+                "*path".to_string(),
+                SegmentKind::Wildcard("path".to_string())
+            )
         );
     }
 

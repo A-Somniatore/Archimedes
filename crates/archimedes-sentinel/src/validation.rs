@@ -81,10 +81,7 @@ impl SchemaValidator {
         body: &Value,
     ) -> SentinelResult<ValidationResult> {
         // Find the operation
-        let operation = artifact
-            .operations
-            .iter()
-            .find(|op| op.id == operation_id);
+        let operation = artifact.operations.iter().find(|op| op.id == operation_id);
 
         let operation = match operation {
             Some(op) => op,
@@ -98,7 +95,10 @@ impl SchemaValidator {
         let schema_ref = match &operation.request_schema {
             Some(sr) => sr,
             None => {
-                debug!(operation_id, "no request schema defined, skipping validation");
+                debug!(
+                    operation_id,
+                    "no request schema defined, skipping validation"
+                );
                 return Ok(ValidationResult::success(None));
             }
         };
@@ -116,10 +116,7 @@ impl SchemaValidator {
         body: &Value,
     ) -> SentinelResult<ValidationResult> {
         // Find the operation
-        let operation = artifact
-            .operations
-            .iter()
-            .find(|op| op.id == operation_id);
+        let operation = artifact.operations.iter().find(|op| op.id == operation_id);
 
         let operation = match operation {
             Some(op) => op,
@@ -141,8 +138,7 @@ impl SchemaValidator {
             None => {
                 debug!(
                     operation_id,
-                    status_code,
-                    "no response schema for status code"
+                    status_code, "no response schema for status code"
                 );
                 return Ok(ValidationResult::success(None));
             }
@@ -165,11 +161,7 @@ impl SchemaValidator {
                 if !self.is_valid_param_type(value, param_type) {
                     errors.push(ValidationError {
                         path: format!("path.{}", name),
-                        message: format!(
-                            "expected {}, got '{}'",
-                            param_type.as_str(),
-                            value
-                        ),
+                        message: format!("expected {}, got '{}'", param_type.as_str(), value),
                         schema_path: None,
                         value: Some(value.clone()),
                     });

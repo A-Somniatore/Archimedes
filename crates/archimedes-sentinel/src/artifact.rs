@@ -104,9 +104,7 @@ impl ArtifactLoader {
     ) -> SentinelResult<LoadedArtifact> {
         info!(
             registry = registry_url,
-            service,
-            version,
-            "loading artifact from registry"
+            service, version, "loading artifact from registry"
         );
 
         // Construct the registry URL for fetching the artifact

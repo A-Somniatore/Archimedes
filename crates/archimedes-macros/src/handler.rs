@@ -39,7 +39,7 @@ fn generate_handler_code(attrs: &HandlerAttrs, handler: &HandlerFn) -> syn::Resu
     let original_fn = &handler.item;
 
     // Generate extraction code for each parameter
-    let (extraction_bindings, call_args) = generate_extractions(&handler.params)?;
+    let (extraction_bindings, call_args) = generate_extractions(&handler.params);
 
     // Generate the registration function name
     let registration_fn_name = format_ident!("__archimedes_register_{}", fn_name);
@@ -48,13 +48,21 @@ fn generate_handler_code(attrs: &HandlerAttrs, handler: &HandlerFn) -> syn::Resu
     let handler_info_name = format_ident!("__ArchimedesHandler_{}", fn_name);
 
     // Generate method and path if provided
-    let method_attr = attrs.method.as_ref().map(|m| {
-        quote! { method: Some(#m), }
-    }).unwrap_or_else(|| quote! { method: None, });
+    let method_attr = attrs
+        .method
+        .as_ref()
+        .map(|m| {
+            quote! { method: Some(#m), }
+        })
+        .unwrap_or_else(|| quote! { method: None, });
 
-    let path_attr = attrs.path.as_ref().map(|p| {
-        quote! { path: Some(#p), }
-    }).unwrap_or_else(|| quote! { path: None, });
+    let path_attr = attrs
+        .path
+        .as_ref()
+        .map(|p| {
+            quote! { path: Some(#p), }
+        })
+        .unwrap_or_else(|| quote! { path: None, });
 
     let expanded = quote! {
         // Preserve the original function
@@ -127,7 +135,7 @@ fn generate_handler_code(attrs: &HandlerAttrs, handler: &HandlerFn) -> syn::Resu
 /// Returns a tuple of:
 /// - Token stream for extraction bindings (let statements)
 /// - Token stream for call arguments
-fn generate_extractions(params: &[HandlerParam]) -> syn::Result<(TokenStream, TokenStream)> {
+fn generate_extractions(params: &[HandlerParam]) -> (TokenStream, TokenStream) {
     let mut bindings = Vec::new();
     let mut call_args = Vec::new();
 
@@ -161,7 +169,7 @@ fn generate_extractions(params: &[HandlerParam]) -> syn::Result<(TokenStream, To
         quote! { #(#call_args),* }
     };
 
-    Ok((bindings_stream, call_args_stream))
+    (bindings_stream, call_args_stream)
 }
 
 #[cfg(test)]

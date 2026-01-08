@@ -250,10 +250,12 @@ impl FileWatcherBuilder {
         };
 
         for path in &self.config.paths {
-            watcher.watch(path, mode).map_err(|e| ConfigError::Io(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to watch path {}: {}", path.display(), e),
-            )))?;
+            watcher.watch(path, mode).map_err(|e| {
+                ConfigError::Io(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Failed to watch path {}: {}", path.display(), e),
+                ))
+            })?;
         }
 
         Ok(FileWatcher {
@@ -525,7 +527,10 @@ mod tests {
         let config_path = temp_dir.path().join("config.toml");
         fs::write(&config_path, "key = \"value\"").unwrap();
 
-        let result = FileWatcherBuilder::new().watch_path(&config_path).unwrap().build();
+        let result = FileWatcherBuilder::new()
+            .watch_path(&config_path)
+            .unwrap()
+            .build();
         assert!(result.is_ok());
     }
 
@@ -591,11 +596,11 @@ mod tests {
 
         // Modify the txt file (should be filtered)
         fs::write(&txt_path, "readme updated").unwrap();
-        
+
         // Poll should return None for filtered extension
         sleep(Duration::from_millis(100)).await;
         let event = watcher.poll().await;
-        
+
         // Event should be filtered out (None) or if we get one, it shouldn't be the txt file
         if let Some(e) = event {
             assert_ne!(e.path.extension().and_then(|s| s.to_str()), Some("txt"));

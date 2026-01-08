@@ -83,7 +83,11 @@ impl MiddlewarePipeline {
     /// Returns the processed request with any modifications, or an error
     /// if validation or authorization failed.
     #[allow(clippy::unused_async)]
-    pub async fn process(&self, request: &ProxyRequest, body: &Bytes) -> SidecarResult<MiddlewareResult> {
+    pub async fn process(
+        &self,
+        request: &ProxyRequest,
+        body: &Bytes,
+    ) -> SidecarResult<MiddlewareResult> {
         let mut result = MiddlewareResult::default();
 
         // Try to match operation from contract
@@ -162,15 +166,23 @@ impl MiddlewarePipeline {
 
     /// Build policy input for authorization evaluation.
     #[cfg(feature = "authz")]
-    fn build_policy_input(&self, request: &ProxyRequest, operation_id: Option<&str>) -> PolicyInput {
+    fn build_policy_input(
+        &self,
+        request: &ProxyRequest,
+        operation_id: Option<&str>,
+    ) -> PolicyInput {
         use themis_platform_types::{CallerIdentity, RequestId};
-        
+
         let request_id = RequestId::new();
-        
+
         PolicyInput::builder()
             .caller(CallerIdentity::Anonymous)
             .service("sidecar")
-            .operation_id(operation_id.map(String::from).unwrap_or_else(|| "unknown".to_string()))
+            .operation_id(
+                operation_id
+                    .map(String::from)
+                    .unwrap_or_else(|| "unknown".to_string()),
+            )
             .method(request.method.as_str())
             .path(&request.path)
             .request_id(request_id)
@@ -185,12 +197,15 @@ impl MiddlewarePipeline {
         evaluator: &Arc<parking_lot::RwLock<PolicyEvaluator>>,
         input: &PolicyInput,
     ) -> SidecarResult<()> {
-        let decision = evaluator.read()
+        let decision = evaluator
+            .read()
             .evaluate(input)
             .map_err(|e| SidecarError::internal(format!("policy evaluation error: {e}")))?;
 
         if !decision.allowed {
-            let reason = decision.reason.unwrap_or_else(|| "access denied".to_string());
+            let reason = decision
+                .reason
+                .unwrap_or_else(|| "access denied".to_string());
             return Err(SidecarError::authorization_denied(reason));
         }
 
@@ -280,10 +295,10 @@ mod tests {
     async fn test_process_request_no_validators() {
         let config = Arc::new(SidecarConfig::default());
         let pipeline = MiddlewarePipeline::new(config).await.unwrap();
-        
+
         let request = ProxyRequest::new(Method::GET, "/test");
         let body = Bytes::new();
-        
+
         let result = pipeline.process(&request, &body).await;
         assert!(result.is_ok());
     }

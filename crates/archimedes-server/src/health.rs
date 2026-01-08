@@ -75,13 +75,21 @@ impl HealthStatus {
 
     /// Creates a healthy status.
     #[must_use]
-    pub fn healthy(service: impl Into<String>, version: impl Into<String>, uptime: Duration) -> Self {
+    pub fn healthy(
+        service: impl Into<String>,
+        version: impl Into<String>,
+        uptime: Duration,
+    ) -> Self {
         Self::new("healthy", service, version, uptime)
     }
 
     /// Creates a degraded status.
     #[must_use]
-    pub fn degraded(service: impl Into<String>, version: impl Into<String>, uptime: Duration) -> Self {
+    pub fn degraded(
+        service: impl Into<String>,
+        version: impl Into<String>,
+        uptime: Duration,
+    ) -> Self {
         Self::new("degraded", service, version, uptime)
     }
 
@@ -307,7 +315,10 @@ pub struct ReadinessCheck {
 impl std::fmt::Debug for ReadinessCheck {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ReadinessCheck")
-            .field("checks", &self.checks.iter().map(|(n, _)| n).collect::<Vec<_>>())
+            .field(
+                "checks",
+                &self.checks.iter().map(|(n, _)| n).collect::<Vec<_>>(),
+            )
             .field("ready_override", &self.ready_override)
             .finish()
     }
@@ -413,8 +424,7 @@ impl ReadinessCheck {
             .map(|(name, check)| (name.clone(), check()))
             .collect();
 
-        let ready = self.ready_override.load(Ordering::SeqCst)
-            && checks.values().all(|&v| v);
+        let ready = self.ready_override.load(Ordering::SeqCst) && checks.values().all(|&v| v);
 
         ReadinessStatus::new(ready, checks)
     }
@@ -538,8 +548,7 @@ mod tests {
 
     #[test]
     fn test_readiness_check_add_check() {
-        let readiness = ReadinessCheck::new()
-            .add_check("test", || true);
+        let readiness = ReadinessCheck::new().add_check("test", || true);
 
         assert!(readiness.is_ready());
         assert_eq!(readiness.check_count(), 1);
@@ -580,8 +589,7 @@ mod tests {
 
     #[test]
     fn test_readiness_check_set_ready() {
-        let readiness = ReadinessCheck::new()
-            .add_check("always_pass", || true);
+        let readiness = ReadinessCheck::new().add_check("always_pass", || true);
 
         assert!(readiness.is_ready());
 
@@ -599,8 +607,8 @@ mod tests {
         let flag = Arc::new(AtomicBool::new(true));
         let flag_clone = Arc::clone(&flag);
 
-        let readiness = ReadinessCheck::new()
-            .add_check("dynamic", move || flag_clone.load(Ordering::SeqCst));
+        let readiness =
+            ReadinessCheck::new().add_check("dynamic", move || flag_clone.load(Ordering::SeqCst));
 
         assert!(readiness.is_ready());
 
@@ -642,8 +650,7 @@ mod tests {
 
     #[test]
     fn test_readiness_check_clone() {
-        let readiness1 = ReadinessCheck::new()
-            .add_check("test", || true);
+        let readiness1 = ReadinessCheck::new().add_check("test", || true);
 
         let readiness2 = readiness1.clone();
 

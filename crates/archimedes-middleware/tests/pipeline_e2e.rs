@@ -117,7 +117,10 @@ fn build_rbac_pipeline() -> Pipeline {
     // RBAC authorization - roles are extracted as "spiffe:{trust_domain}"
     // So spiffe://test.example.com/... -> role "spiffe:test.example.com"
     let authorization = AuthorizationMiddleware::rbac()
-        .allow_role("spiffe:test.example.com", ["getUser", "listUsers", "deleteUser"])
+        .allow_role(
+            "spiffe:test.example.com",
+            ["getUser", "listUsers", "deleteUser"],
+        )
         .build();
 
     let validation = ValidationMiddleware::allow_all();
@@ -634,8 +637,14 @@ fn build_enforce_validation_pipeline() -> Pipeline {
             MockSchema::builder()
                 .required("name")
                 .required("email")
-                .field("name", archimedes_middleware::stages::validation::FieldType::String)
-                .field("email", archimedes_middleware::stages::validation::FieldType::String)
+                .field(
+                    "name",
+                    archimedes_middleware::stages::validation::FieldType::String,
+                )
+                .field(
+                    "email",
+                    archimedes_middleware::stages::validation::FieldType::String,
+                )
                 .allow_additional(false)
                 .build(),
         )
@@ -696,7 +705,9 @@ async fn test_enforce_mode_blocks_invalid_request() {
         .unwrap();
 
     // Store body in extensions for validation middleware
-    request.extensions_mut().insert(RequestBody(body.as_bytes().to_vec()));
+    request
+        .extensions_mut()
+        .insert(RequestBody(body.as_bytes().to_vec()));
 
     let response = pipeline
         .process(ctx, request, |_ctx, _req| {
@@ -729,7 +740,9 @@ async fn test_enforce_mode_allows_valid_request() {
         .unwrap();
 
     // Store body in extensions for validation middleware
-    request.extensions_mut().insert(RequestBody(body.as_bytes().to_vec()));
+    request
+        .extensions_mut()
+        .insert(RequestBody(body.as_bytes().to_vec()));
 
     let response = pipeline
         .process(ctx, request, |_ctx, _req| {
@@ -820,7 +833,9 @@ async fn test_enforce_mode_rejects_additional_fields() {
         .unwrap();
 
     // Store body in extensions for validation middleware
-    request.extensions_mut().insert(RequestBody(body.as_bytes().to_vec()));
+    request
+        .extensions_mut()
+        .insert(RequestBody(body.as_bytes().to_vec()));
 
     let response = pipeline
         .process(ctx, request, |_ctx, _req| {
@@ -853,7 +868,9 @@ async fn test_enforce_mode_rejects_wrong_type() {
         .unwrap();
 
     // Store body in extensions for validation middleware
-    request.extensions_mut().insert(RequestBody(body.as_bytes().to_vec()));
+    request
+        .extensions_mut()
+        .insert(RequestBody(body.as_bytes().to_vec()));
 
     let response = pipeline
         .process(ctx, request, |_ctx, _req| {
@@ -885,7 +902,9 @@ async fn test_enforce_mode_unknown_operation_allowed() {
         .unwrap();
 
     // Store body in extensions for validation middleware
-    request.extensions_mut().insert(RequestBody(body.as_bytes().to_vec()));
+    request
+        .extensions_mut()
+        .insert(RequestBody(body.as_bytes().to_vec()));
 
     let response = pipeline
         .process(ctx, request, |_ctx, _req| {

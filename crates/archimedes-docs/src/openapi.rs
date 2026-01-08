@@ -652,17 +652,16 @@ impl OpenApiGenerator {
 
     /// Add an API key security scheme.
     #[must_use]
-    pub fn api_key_auth(
-        mut self,
-        name: impl Into<String>,
-        header_name: impl Into<String>,
-    ) -> Self {
+    pub fn api_key_auth(mut self, name: impl Into<String>, header_name: impl Into<String>) -> Self {
         let name = name.into();
         self.security_schemes.insert(
             name.clone(),
             SecurityScheme {
                 scheme_type: "apiKey".to_string(),
-                description: Some(format!("API key authentication via {} header", header_name.into())),
+                description: Some(format!(
+                    "API key authentication via {} header",
+                    header_name.into()
+                )),
                 scheme: None,
                 bearer_format: None,
                 location: Some("header".to_string()),
@@ -675,8 +674,14 @@ impl OpenApiGenerator {
     /// Generate an OpenAPI spec from a loaded artifact.
     pub fn generate(&self, artifact: &LoadedArtifact) -> DocsResult<OpenApi> {
         let info = Info {
-            title: self.title.clone().unwrap_or_else(|| artifact.service.clone()),
-            version: self.version.clone().unwrap_or_else(|| artifact.version.clone()),
+            title: self
+                .title
+                .clone()
+                .unwrap_or_else(|| artifact.service.clone()),
+            version: self
+                .version
+                .clone()
+                .unwrap_or_else(|| artifact.version.clone()),
             description: self.description.clone(),
             terms_of_service: None,
             contact: self.contact.clone(),
@@ -896,7 +901,9 @@ fn convert_themis_schema(schema: &ThemisSchema) -> Schema {
         ThemisSchema::Object(o) => {
             let mut result = Schema::object();
             for (name, prop_schema) in &o.properties {
-                result.properties.insert(name.clone(), convert_themis_schema(prop_schema));
+                result
+                    .properties
+                    .insert(name.clone(), convert_themis_schema(prop_schema));
             }
             result.required = o.required.clone();
             result
@@ -957,7 +964,10 @@ mod tests {
     #[test]
     fn test_schema_reference() {
         let schema = Schema::reference("#/components/schemas/User");
-        assert_eq!(schema.reference, Some("#/components/schemas/User".to_string()));
+        assert_eq!(
+            schema.reference,
+            Some("#/components/schemas/User".to_string())
+        );
     }
 
     #[test]
@@ -985,7 +995,10 @@ mod tests {
             .description("API description")
             .server("https://api.example.com", Some("Production".to_string()))
             .bearer_auth("bearerAuth")
-            .license("MIT", Some("https://opensource.org/licenses/MIT".to_string()));
+            .license(
+                "MIT",
+                Some("https://opensource.org/licenses/MIT".to_string()),
+            );
 
         assert_eq!(generator.title, Some("My API".to_string()));
         assert_eq!(generator.version, Some("1.0.0".to_string()));

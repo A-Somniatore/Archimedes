@@ -120,7 +120,10 @@ async fn main() {
         "Starting Archimedes sidecar v{}",
         archimedes_sidecar::VERSION
     );
-    info!("Listening on {}:{}", config.sidecar.listen_addr, config.sidecar.listen_port);
+    info!(
+        "Listening on {}:{}",
+        config.sidecar.listen_addr, config.sidecar.listen_port
+    );
     info!("Upstream: {}", config.sidecar.upstream_url);
 
     // Create and run server

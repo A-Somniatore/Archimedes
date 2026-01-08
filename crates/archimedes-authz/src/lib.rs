@@ -70,7 +70,7 @@ pub mod evaluator;
 
 // Re-exports for convenience
 pub use bundle::{Bundle, BundleLoader, BundleMetadata};
-pub use cache::{DecisionCache, CacheConfig};
+pub use cache::{CacheConfig, DecisionCache};
 pub use config::EvaluatorConfig;
 pub use error::{AuthzError, AuthzResult};
 pub use evaluator::PolicyEvaluator;

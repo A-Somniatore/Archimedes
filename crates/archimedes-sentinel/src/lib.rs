@@ -134,7 +134,8 @@ impl Sentinel {
         if !self.config.validation.validate_requests {
             return Ok(ValidationResult::success(None));
         }
-        self.validator.validate_request(operation_id, &self.artifact, body)
+        self.validator
+            .validate_request(operation_id, &self.artifact, body)
     }
 
     /// Validate a response body against the operation schema.
@@ -236,7 +237,10 @@ mod tests {
 
         let resolution = sentinel.resolve("GET", "/users/123").unwrap();
         assert_eq!(resolution.operation_id, "getUser");
-        assert_eq!(resolution.path_params.get("userId"), Some(&"123".to_string()));
+        assert_eq!(
+            resolution.path_params.get("userId"),
+            Some(&"123".to_string())
+        );
     }
 
     #[test]

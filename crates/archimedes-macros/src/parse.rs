@@ -45,10 +45,7 @@ impl Parse for HandlerAttrs {
                             lit: Lit::Str(s), ..
                         }) => s.value(),
                         _ => {
-                            return Err(syn::Error::new(
-                                nv.value.span(),
-                                "expected string literal",
-                            ))
+                            return Err(syn::Error::new(nv.value.span(), "expected string literal"))
                         }
                     };
 
@@ -108,9 +105,10 @@ impl HandlerParam {
                     pattern: (**pat).clone(),
                 })
             }
-            FnArg::Receiver(_) => {
-                Err(syn::Error::new(arg.span(), "handlers cannot have self parameter"))
-            }
+            FnArg::Receiver(_) => Err(syn::Error::new(
+                arg.span(),
+                "handlers cannot have self parameter",
+            )),
         }
     }
 

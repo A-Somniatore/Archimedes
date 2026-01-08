@@ -403,11 +403,7 @@ pub struct ErrorResponse {
 impl ErrorResponse {
     /// Creates a new error response.
     #[must_use]
-    pub fn new(
-        status: StatusCode,
-        code: impl Into<String>,
-        message: impl Into<String>,
-    ) -> Self {
+    pub fn new(status: StatusCode, code: impl Into<String>, message: impl Into<String>) -> Self {
         Self {
             status,
             code: code.into(),
@@ -587,10 +583,7 @@ mod tests {
         let response = redirect.into_response();
 
         assert_eq!(response.status(), StatusCode::FOUND);
-        assert_eq!(
-            response.headers().get(header::LOCATION).unwrap(),
-            "/target"
-        );
+        assert_eq!(response.headers().get(header::LOCATION).unwrap(), "/target");
     }
 
     #[test]
@@ -640,12 +633,10 @@ mod tests {
 
     #[test]
     fn test_error_response_with_request_id() {
-        let response = ErrorResponse::not_found("User not found")
-            .with_request_id("req-123");
+        let response = ErrorResponse::not_found("User not found").with_request_id("req-123");
 
         let http_response = response.into_response();
-        let body: serde_json::Value =
-            serde_json::from_slice(http_response.body()).unwrap();
+        let body: serde_json::Value = serde_json::from_slice(http_response.body()).unwrap();
 
         assert_eq!(body["request_id"], "req-123");
     }

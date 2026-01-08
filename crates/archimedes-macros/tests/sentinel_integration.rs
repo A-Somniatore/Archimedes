@@ -12,9 +12,7 @@ use archimedes_core::di::Container;
 use archimedes_core::{InvocationContext, ThemisError};
 use archimedes_extract::{ExtractionContext, FromRequest, Inject, Json, Path, Query};
 use archimedes_router::Params;
-use archimedes_sentinel::{
-    LoadedArtifact, LoadedOperation, Sentinel,
-};
+use archimedes_sentinel::{LoadedArtifact, LoadedOperation, Sentinel};
 use bytes::Bytes;
 use http::{HeaderMap, Method, Uri};
 use indexmap::IndexMap;
@@ -419,7 +417,11 @@ async fn test_update_user_handler_with_contract() {
     let request: Json<UpdateUserRequest> = Json::from_request(&extraction_ctx).unwrap();
     let service: Inject<UserService> = Inject::from_request(&extraction_ctx).unwrap();
 
-    let user = service.update_user(path.0.user_id, request.0.name.clone(), request.0.email.clone());
+    let user = service.update_user(
+        path.0.user_id,
+        request.0.name.clone(),
+        request.0.email.clone(),
+    );
 
     assert!(user.is_some());
     let user = user.unwrap();
@@ -469,13 +471,17 @@ async fn test_list_users_handler_with_query_params() {
 async fn test_handler_binder_with_sentinel() {
     use archimedes_core::binder::HandlerBinder;
     use archimedes_core::handler::BoxedHandler;
-    use std::pin::Pin;
     use std::future::Future;
+    use std::pin::Pin;
 
     let artifact = create_user_service_artifact();
 
     // Extract operation IDs from the artifact
-    let operation_ids: Vec<&str> = artifact.operations.iter().map(|op| op.id.as_str()).collect();
+    let operation_ids: Vec<&str> = artifact
+        .operations
+        .iter()
+        .map(|op| op.id.as_str())
+        .collect();
 
     // Create binder with operation IDs
     let mut binder = HandlerBinder::new(operation_ids);

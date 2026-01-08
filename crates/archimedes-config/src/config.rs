@@ -4,9 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    AuthorizationConfig, ContractConfig, ServerConfig, TelemetryConfigSection,
-};
+use crate::{AuthorizationConfig, ContractConfig, ServerConfig, TelemetryConfigSection};
 
 /// Complete Archimedes server configuration.
 ///
@@ -78,7 +76,12 @@ impl ArchimedesConfig {
     /// - Required fields are missing when features are enabled
     pub fn validate(&self) -> Result<(), crate::ConfigError> {
         // Validate server address format
-        if self.server.http_addr.parse::<std::net::SocketAddr>().is_err() {
+        if self
+            .server
+            .http_addr
+            .parse::<std::net::SocketAddr>()
+            .is_err()
+        {
             return Err(crate::ConfigError::invalid_value(
                 "server.http_addr",
                 format!("invalid socket address: {}", self.server.http_addr),
@@ -87,7 +90,12 @@ impl ArchimedesConfig {
 
         // Validate metrics address if enabled
         if self.telemetry.metrics.enabled
-            && self.telemetry.metrics.addr.parse::<std::net::SocketAddr>().is_err()
+            && self
+                .telemetry
+                .metrics
+                .addr
+                .parse::<std::net::SocketAddr>()
+                .is_err()
         {
             return Err(crate::ConfigError::invalid_value(
                 "telemetry.metrics.addr",
@@ -313,7 +321,10 @@ mod tests {
 
         assert_eq!(config.server.http_addr, "127.0.0.1:3000");
         assert_eq!(config.telemetry.service_name, "my-service");
-        assert_eq!(config.authorization.mode, crate::AuthorizationMode::AllowAll);
+        assert_eq!(
+            config.authorization.mode,
+            crate::AuthorizationMode::AllowAll
+        );
         assert!(!config.contract.strict_validation);
     }
 
@@ -409,7 +420,10 @@ mod tests {
         assert_eq!(config.telemetry.logging.level, "debug");
         assert_eq!(config.telemetry.logging.format, crate::LogFormat::Pretty);
         assert!(config.telemetry.logging.ansi_enabled);
-        assert_eq!(config.authorization.mode, crate::AuthorizationMode::AllowAll);
+        assert_eq!(
+            config.authorization.mode,
+            crate::AuthorizationMode::AllowAll
+        );
         assert!(!config.contract.validate_responses);
     }
 

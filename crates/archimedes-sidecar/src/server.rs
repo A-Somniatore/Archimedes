@@ -17,8 +17,8 @@ use tracing::{debug, error, info, warn, Instrument};
 
 use crate::config::SidecarConfig;
 use crate::error::{ErrorResponse, SidecarError, SidecarResult};
-use crate::health::HealthChecker;
 use crate::headers::PropagatedHeaders;
+use crate::health::HealthChecker;
 use crate::proxy::{ProxyClient, ProxyRequest};
 
 /// Sidecar server.
@@ -61,10 +61,7 @@ impl SidecarServer {
             .map_err(|e| SidecarError::server(format!("failed to bind: {e}")))?;
 
         info!("Archimedes sidecar listening on {}", addr);
-        info!(
-            "Proxying to upstream: {}",
-            self.config.sidecar.upstream_url
-        );
+        info!("Proxying to upstream: {}", self.config.sidecar.upstream_url);
 
         // Mark as ready
         self.health.set_ready(true);
@@ -98,10 +95,7 @@ impl SidecarServer {
                     }
                 });
 
-                if let Err(e) = http1::Builder::new()
-                    .serve_connection(io, service)
-                    .await
-                {
+                if let Err(e) = http1::Builder::new().serve_connection(io, service).await {
                     debug!("Connection error: {}", e);
                 }
             });
@@ -119,7 +113,11 @@ async fn handle_request(
 ) -> Result<Response<Full<Bytes>>, Infallible> {
     let start = Instant::now();
     let method = req.method().clone();
-    let path = req.uri().path_and_query().map(ToString::to_string).unwrap_or_else(|| "/".to_string());
+    let path = req
+        .uri()
+        .path_and_query()
+        .map(ToString::to_string)
+        .unwrap_or_else(|| "/".to_string());
 
     // Generate request ID
     let propagated = PropagatedHeaders::new();
@@ -182,14 +180,12 @@ async fn handle_request(
                 // Add request ID header
                 builder = builder.header("x-request-id", &request_id);
 
-                Ok(builder
-                    .body(Full::new(response.body))
-                    .unwrap_or_else(|_| {
-                        Response::builder()
-                            .status(StatusCode::INTERNAL_SERVER_ERROR)
-                            .body(Full::new(Bytes::from("internal error")))
-                            .unwrap()
-                    }))
+                Ok(builder.body(Full::new(response.body)).unwrap_or_else(|_| {
+                    Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .body(Full::new(Bytes::from("internal error")))
+                        .unwrap()
+                }))
             }
             Err(e) => {
                 let duration = start.elapsed();

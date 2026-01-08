@@ -23,8 +23,8 @@
 
 use std::future::Future;
 use std::pin::Pin;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use tokio::sync::broadcast;
@@ -224,7 +224,7 @@ impl Future for ShutdownReceiver {
 async fn wait_for_os_signal() {
     #[cfg(unix)]
     {
-        use tokio::signal::unix::{SignalKind, signal};
+        use tokio::signal::unix::{signal, SignalKind};
 
         let mut sigterm =
             signal(SignalKind::terminate()).expect("Failed to register SIGTERM handler");

@@ -82,10 +82,10 @@ mod invocation;
 
 // Re-export shared types from themis-platform-types
 pub use themis_platform_types::{
-    CallerIdentity,
-    RequestId,
     // Re-export sub-types for convenience
     identity::{ApiKeyIdentity, SpiffeIdentity, UserIdentity},
+    CallerIdentity,
+    RequestId,
 };
 
 // Re-export local types

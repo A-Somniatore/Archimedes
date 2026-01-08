@@ -331,10 +331,7 @@ mod tests {
 
     #[test]
     fn test_method_router_allowed_methods() {
-        let router = MethodRouter::new()
-            .get("get")
-            .post("post")
-            .delete("delete");
+        let router = MethodRouter::new().get("get").post("post").delete("delete");
 
         let allowed = router.allowed_methods();
         assert!(allowed.contains(&Method::GET));
@@ -374,16 +371,18 @@ mod tests {
     #[test]
     fn test_method_router_merge_all_methods() {
         let mut router = MethodRouter::new();
-        router.merge(MethodRouter::new()
-            .get("get")
-            .post("post")
-            .put("put")
-            .delete("delete")
-            .patch("patch")
-            .head("head")
-            .options("options")
-            .trace("trace")
-            .connect("connect"));
+        router.merge(
+            MethodRouter::new()
+                .get("get")
+                .post("post")
+                .put("put")
+                .delete("delete")
+                .patch("patch")
+                .head("head")
+                .options("options")
+                .trace("trace")
+                .connect("connect"),
+        );
 
         assert_eq!(router.get_operation(&Method::GET), Some("get"));
         assert_eq!(router.get_operation(&Method::POST), Some("post"));

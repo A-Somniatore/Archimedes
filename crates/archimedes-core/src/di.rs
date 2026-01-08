@@ -46,11 +46,7 @@ pub struct InjectionError {
 
 impl fmt::Display for InjectionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "Failed to inject {}: {}",
-            self.type_name, self.reason
-        )
+        write!(f, "Failed to inject {}: {}", self.type_name, self.reason)
     }
 }
 
@@ -162,7 +158,8 @@ impl Container {
     /// assert!(result.is_err()); // Not registered
     /// ```
     pub fn resolve_required<T: Send + Sync + 'static>(&self) -> Result<Arc<T>, InjectionError> {
-        self.resolve().ok_or_else(InjectionError::not_registered::<T>)
+        self.resolve()
+            .ok_or_else(InjectionError::not_registered::<T>)
     }
 
     /// Checks if a service is registered.
@@ -254,9 +251,7 @@ impl<T: Send + Sync + 'static> Inject<T> {
     ///
     /// Returns `InjectionError` if the service is not registered.
     pub fn from_container(container: &Container) -> Result<Self, InjectionError> {
-        container
-            .resolve_required::<T>()
-            .map(Inject)
+        container.resolve_required::<T>().map(Inject)
     }
 }
 
@@ -315,7 +310,7 @@ mod tests {
         let container = Container::new();
         let result: Result<Arc<TestService>, _> = container.resolve_required();
         assert!(result.is_err());
-        
+
         let err = result.unwrap_err();
         assert!(err.to_string().contains("TestService"));
         assert!(err.to_string().contains("not registered"));
@@ -325,7 +320,7 @@ mod tests {
     fn test_container_contains() {
         let mut container = Container::new();
         assert!(!container.contains::<TestService>());
-        
+
         container.register(Arc::new(TestService::new("test")));
         assert!(container.contains::<TestService>());
     }
@@ -334,7 +329,7 @@ mod tests {
     fn test_inject_deref() {
         let service = Arc::new(TestService::new("deref test"));
         let inject = Inject::new(service);
-        
+
         assert_eq!(inject.value, "deref test");
     }
 
@@ -373,7 +368,7 @@ mod tests {
     fn test_container_debug() {
         let mut container = Container::new();
         container.register(Arc::new(TestService::new("debug")));
-        
+
         let debug = format!("{:?}", container);
         assert!(debug.contains("Container"));
         assert!(debug.contains("service_count"));

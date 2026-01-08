@@ -223,8 +223,10 @@ async fn test_handler_with_headers() {
     use archimedes_extract::{Authorization, ExtractTypedHeader};
 
     // Handler that extracts authorization header
-    async fn authorized_action(auth: ExtractTypedHeader<Authorization>) -> Result<String, ThemisError> {
-        Ok(format!("Authorized with: {}", auth.0.0))
+    async fn authorized_action(
+        auth: ExtractTypedHeader<Authorization>,
+    ) -> Result<String, ThemisError> {
+        Ok(format!("Authorized with: {}", auth.0 .0))
     }
 
     let mut headers = HeaderMap::new();
@@ -240,7 +242,8 @@ async fn test_handler_with_headers() {
 
     // Create extraction context
     let extraction_ctx = ExtractionContext::from_invocation(&ctx);
-    let auth: ExtractTypedHeader<Authorization> = ExtractTypedHeader::from_request(&extraction_ctx).unwrap();
+    let auth: ExtractTypedHeader<Authorization> =
+        ExtractTypedHeader::from_request(&extraction_ctx).unwrap();
 
     // Call the handler
     let result = authorized_action(auth).await;

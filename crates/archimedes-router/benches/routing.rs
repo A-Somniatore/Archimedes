@@ -61,10 +61,7 @@ fn bench_nested_param_match(c: &mut Criterion) {
 
     c.bench_function("nested_param_match", |b| {
         b.iter(|| {
-            black_box(router.match_route(
-                &Method::GET,
-                "/api/v1/org/acme-corp/resource10/12345",
-            ));
+            black_box(router.match_route(&Method::GET, "/api/v1/org/acme-corp/resource10/12345"));
         });
     });
 }

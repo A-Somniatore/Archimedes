@@ -53,15 +53,15 @@
 //!              [GET,DELETE]
 //! ```
 
-mod node;
-mod router;
 mod method_router;
+mod node;
 mod params;
+mod router;
 
-pub use node::Node;
-pub use router::Router;
 pub use method_router::MethodRouter;
+pub use node::Node;
 pub use params::Params;
+pub use router::Router;
 
 /// A matched route with its operation ID and extracted parameters.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -76,7 +76,10 @@ impl<'a> RouteMatch<'a> {
     /// Creates a new route match.
     #[must_use]
     pub fn new(operation_id: &'a str, params: Params) -> Self {
-        Self { operation_id, params }
+        Self {
+            operation_id,
+            params,
+        }
     }
 }
 
@@ -107,7 +110,10 @@ mod tests {
     #[test]
     fn test_method_routing() {
         let mut router = Router::new();
-        router.insert("/users", MethodRouter::new().get("listUsers").post("createUser"));
+        router.insert(
+            "/users",
+            MethodRouter::new().get("listUsers").post("createUser"),
+        );
 
         let get_result = router.match_route(&Method::GET, "/users");
         assert!(get_result.is_some());
@@ -145,7 +151,10 @@ mod tests {
     #[test]
     fn test_multiple_params() {
         let mut router = Router::new();
-        router.insert("/orgs/{orgId}/users/{userId}", MethodRouter::new().get("getOrgUser"));
+        router.insert(
+            "/orgs/{orgId}/users/{userId}",
+            MethodRouter::new().get("getOrgUser"),
+        );
 
         let result = router.match_route(&Method::GET, "/orgs/acme/users/123");
         assert!(result.is_some());

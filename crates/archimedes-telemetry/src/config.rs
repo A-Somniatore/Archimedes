@@ -135,7 +135,7 @@ impl TelemetryConfigBuilder {
     #[must_use]
     pub fn build(self) -> TelemetryConfig {
         let defaults = TelemetryConfig::default();
-        
+
         let service_name = self.service_name.unwrap_or(defaults.service_name);
         let service_version = self.service_version.unwrap_or(defaults.service_version);
         let environment = self.environment.unwrap_or(defaults.environment);
@@ -215,9 +215,6 @@ mod tests {
             .build();
 
         assert!(config.tracing.enabled);
-        assert_eq!(
-            config.tracing.otlp_endpoint,
-            "http://jaeger:4317"
-        );
+        assert_eq!(config.tracing.otlp_endpoint, "http://jaeger:4317");
     }
 }

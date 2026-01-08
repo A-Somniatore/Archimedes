@@ -91,16 +91,18 @@ impl PolicyEvaluator {
             debug!(path, "adding policy");
             engine
                 .add_policy(path.clone(), content.clone())
-                .map_err(|e| AuthzError::Evaluation(format!("failed to load policy {}: {}", path, e)))?;
+                .map_err(|e| {
+                    AuthzError::Evaluation(format!("failed to load policy {}: {}", path, e))
+                })?;
         }
 
         // Load all data
         for (path, content) in &bundle.data {
             debug!(path, "adding data");
             let regorus_value: regorus::Value = content.clone().into();
-            engine
-                .add_data(regorus_value)
-                .map_err(|e| AuthzError::Evaluation(format!("failed to load data {}: {}", path, e)))?;
+            engine.add_data(regorus_value).map_err(|e| {
+                AuthzError::Evaluation(format!("failed to load data {}: {}", path, e))
+            })?;
         }
 
         let metadata = bundle.metadata.clone();
@@ -142,7 +144,7 @@ impl PolicyEvaluator {
 
         // Set input in the engine
         let regorus_input: regorus::Value = input_json.into();
-        
+
         // Create a mutable clone for evaluation
         let mut engine = self.engine.clone();
         engine.set_input(regorus_input);
@@ -166,18 +168,21 @@ impl PolicyEvaluator {
 
         // Get policy metadata
         let (policy_id, policy_version) = self.bundle_metadata.as_ref().map_or_else(
-            || (self.config.default_policy_id.clone(), self.config.default_policy_version.clone()),
+            || {
+                (
+                    self.config.default_policy_id.clone(),
+                    self.config.default_policy_version.clone(),
+                )
+            },
             |m| (self.config.default_policy_id.clone(), m.revision.clone()),
         );
 
         let decision = if allowed {
-            PolicyDecision::allow(policy_id, policy_version)
-                .with_evaluation_time(elapsed_ns)
+            PolicyDecision::allow(policy_id, policy_version).with_evaluation_time(elapsed_ns)
         } else {
             // Try to extract a denial reason
             let reason = self.extract_denial_reason(&mut engine);
-            PolicyDecision::deny(policy_id, policy_version, reason)
-                .with_evaluation_time(elapsed_ns)
+            PolicyDecision::deny(policy_id, policy_version, reason).with_evaluation_time(elapsed_ns)
         };
 
         Ok(decision)

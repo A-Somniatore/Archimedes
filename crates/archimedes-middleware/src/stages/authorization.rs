@@ -220,9 +220,7 @@ impl AuthorizationMiddleware {
             AuthorizationMode::DenyAll => PolicyDecision::Deny {
                 reason: "Authorization denied (deny-all mode)".to_string(),
             },
-            AuthorizationMode::Rbac(config) => {
-                Self::evaluate_rbac(config, identity, operation_id)
-            }
+            AuthorizationMode::Rbac(config) => Self::evaluate_rbac(config, identity, operation_id),
             AuthorizationMode::Custom(evaluator) => evaluator.evaluate(identity, operation_id),
             #[cfg(feature = "opa")]
             AuthorizationMode::Opa(_) => {
@@ -260,9 +258,9 @@ impl AuthorizationMiddleware {
             input_builder = input_builder.headers(headers_map);
         }
 
-        let input = input_builder
-            .try_build()
-            .map_err(|e| archimedes_authz::AuthzError::Evaluation(format!("Failed to build policy input: {}", e)))?;
+        let input = input_builder.try_build().map_err(|e| {
+            archimedes_authz::AuthzError::Evaluation(format!("Failed to build policy input: {}", e))
+        })?;
 
         authorizer.authorize(&input).await
     }
@@ -301,9 +299,7 @@ impl AuthorizationMiddleware {
         }
 
         PolicyDecision::Deny {
-            reason: format!(
-                "No permission for operation '{operation_id}' with roles {roles:?}"
-            ),
+            reason: format!("No permission for operation '{operation_id}' with roles {roles:?}"),
         }
     }
 
@@ -366,7 +362,9 @@ impl Middleware for AuthorizationMiddleware {
                             });
                             return next.run(ctx, request).await;
                         } else {
-                            let reason = decision.reason.unwrap_or_else(|| "access denied".to_string());
+                            let reason = decision
+                                .reason
+                                .unwrap_or_else(|| "access denied".to_string());
                             ctx.set_extension(AuthorizationResult {
                                 allowed: false,
                                 operation_id,
@@ -419,11 +417,7 @@ impl Middleware for AuthorizationMiddleware {
                     });
 
                     // Return 403 Forbidden response
-                    Response::json_error(
-                        StatusCode::FORBIDDEN,
-                        "AUTHORIZATION_DENIED",
-                        &reason,
-                    )
+                    Response::json_error(StatusCode::FORBIDDEN, "AUTHORIZATION_DENIED", &reason)
                 }
             }
         })
@@ -515,12 +509,9 @@ mod tests {
             .unwrap()
     }
 
-    fn create_handler() -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
-        |_ctx, _req| {
-            Box::pin(async {
-                success_response()
-            })
-        }
+    fn create_handler(
+    ) -> impl FnOnce(&mut MiddlewareContext, Request) -> BoxFuture<'static, Response> {
+        |_ctx, _req| Box::pin(async { success_response() })
     }
 
     #[test]
@@ -669,9 +660,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_rbac_allow_anonymous_permits_all() {
-        let middleware = AuthorizationMiddleware::rbac()
-            .allow_anonymous()
-            .build();
+        let middleware = AuthorizationMiddleware::rbac().allow_anonymous().build();
 
         let mut ctx = MiddlewareContext::new();
         ctx.set_operation_id("anyOperation".to_string());

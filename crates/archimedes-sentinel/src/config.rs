@@ -160,8 +160,7 @@ mod tests {
 
     #[test]
     fn test_sentinel_config_with_registry() {
-        let config = SentinelConfig::default()
-            .with_registry("http://registry.example.com");
+        let config = SentinelConfig::default().with_registry("http://registry.example.com");
         assert_eq!(
             config.registry_url,
             Some("http://registry.example.com".to_string())

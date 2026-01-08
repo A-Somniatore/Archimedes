@@ -279,8 +279,7 @@ fn test_invalid_data_json() {
     let manifest = r#"{"revision": "test", "roots": []}"#;
     let invalid_data = "{ invalid json }";
 
-    let bundle_data =
-        create_bundle(&[(".manifest", manifest), ("data.json", invalid_data)]);
+    let bundle_data = create_bundle(&[(".manifest", manifest), ("data.json", invalid_data)]);
 
     let result = BundleLoader::from_tar_gz(&bundle_data, "test".to_string());
     assert!(result.is_err());
@@ -410,6 +409,10 @@ has_permission(roles, required) {
     // Verify RBAC data structure
     let rbac = bundle.data.get("user_service/rbac/data.json").unwrap();
     assert!(rbac.get("role_permissions").is_some());
-    assert!(rbac["role_permissions"]["admin"]["user:admin"].as_bool().unwrap());
-    assert!(!rbac["role_permissions"]["viewer"]["user:admin"].as_bool().unwrap());
+    assert!(rbac["role_permissions"]["admin"]["user:admin"]
+        .as_bool()
+        .unwrap());
+    assert!(!rbac["role_permissions"]["viewer"]["user:admin"]
+        .as_bool()
+        .unwrap());
 }
