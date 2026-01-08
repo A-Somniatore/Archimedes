@@ -1,7 +1,7 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 3.5.0
-> **Status**: Implementation Phase (Phase A13.4 In Progress)
+> **Version**: 3.6.0
+> **Status**: Implementation Phase (Phase A13.5 In Progress)
 > **Last Updated**: 2026-01-12
 > **Component**: archimedes
 
@@ -30,8 +30,8 @@
 | `archimedes-ffi`        | ✅ Complete    | 44    | C ABI for cross-language FFI (Phase A13.1)                                                                |
 | `archimedes-py`         | ✅ Complete    | 111   | Python bindings via PyO3 - Full Rust parity (Phase A13.2)                                                 |
 | `archimedes-node`       | ✅ Complete    | 95    | Node.js/TypeScript bindings via napi-rs (Phase A13.3)                                                     |
-| `include/archimedes/`   | 🔄 In Progress | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
-| `archimedes-go`         | 📋 Planned     | -     | Go bindings via cgo (Phase A13.5)                                                                         |
+| `include/archimedes/`   | ✅ Complete    | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
+| `examples/go-native/`   | 🔄 In Progress | 9     | Go bindings via cgo (Phase A13.5)                                                                         |
 
 **Total Tests**: 1119+ passing across all crates
 

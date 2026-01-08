@@ -1,6 +1,6 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.5.0
+> **Version**: 3.6.0
 > **Created**: 2026-01-04
 > **Last Updated**: 2026-01-12
 > **Target Completion**: Week 78 (extended for framework parity features)
@@ -16,7 +16,8 @@
 > **UPDATE (2026-01-11)**: Phase A14 (Framework Parity) ADDED - CORS, TestClient, file uploads, rate limiting, static files to match FastAPI/Axum.
 > **🔥 UPDATE (2026-01-08)**: rust-native example rewritten to use Archimedes directly (not Axum) - 14 unit tests added.
 > **🔥 UPDATE (2026-01-12)**: Phase A13.3 (TypeScript/Node.js Bindings) COMPLETE - archimedes-node crate with napi-rs, 95 tests passing.
-> **🔥 UPDATE (2026-01-12)**: Phase A13.4 (C++ Bindings) IN PROGRESS - C++ headers created with RAII, modern C++17 API.
+> **🔥 UPDATE (2026-01-12)**: Phase A13.4 (C++ Bindings) COMPLETE - C++ headers with RAII, modern C++17 API.
+> **🔥 UPDATE (2026-01-12)**: Phase A13.5 (Go Bindings) IN PROGRESS - archimedes-go module with cgo, go-native example created.
 
 ---
 
@@ -49,7 +50,7 @@
 | **Python**     | `examples/python-native`      | archimedes-py     | ✅ Done          | A13.2 | 8002 |
 | **TypeScript** | `examples/typescript-native`  | @archimedes/node  | ✅ Done          | A13.3 | 8004 |
 | **C++**        | `examples/cpp-native`         | libarchimedes     | 🔄 In Progress   | A13.4 | 8005 |
-| **Go**         | `examples/go-sidecar`         | net/http          | archimedes-go    | A13.5 | 8003 |
+| **Go**         | `examples/go-native`         | archimedes-go     | 🔄 In Progress   | A13.5 | 8003 |
 
 **Each example includes:**
 
@@ -2067,15 +2068,16 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 - [ ] Documentation and examples
 - [ ] Benchmark: libarchimedes vs cpp-httplib
 
-### Phase A13.5: Go Bindings (Weeks 66-69)
+### Phase A13.5: Go Bindings (Weeks 66-69) - 🔄 IN PROGRESS
 
 > **Goal**: `go get github.com/themis-platform/archimedes-go` - Go developers use Archimedes directly
 > **Technology**: cgo (C bindings for Go)
+> **Status**: Core module created with cgo bindings
 
-#### Week 66-67: Core Go Module
+#### Week 66-67: Core Go Module ✅ COMPLETE
 
-- [ ] Create `archimedes-go` module using cgo
-- [ ] Go-idiomatic API design:
+- [x] Create `archimedes-go` module using cgo
+- [x] Go-idiomatic API design:
 
   ```go
   package main
@@ -2101,14 +2103,14 @@ Created `archimedes-py` crate with comprehensive Python bindings:
   }
   ```
 
-- [ ] Context with typed request access
-- [ ] Error handling with Go idioms
+- [x] Context with typed request access
+- [x] Error handling with Go idioms
 - [ ] Static linking option (no cgo dependency in prod)
 
-#### Week 68-69: Go Ecosystem Integration
+#### Week 68-69: Go Ecosystem Integration - 🔄 IN PROGRESS
 
-- [ ] Create Go module with proper versioning
-- [ ] Testing utilities
+- [x] Create Go module with proper versioning
+- [x] Testing utilities (archimedes_test.go)
 - [ ] OpenTelemetry Go integration
 - [ ] Migration guide: Gin/Chi → Archimedes
 - [ ] Benchmark: archimedes-go vs Gin (target: 1.5x throughput)
@@ -2121,8 +2123,8 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 | Core FFI Layer         | C          | libarchimedes.so       | A13.1 | ✅ Complete    | 44    |
 | Python Bindings        | Python     | archimedes (PyPI)      | A13.2 | ✅ Complete    | 111   |
 | TypeScript Bindings    | TypeScript | @archimedes/node (npm) | A13.3 | ✅ Complete    | 95    |
-| C++ Bindings           | C++        | libarchimedes (vcpkg)  | A13.4 | � In Progress | -     |
-| Go Bindings            | Go         | archimedes-go (module) | A13.5 | 📋 Planned     | -     |
+| C++ Bindings           | C++        | libarchimedes (vcpkg)  | A13.4 | ✅ Complete    | -     |
+| Go Bindings            | Go         | archimedes-go (module) | A13.5 | 🔄 In Progress | 9     |
 | Migration Guides       | All        | docs/migration/        | -     | 📋 Planned     | -     |
 | Performance Benchmarks | All        | benchmarks/            | -     | 📋 Planned     | -     |
 
