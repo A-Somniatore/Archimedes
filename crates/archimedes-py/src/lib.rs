@@ -39,6 +39,7 @@ mod handlers;
 mod middleware;
 mod response;
 mod server;
+mod validation;
 
 pub use authz::{PyAuthorizer, PyPolicyDecision};
 pub use config::PyConfig;
@@ -50,6 +51,7 @@ pub use middleware::{
 };
 pub use response::PyResponse;
 pub use server::{PyServer, ServerError};
+pub use validation::{PyOperationResolution, PySentinel, PyValidationError, PyValidationResult};
 
 /// Archimedes application instance
 ///
@@ -267,6 +269,12 @@ fn archimedes_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Authorization classes
     m.add_class::<PyAuthorizer>()?;
     m.add_class::<PyPolicyDecision>()?;
+
+    // Validation classes
+    m.add_class::<PySentinel>()?;
+    m.add_class::<PyValidationResult>()?;
+    m.add_class::<PyValidationError>()?;
+    m.add_class::<PyOperationResolution>()?;
 
     // Error type
     m.add("ArchimedesError", m.py().get_type::<PyArchimedesError>())?;
