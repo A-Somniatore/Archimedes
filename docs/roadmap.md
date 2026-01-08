@@ -1,6 +1,6 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.7.0
+> **Version**: 3.8.0
 > **Created**: 2026-01-04
 > **Last Updated**: 2026-01-12
 > **Target Completion**: Week 78 (extended for framework parity features)
@@ -18,7 +18,9 @@
 > **🔥 UPDATE (2026-01-12)**: Phase A13.3 (TypeScript/Node.js Bindings) COMPLETE - archimedes-node crate with napi-rs, 95 tests passing.
 > **🔥 UPDATE (2026-01-12)**: Phase A13.4 (C++ Bindings) COMPLETE - C++ headers with RAII, modern C++17 API.
 > **🔥 UPDATE (2026-01-12)**: Phase A13.5 (Go Bindings) COMPLETE - archimedes-go module with cgo, go-native example, 9 tests.
-> **🔥 UPDATE (2026-01-12)**: Phase A14 (Framework Parity) STARTED - Beginning P0 migration blockers: CORS, TestClient, Lifecycle hooks.
+> **🔥 UPDATE (2026-01-12)**: Phase A13 COMPLETE - All 5 language bindings done (C FFI, Python, TypeScript, C++, Go).
+> **🔥 UPDATE (2026-01-12)**: Phase A14.1 CORS middleware COMPLETE - 19 tests, preflight handling, configurable origins/methods/headers.
+> **🔥 UPDATE (2026-01-12)**: Phase A14.1 TestClient COMPLETE - archimedes-test crate with 30 tests, in-memory HTTP testing.
 
 ---
 
@@ -2250,67 +2252,75 @@ Flask            | 3,000     | 15.0     | 80.0     | 200 MB
 
 Archimedes needs these features to replace existing services:
 
-| Category                | FastAPI/Axum Has | Archimedes Status | Migration Blocker? |
-| ----------------------- | ---------------- | ----------------- | ------------------ |
-| CORS middleware         | ✅               | 🔄 In Progress    | **YES - P0**       |
-| Test client             | ✅               | ❌ Missing        | **YES - P0**       |
-| Startup/shutdown hooks  | ✅               | ❌ Missing        | **YES - P0**       |
-| File uploads            | ✅               | ❌ Missing        | **YES - P1**       |
-| Rate limiting           | ✅               | ❌ Missing        | **YES - P1**       |
-| Cookie extraction       | ✅               | ❌ Missing        | P1                 |
-| File download response  | ✅               | ❌ Missing        | P1                 |
-| Static file serving     | ✅               | ❌ Missing        | P1                 |
-| Sub-router nesting      | ✅               | ❌ Missing        | P2                 |
-| Route prefixes          | ✅               | ❌ Missing        | P2                 |
-| Compression middleware  | ✅               | ❌ Missing        | P2                 |
-| Streaming responses     | ✅               | ⚠️ SSE only       | P2                 |
-| Response header helpers | ✅               | ❌ Missing        | P2                 |
+| Category                | FastAPI/Axum Has | Archimedes Status    | Migration Blocker? |
+| ----------------------- | ---------------- | -------------------- | ------------------ |
+| CORS middleware         | ✅               | ✅ Complete (19)     | **YES - P0** ✅    |
+| Test client             | ✅               | ✅ Complete (30)     | **YES - P0** ✅    |
+| Startup/shutdown hooks  | ✅               | ❌ Missing           | **YES - P0**       |
+| File uploads            | ✅               | ❌ Missing           | **YES - P1**       |
+| Rate limiting           | ✅               | ❌ Missing           | **YES - P1**       |
+| Cookie extraction       | ✅               | ❌ Missing           | P1                 |
+| File download response  | ✅               | ❌ Missing           | P1                 |
+| Static file serving     | ✅               | ❌ Missing           | P1                 |
+| Sub-router nesting      | ✅               | ❌ Missing           | P2                 |
+| Route prefixes          | ✅               | ❌ Missing           | P2                 |
+| Compression middleware  | ✅               | ❌ Missing           | P2                 |
+| Streaming responses     | ✅               | ⚠️ SSE only          | P2                 |
+| Response header helpers | ✅               | ❌ Missing           | P2                 |
 
 ### Phase A14.1: Critical Missing Features (Weeks 71-73) 🔄 P0
 
 > **Goal**: Remove migration blockers for any browser-facing API
 
-#### CORS Middleware 🔄 IN PROGRESS
+#### CORS Middleware ✅ COMPLETE
 
-- [ ] Create `CorsMiddleware` with configurable origins, methods, headers
-- [ ] Support `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`
-- [ ] Support `Access-Control-Allow-Headers`, `Access-Control-Max-Age`
-- [ ] Support credentials mode and preflight requests
-- [ ] Add to middleware pipeline (before request ID)
+- [x] Create `CorsMiddleware` with configurable origins, methods, headers
+- [x] Support `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`
+- [x] Support `Access-Control-Allow-Headers`, `Access-Control-Max-Age`
+- [x] Support credentials mode and preflight requests
+- [x] Add to middleware pipeline (before request ID)
+- **Tests**: 19 tests covering all CORS scenarios
 
 ```rust
-// Target API
+// Implemented API
 let cors = CorsConfig::builder()
-    .allow_origins(["https://app.example.com"])
+    .allow_any_origin()           // or .allow_origins(["https://app.example.com"])
     .allow_methods([Method::GET, Method::POST])
     .allow_headers(["Content-Type", "Authorization"])
+    .allow_credentials(true)
     .max_age(Duration::from_secs(3600))
     .build();
+
+let middleware = CorsMiddleware::new(cors);
 ```
 
-#### Test Client
+#### Test Client ✅ COMPLETE
 
-- [ ] Create `TestClient` for in-memory HTTP testing
-- [ ] Support all HTTP methods with builder pattern
-- [ ] JSON body helpers with automatic serialization
-- [ ] Response assertions (status, headers, body)
-- [ ] No real network/port binding required
+- [x] Create `TestClient` for in-memory HTTP testing
+- [x] Support all HTTP methods with builder pattern
+- [x] JSON body helpers with automatic serialization
+- [x] Response assertions (status, headers, body)
+- [x] No real network/port binding required
+- **Tests**: 30 tests covering request building, response parsing, assertions
 
 ```rust
-// Target API
-let client = TestClient::new(app);
+// Implemented API
+let client = TestClient::new(|ctx, req| async move {
+    // Handler logic
+});
 
 let response = client
     .get("/users/123")
-    .header("Authorization", "Bearer token")
+    .bearer_token("token")
     .send()
     .await;
 
-assert_eq!(response.status(), 200);
-assert_eq!(response.json::<User>().await.id, "123");
+response.assert_status(200);
+let user: User = response.json().unwrap();
+response.assert_json_field("id", &json!("123"));
 ```
 
-#### Lifecycle Hooks
+#### Lifecycle Hooks 📋 IN PROGRESS
 
 - [ ] Add `on_startup` callback registration
 - [ ] Add `on_shutdown` callback registration

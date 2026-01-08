@@ -1,6 +1,6 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 3.7.0
+> **Version**: 3.8.0
 > **Status**: Implementation Phase (Phase A14 In Progress)
 > **Last Updated**: 2026-01-12
 > **Component**: archimedes
@@ -14,7 +14,7 @@
 | `archimedes`            | ✅ Complete    | -     | Main facade crate (re-exports all crates)                                                                 |
 | `archimedes-core`       | ✅ Complete    | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
 | `archimedes-server`     | ✅ Complete    | 90    | HTTP server, routing (radix tree), handler registry, graceful shutdown                                    |
-| `archimedes-middleware` | ✅ Complete    | 104   | All 8 middleware stages + pipeline                                                                        |
+| `archimedes-middleware` | ✅ Complete    | 123   | All 8 middleware stages + pipeline + CORS middleware                                                      |
 | `archimedes-telemetry`  | ✅ Complete    | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
 | `archimedes-config`     | ✅ Complete    | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
 | `archimedes-router`     | ✅ Complete    | 57    | High-performance radix tree router with method merging                                                    |
@@ -32,8 +32,34 @@
 | `archimedes-node`       | ✅ Complete    | 95    | Node.js/TypeScript bindings via napi-rs (Phase A13.3)                                                     |
 | `include/archimedes/`   | ✅ Complete    | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
 | `examples/go-native/`   | ✅ Complete    | 9     | Go bindings via cgo (Phase A13.5)                                                                         |
+| `archimedes-test`       | ✅ Complete    | 30    | In-memory HTTP testing (TestClient, TestRequest, TestResponse)                                            |
 
-**Total Tests**: 1119+ passing across all Rust crates + 259 binding tests
+**Total Tests**: 1149+ passing across all Rust crates + 259 binding tests
+
+---
+
+## ✅ Phase A14.1: Critical Framework Features (2/3 Complete)
+
+### CORS Middleware ✅ Complete (19 tests)
+
+- `CorsMiddleware` with configurable origins, methods, headers
+- Preflight OPTIONS request handling
+- Support for `Access-Control-Allow-*` headers
+- Credentials mode and max-age support
+
+### TestClient ✅ Complete (30 tests)
+
+- `archimedes-test` crate for in-memory HTTP testing
+- `TestClient` with handler-based testing
+- `TestRequest` and `TestRequestBuilder` with fluent API
+- `TestResponse` with assertion helpers (assert_status, assert_json_field, etc.)
+- No real network/port binding required
+
+### Lifecycle Hooks 📋 Next Up
+
+- `on_startup` / `on_shutdown` callback registration
+- Async callback support
+- Lifespan context pattern
 
 ---
 
