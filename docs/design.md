@@ -1,7 +1,7 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 3.1.0
-> **Status**: Implementation Phase (Phase A13.2 In Progress)
+> **Version**: 3.2.0
+> **Status**: Implementation Phase (Phase A13.2 In Progress, Phase A14 Planned)
 > **Last Updated**: 2026-01-11
 > **Component**: archimedes
 
@@ -197,6 +197,50 @@ app.run(8080);
 | Go         | Gin, Chi, Echo, net/http    | archimedes-go (module) |
 | TypeScript | Express, Fastify, NestJS    | @archimedes/node (npm) |
 | C++        | cpp-httplib, Crow, Drogon   | libarchimedes          |
+
+---
+
+## 🔄 Phase A14: Framework Parity (PLANNED)
+
+> **Goal**: Achieve feature parity with FastAPI and Axum for seamless migrations
+> **Detailed Plan**: See [roadmap.md](roadmap.md#phase-a14-framework-parity-weeks-71-78--planned)
+
+### Feature Gap Analysis: FastAPI/Axum vs Archimedes
+
+| Feature | FastAPI | Axum | Archimedes | Priority |
+| ------- | ------- | ---- | ---------- | -------- |
+| **CORS middleware** | ✅ | ✅ | ❌ Missing | **P0** |
+| **Test client** | ✅ | ✅ | ❌ Missing | **P0** |
+| **Startup/shutdown hooks** | ✅ | ✅ | ❌ Missing | **P0** |
+| **File uploads (Multipart)** | ✅ | ✅ | ❌ Missing | P1 |
+| **Rate limiting** | External | External | ❌ Missing | P1 |
+| **Cookie extraction** | ✅ | ⚠️ | ❌ Missing | P1 |
+| **File download response** | ✅ | ⚠️ | ❌ Missing | P1 |
+| **Static file serving** | ✅ | ✅ | ❌ Missing | P1 |
+| **Sub-router nesting** | ✅ | ✅ | ❌ Missing | P2 |
+| **Route prefixes** | ✅ | ✅ | ❌ Missing | P2 |
+| **Compression middleware** | ✅ | ✅ | ❌ Missing | P2 |
+| **Streaming responses** | ✅ | ✅ | ⚠️ SSE only | P2 |
+
+### Archimedes Advantages Over FastAPI/Axum
+
+| Feature | Description |
+| ------- | ----------- |
+| **Contract-first validation** | Automatic request/response validation from Themis contracts |
+| **Built-in OPA authorization** | Policy evaluation without external dependencies |
+| **Fixed middleware order** | Security by design - cannot be bypassed |
+| **Multi-language support** | Python, TypeScript, C++, Go from single codebase |
+| **Superior background tasks** | Built-in scheduler with cron, unlike FastAPI's basic BackgroundTasks |
+| **Built-in SSE** | Native Server-Sent Events support |
+
+### Phase A14 Deliverables
+
+| Phase | Focus | Week | Key Features |
+| ----- | ----- | ---- | ------------ |
+| A14.1 | Critical | 71-73 | CORS, TestClient, lifecycle hooks |
+| A14.2 | Files | 74-75 | Multipart uploads, file downloads, cookies |
+| A14.3 | Security | 76-77 | Rate limiting, compression, static files |
+| A14.4 | Router | 78 | Sub-routers, prefixes, tags |
 
 ---
 

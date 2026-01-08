@@ -1,9 +1,9 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.1.0
+> **Version**: 3.2.0
 > **Created**: 2026-01-04
 > **Last Updated**: 2026-01-11
-> **Target Completion**: Week 70 (extended for native language bindings with full Rust parity)
+> **Target Completion**: Week 78 (extended for framework parity features)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
@@ -12,7 +12,8 @@
 > **UPDATE (2026-01-10)**: Phase A12 (Example Services) STARTED - Created example services for Rust, Python, Go, TypeScript, and C++.
 > **UPDATE (2026-01-10)**: Phase A13.1 (Core FFI Layer) COMPLETE - 44 tests, archimedes-ffi crate with C ABI.
 > **UPDATE (2026-01-11)**: Phase A13.2 (Python Bindings) IN PROGRESS - Basic HTTP server working, middleware integration pending.
-> **🚨 CRITICAL UPDATE (2026-01-11)**: Phase A13 ordering finalized: Python (FULL Rust parity) → TypeScript → C++ → Go.
+> **UPDATE (2026-01-11)**: Phase A13 ordering finalized: Python (FULL Rust parity) → TypeScript → C++ → Go.
+> **🚨 NEW (2026-01-11)**: Phase A14 (Framework Parity) ADDED - CORS, TestClient, file uploads, rate limiting, static files to match FastAPI/Axum.
 
 ---
 
@@ -2111,6 +2112,310 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 
 ---
 
+## Phase A14: Framework Parity (Weeks 71-78) 📋 PLANNED
+
+> **Goal**: Achieve feature parity with FastAPI and Axum to enable seamless migrations
+> **Status**: 📋 PLANNED
+> **Rationale**: Services already written in FastAPI/Axum/Express need a migration path
+
+### Why Framework Parity?
+
+Archimedes needs these features to replace existing services:
+
+| Category               | FastAPI/Axum Has | Archimedes Status | Migration Blocker? |
+| ---------------------- | ---------------- | ----------------- | ------------------ |
+| CORS middleware        | ✅               | ❌ Missing        | **YES - P0**       |
+| Test client            | ✅               | ❌ Missing        | **YES - P0**       |
+| Startup/shutdown hooks | ✅               | ❌ Missing        | **YES - P0**       |
+| File uploads           | ✅               | ❌ Missing        | **YES - P1**       |
+| Rate limiting          | ✅               | ❌ Missing        | **YES - P1**       |
+| Cookie extraction      | ✅               | ❌ Missing        | P1                 |
+| File download response | ✅               | ❌ Missing        | P1                 |
+| Static file serving    | ✅               | ❌ Missing        | P1                 |
+| Sub-router nesting     | ✅               | ❌ Missing        | P2                 |
+| Route prefixes         | ✅               | ❌ Missing        | P2                 |
+| Compression middleware | ✅               | ❌ Missing        | P2                 |
+| Streaming responses    | ✅               | ⚠️ SSE only       | P2                 |
+| Response header helpers| ✅               | ❌ Missing        | P2                 |
+
+### Phase A14.1: Critical Missing Features (Weeks 71-73) 📋 P0
+
+> **Goal**: Remove migration blockers for any browser-facing API
+
+#### CORS Middleware
+
+- [ ] Create `CorsMiddleware` with configurable origins, methods, headers
+- [ ] Support `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`
+- [ ] Support `Access-Control-Allow-Headers`, `Access-Control-Max-Age`
+- [ ] Support credentials mode and preflight requests
+- [ ] Add to middleware pipeline (before request ID)
+
+```rust
+// Target API
+let cors = CorsConfig::builder()
+    .allow_origins(["https://app.example.com"])
+    .allow_methods([Method::GET, Method::POST])
+    .allow_headers(["Content-Type", "Authorization"])
+    .max_age(Duration::from_secs(3600))
+    .build();
+```
+
+#### Test Client
+
+- [ ] Create `TestClient` for in-memory HTTP testing
+- [ ] Support all HTTP methods with builder pattern
+- [ ] JSON body helpers with automatic serialization
+- [ ] Response assertions (status, headers, body)
+- [ ] No real network/port binding required
+
+```rust
+// Target API
+let client = TestClient::new(app);
+
+let response = client
+    .get("/users/123")
+    .header("Authorization", "Bearer token")
+    .send()
+    .await;
+
+assert_eq!(response.status(), 200);
+assert_eq!(response.json::<User>().await.id, "123");
+```
+
+#### Lifecycle Hooks
+
+- [ ] Add `on_startup` callback registration
+- [ ] Add `on_shutdown` callback registration
+- [ ] Support async callbacks
+- [ ] Support lifespan context manager pattern
+- [ ] Ensure hooks run in order (startup) and reverse order (shutdown)
+
+```rust
+// Target API
+app.on_startup(|container| async move {
+    let db = Database::connect(&config.db_url).await?;
+    container.register(db);
+    Ok(())
+});
+
+app.on_shutdown(|container| async move {
+    let db = container.get::<Database>()?;
+    db.close().await;
+    Ok(())
+});
+```
+
+### Phase A14.2: File Handling (Weeks 74-75) 📋 P1
+
+> **Goal**: Support file uploads and downloads
+
+#### Multipart File Uploads
+
+- [ ] Create `Multipart` extractor for form-data
+- [ ] Create `File` type with filename, content_type, data
+- [ ] Support streaming file uploads (don't buffer entire file)
+- [ ] Support multiple files in single request
+- [ ] Size limits and validation
+
+```rust
+// Target API
+#[handler(operation = "uploadDocument")]
+async fn upload(mut multipart: Multipart) -> Result<Response, ThemisError> {
+    while let Some(field) = multipart.next().await? {
+        let filename = field.filename().unwrap_or("unnamed");
+        let data = field.bytes().await?;
+        storage.save(filename, data).await?;
+    }
+    Ok(Response::no_content())
+}
+```
+
+#### File Download Response
+
+- [ ] Create `FileResponse` builder
+- [ ] Support `Content-Disposition: attachment`
+- [ ] Support `Content-Type` detection from extension
+- [ ] Support streaming large files
+- [ ] Support range requests (partial content)
+
+```rust
+// Target API
+Response::file("/path/to/document.pdf")
+    .filename("report.pdf")
+    .content_type("application/pdf")
+    .build()
+```
+
+#### Cookie Extractor
+
+- [ ] Create `Cookie` extractor for reading cookies
+- [ ] Create `SetCookie` response helper
+- [ ] Support SameSite, Secure, HttpOnly flags
+- [ ] Support signed/encrypted cookies (optional)
+
+```rust
+// Target API
+#[handler(operation = "getSession")]
+async fn get_session(cookies: Cookies) -> Result<Response, ThemisError> {
+    let session_id = cookies.get("session_id")?;
+    // ...
+}
+```
+
+### Phase A14.3: Security & Performance (Weeks 76-77) 📋 P1
+
+> **Goal**: Production security requirements
+
+#### Rate Limiting Middleware
+
+- [ ] Create `RateLimitMiddleware` with configurable limits
+- [ ] Support per-IP, per-user, per-API-key limits
+- [ ] Support sliding window algorithm
+- [ ] Return `429 Too Many Requests` with `Retry-After` header
+- [ ] Wire `RateLimitError` that already exists
+
+```rust
+// Target API
+let rate_limit = RateLimitConfig::builder()
+    .requests_per_second(100)
+    .burst_size(200)
+    .key_extractor(|ctx| ctx.identity.user_id().unwrap_or(ctx.client_ip))
+    .build();
+```
+
+#### Compression Middleware
+
+- [ ] Create `CompressionMiddleware` with gzip/brotli support
+- [ ] Respect `Accept-Encoding` header
+- [ ] Configurable compression level
+- [ ] Skip compression for small responses
+- [ ] Skip compression for already-compressed content types
+
+```rust
+// Target API
+let compression = CompressionConfig::builder()
+    .algorithms([Algorithm::Gzip, Algorithm::Brotli])
+    .min_size(1024)  // Don't compress < 1KB
+    .level(CompressionLevel::Default)
+    .build();
+```
+
+#### Static File Serving
+
+- [ ] Create `StaticFiles` handler for directory serving
+- [ ] Support `index.html` fallback
+- [ ] Support cache headers (ETag, Last-Modified)
+- [ ] Support range requests for large files
+- [ ] Security: prevent directory traversal
+
+```rust
+// Target API
+app.mount("/static", StaticFiles::new("./public")
+    .index("index.html")
+    .cache_control("max-age=3600"));
+```
+
+### Phase A14.4: Router Enhancements (Week 78) 📋 P2
+
+> **Goal**: Better code organization for large applications
+
+#### Sub-Router Nesting
+
+- [ ] Add `nest()` method for router composition
+- [ ] Support path prefix for nested routers
+- [ ] Merge middleware and handlers correctly
+
+```rust
+// Target API
+let users_router = Router::new()
+    .operation("listUsers", list_users)
+    .operation("getUser", get_user);
+
+let api_router = Router::new()
+    .nest("/users", users_router)
+    .nest("/orders", orders_router);
+
+app.nest("/api/v1", api_router);
+```
+
+#### Route Prefixes & Tags
+
+- [ ] Add `prefix()` method for path prefixes
+- [ ] Add `tag()` method for OpenAPI grouping
+- [ ] Support prefix on entire router
+
+```rust
+// Target API
+let router = Router::new()
+    .prefix("/api/v1")
+    .tag("users")
+    .operation("listUsers", list_users);
+```
+
+### A14 Deliverables
+
+| Feature                | Crate               | Priority | Status     |
+| ---------------------- | ------------------- | -------- | ---------- |
+| CORS middleware        | archimedes-middleware | P0     | 📋 Planned |
+| Test client            | archimedes-test       | P0     | 📋 Planned |
+| Lifecycle hooks        | archimedes-server     | P0     | 📋 Planned |
+| Multipart/file uploads | archimedes-extract    | P1     | 📋 Planned |
+| File download response | archimedes-extract    | P1     | 📋 Planned |
+| Cookie extractor       | archimedes-extract    | P1     | 📋 Planned |
+| Rate limiting          | archimedes-middleware | P1     | 📋 Planned |
+| Compression middleware | archimedes-middleware | P2     | 📋 Planned |
+| Static file serving    | archimedes-server     | P1     | 📋 Planned |
+| Sub-router nesting     | archimedes-router     | P2     | 📋 Planned |
+| Route prefixes/tags    | archimedes-router     | P2     | 📋 Planned |
+| Streaming responses    | archimedes-extract    | P2     | 📋 Planned |
+
+---
+
+## Framework Feature Comparison
+
+### Archimedes vs FastAPI vs Axum
+
+| Category | FastAPI | Axum | Archimedes | Notes |
+| -------- | ------- | ---- | ---------- | ----- |
+| **Routing** | ✅ | ✅ | ✅ | Radix tree router |
+| **Path parameters** | ✅ | ✅ | ✅ | Contract-style `{id}` |
+| **Sub-routers** | ✅ | ✅ | ❌ | Phase A14.4 |
+| **JSON body** | ✅ | ✅ | ✅ | Contract-validated |
+| **Form data** | ✅ | ✅ | ✅ | `Form<T>` extractor |
+| **File uploads** | ✅ | ✅ | ❌ | Phase A14.2 |
+| **Cookies** | ✅ | ⚠️ | ❌ | Phase A14.2 |
+| **Request validation** | ✅ Pydantic | Manual | ✅ Contract | Auto from Themis |
+| **Response validation** | ✅ | Manual | ✅ Contract | Auto from Themis |
+| **Background tasks** | ✅ | Via tokio | ✅ Superior | Built-in scheduler |
+| **Scheduled jobs** | External | External | ✅ Built-in | Cron expressions |
+| **Startup hooks** | ✅ | ✅ | ❌ | Phase A14.1 |
+| **Shutdown hooks** | ✅ | ✅ | ⚠️ | Graceful shutdown only |
+| **Middleware** | ✅ | ✅ Tower | ✅ Fixed | Contract-enforced order |
+| **CORS** | ✅ | ✅ | ❌ | Phase A14.1 |
+| **Rate limiting** | External | External | ❌ | Phase A14.3 |
+| **Compression** | ✅ | ✅ | ❌ | Phase A14.3 |
+| **Static files** | ✅ | ✅ | ❌ | Phase A14.3 |
+| **WebSocket** | ✅ | ✅ | ✅ | Full support |
+| **SSE** | External | External | ✅ | Built-in |
+| **OpenAPI docs** | ✅ Auto | External | ✅ Contract | From Themis |
+| **Swagger UI** | ✅ | External | ✅ | Built-in |
+| **Test client** | ✅ | ✅ | ❌ | Phase A14.1 |
+| **OPA authorization** | External | External | ✅ Built-in | Unique feature |
+| **Contract enforcement** | ❌ | ❌ | ✅ Built-in | Unique feature |
+| **Multi-language** | Python only | Rust only | ✅ 5 langs | Unique feature |
+
+### Unique Archimedes Features (Not in FastAPI/Axum)
+
+| Feature | Description | Benefit |
+| ------- | ----------- | ------- |
+| **Contract-first validation** | Request/response validated against Themis contracts | No validation code needed |
+| **OPA authorization** | Built-in policy evaluation with Eunomia bundles | No auth boilerplate |
+| **Fixed middleware order** | Cannot be reordered or disabled | Security by design |
+| **Multi-language bindings** | Python, TypeScript, C++, Go from one codebase | Consistent behavior |
+| **Sidecar mode** | Proxy for gradual migration | Easy adoption |
+
+---
+
 ## Milestones Summary
 
 | Milestone             | Target  | Criteria                         | Dependencies            |
@@ -2137,7 +2442,12 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 | A13.3: TypeScript     | Week 62 | @archimedes/node npm package     | A13.1                   |
 | A13.4: C++            | Week 65 | libarchimedes headers            | A13.1                   |
 | A13.5: Go             | Week 69 | archimedes-go module             | A13.1                   |
-| **V1.0 Release**      | Week 70 | All languages, production ready  | A13.5                   |
+| **Framework Parity**  |         |                                  |                         |
+| A14.1: Critical       | Week 73 | CORS, TestClient, lifecycle hooks| A13                     |
+| A14.2: File Handling  | Week 75 | Uploads, downloads, cookies      | A14.1                   |
+| A14.3: Security       | Week 77 | Rate limit, compression, static  | A14.2                   |
+| A14.4: Router         | Week 78 | Sub-routers, prefixes, tags      | A14.3                   |
+| **V1.0 Release**      | Week 78 | All features, production ready   | A14.4                   |
 
 ---
 
