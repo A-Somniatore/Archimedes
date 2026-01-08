@@ -1,0 +1,45 @@
+[package]
+name = "archimedes-test"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Test utilities for Archimedes framework - in-memory HTTP testing"
+keywords = ["testing", "http", "mock", "server", "archimedes"]
+categories = ["development-tools::testing", "web-programming"]
+
+[dependencies]
+# Internal crates
+archimedes-core = { workspace = true }
+archimedes-server = { workspace = true }
+archimedes-middleware = { workspace = true }
+archimedes-router = { workspace = true }
+archimedes-extract = { workspace = true }
+
+# HTTP
+hyper = { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+
+# Async
+tokio = { workspace = true }
+futures-util = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# URL encoding
+urlencoding = "2.1"
+
+# Error handling
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+
+[lints]
+workspace = true
