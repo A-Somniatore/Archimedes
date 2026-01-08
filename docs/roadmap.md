@@ -2415,7 +2415,7 @@ async fn get_session(cookies: Cookies) -> Result<Response, ThemisError> {
 ### Phase A14.3: Security & Performance (Weeks 76-77) � IN PROGRESS
 
 > **Goal**: Production security requirements
-> **Status**: ✅ Rate limiting complete (27 tests), compression and static files pending
+> **Status**: ✅ Rate limiting complete (27 tests), static files complete (31 tests), compression pending
 
 #### Rate Limiting Middleware
 
@@ -2452,19 +2452,31 @@ let compression = CompressionConfig::builder()
     .build();
 ```
 
-#### Static File Serving
+#### Static File Serving ✅ COMPLETE (31 tests)
 
-- [ ] Create `StaticFiles` handler for directory serving
-- [ ] Support `index.html` fallback
-- [ ] Support cache headers (ETag, Last-Modified)
-- [ ] Support range requests for large files
-- [ ] Security: prevent directory traversal
+- [x] Create `StaticFiles` handler for directory serving
+- [x] Support `index.html` fallback
+- [x] Support cache headers (`ETag`, `Last-Modified`, `Cache-Control`)
+- [x] Support range requests for large files
+- [x] Security: prevent directory traversal
+- [x] Support precompressed `.gz` and `.br` files
+- [x] Support hidden files configuration
+- [x] Support symlink following configuration
+- [x] MIME type detection (40+ types)
+- [x] Custom MIME type mappings
+- [x] 304 Not Modified responses (If-None-Match, If-Modified-Since)
 
 ```rust
-// Target API
-app.mount("/static", StaticFiles::new("./public")
+// Implemented API
+let files = StaticFiles::new("./public")
     .index("index.html")
-    .cache_control("max-age=3600"));
+    .cache_control("max-age=3600")
+    .etag(true)
+    .last_modified(true)
+    .precompressed_gzip(true)
+    .precompressed_brotli(true)
+    .serve_hidden(false)
+    .follow_symlinks(true);
 ```
 
 ### Phase A14.4: Router Enhancements (Week 78) 📋 P2
@@ -2516,7 +2528,7 @@ let router = Router::new()
 | Cookie extractor       | archimedes-extract    | P1       | ✅ Complete   | 16    |
 | Rate limiting          | archimedes-middleware | P1       | ✅ Complete   | 27    |
 | Compression middleware | archimedes-middleware | P2       | 📋 Planned    | -     |
-| Static file serving    | archimedes-server     | P1       | 📋 Planned    | -     |
+| Static file serving    | archimedes-server     | P1       | ✅ Complete   | 31    |
 | Sub-router nesting     | archimedes-router     | P2       | 📋 Planned    | -     |
 | Route prefixes/tags    | archimedes-router     | P2       | 📋 Planned    | -     |
 | Streaming responses    | archimedes-extract    | P2       | 📋 Planned    | -     |
@@ -2547,7 +2559,7 @@ let router = Router::new()
 | **CORS**                 | ✅          | ✅        | ✅          | Phase A14.1 COMPLETE    |
 | **Rate limiting**        | External    | External  | ✅          | Phase A14.3 COMPLETE    |
 | **Compression**          | ✅          | ✅        | ❌          | Phase A14.3             |
-| **Static files**         | ✅          | ✅        | ❌          | Phase A14.3             |
+| **Static files**         | ✅          | ✅        | ✅          | Phase A14.3 COMPLETE    |
 | **WebSocket**            | ✅          | ✅        | ✅          | Full support            |
 | **SSE**                  | External    | External  | ✅          | Built-in                |
 | **OpenAPI docs**         | ✅ Auto     | External  | ✅ Contract | From Themis             |
@@ -2582,7 +2594,7 @@ let router = Router::new()
 | **CORS**                 | ✅ Flask-CORS | ✅ Built-in | Manual   | ❌          | Phase A14.1                |
 | **Rate limiting**        | ✅ Flask-Limiter | ❌ External | ❌    | ✅          | Phase A14.3 COMPLETE       |
 | **Compression**          | ❌ External | ✅ Built-in | Manual    | ❌          | Phase A14.3                |
-| **Static files**         | ✅ Built-in | ✅ Built-in | Manual    | ❌          | Phase A14.3                |
+| **Static files**         | ✅ Built-in | ✅ Built-in | Manual    | ✅          | Phase A14.3 COMPLETE       |
 | **Templates (Jinja2)**   | ✅ Built-in | ✅ Jinja2  | ❌          | ❌          | Not planned (API-only)     |
 | **WebSocket**            | ❌ Flask-SocketIO | ✅ Built-in | ✅ | ✅          | Full support               |
 | **SSE**                  | ❌ External | ❌ Manual  | Manual      | ✅          | Built-in                   |
@@ -2675,17 +2687,17 @@ let router = Router::new()
 | **Request guards**       | ✅           | ✅ Excellent | ✅ Filters   | ✅ Extract  | ✅ Contract |
 | **Validation**           | External     | External     | External     | External    | ✅ Contract |
 | **Middleware**           | ✅           | ✅ Fairings  | ✅ Filters   | ✅ Tower    | ✅ Fixed    |
-| **CORS**                 | ✅           | ❌ External  | ✅           | ✅          | ❌ A14.1    |
-| **Rate limiting**        | External     | External     | External     | External    | ❌ A14.3    |
+| **CORS**                 | ✅           | ❌ External  | ✅           | ✅          | ✅ A14.1  |
+| **Rate limiting**        | External     | External     | External     | External    | ✅ A14.3  |
 | **Compression**          | ✅           | ✅           | ✅           | ✅          | ❌ A14.3    |
-| **Static files**         | ✅           | ✅           | ✅           | ✅          | ❌ A14.3    |
+| **Static files**         | ✅           | ✅           | ✅           | ✅          | ✅ A14.3  |
 | **WebSocket**            | ✅           | ❌           | ✅           | ✅          | ✅          |
 | **SSE**                  | ✅           | ❌           | ✅           | External    | ✅          |
 | **Background tasks**     | ✅ Arbiter   | External     | Via tokio    | Via tokio   | ✅ Superior |
 | **Scheduled jobs**       | External     | External     | External     | External    | ✅ Built-in |
-| **Startup hooks**        | ✅           | ✅           | ✅           | ✅          | ❌ A14.1    |
+| **Startup hooks**        | ✅           | ✅           | ✅           | ✅          | ✅ A14.1  |
 | **Database integration** | ✅ sqlx      | ✅ diesel    | External     | External    | ⚠️ DI       |
-| **Test client**          | ✅           | ✅           | ✅           | ✅          | ❌ A14.1    |
+| **Test client**          | ✅           | ✅           | ✅           | ✅          | ✅ A14.1  |
 | **OpenAPI**              | ❌ External  | ❌ External  | ❌ External  | ❌ External | ✅ Contract |
 | **Hot reload**           | External     | External     | External     | External    | ⚠️ A9       |
 | **OPA authorization**    | ❌           | ❌           | ❌           | ❌          | ✅ Built-in |
@@ -2738,17 +2750,17 @@ let router = Router::new()
 | **Route groups**         | ✅           | ✅           | ✅           | ✅           | ❌ A14.4    |
 | **JSON binding**         | ✅           | Manual       | ✅           | ✅           | ✅ Contract |
 | **Form binding**         | ✅           | Manual       | ✅           | ✅           | ✅          |
-| **File uploads**         | ✅           | Manual       | ✅           | ✅           | ❌ A14.2    |
+| **File uploads**         | ✅           | Manual       | ✅           | ✅           | ✅ A14.2  |
 | **Validation**           | ✅ go-validator | External  | ✅ validator | ✅ validator | ✅ Contract |
 | **Middleware**           | ✅           | ✅ Excellent | ✅           | ✅           | ✅ Fixed    |
-| **CORS**                 | ✅ cors      | ✅ cors      | ✅           | ✅           | ❌ A14.1    |
-| **Rate limiting**        | External     | External     | External     | ✅ Limiter   | ❌ A14.3    |
+| **CORS**                 | ✅ cors      | ✅ cors      | ✅           | ✅           | ✅ A14.1  |
+| **Rate limiting**        | External     | External     | External     | ✅ Limiter   | ✅ A14.3  |
 | **Compression**          | ✅           | ✅           | ✅           | ✅           | ❌ A14.3    |
-| **Static files**         | ✅           | ✅           | ✅           | ✅           | ❌ A14.3    |
+| **Static files**         | ✅           | ✅           | ✅           | ✅           | ✅ A14.3  |
 | **WebSocket**            | ❌ External  | ❌ External  | ✅           | ✅           | ✅          |
 | **SSE**                  | External     | External     | External     | External     | ✅          |
 | **Graceful shutdown**    | ✅           | ✅           | ✅           | ✅           | ✅          |
-| **Test utilities**       | ✅           | ✅ Stdlib    | ✅           | ✅           | ❌ A14.1    |
+| **Test utilities**       | ✅           | ✅ Stdlib    | ✅           | ✅           | ✅ A14.1  |
 | **OpenAPI/Swagger**      | ✅ swag      | External     | ✅ swag      | ✅ swagger   | ✅ Contract |
 | **OPA authorization**    | ❌           | ❌           | ❌           | ❌           | ✅ Built-in |
 | **Contract enforcement** | ❌           | ❌           | ❌           | ❌           | ✅ Built-in |
@@ -2815,13 +2827,13 @@ let router = Router::new()
 | **JSON body**            | ✅ body-parser| ✅ Built-in | ✅           | ✅ koa-body  | ✅           | ✅ Contract |
 | **Validation**           | External     | ✅ JSON Schema| ✅ class-validator | External | ✅ Valibot  | ✅ Contract |
 | **Middleware**           | ✅           | ✅ Hooks     | ✅ Interceptors | ✅ Excellent | ✅         | ✅ Fixed    |
-| **CORS**                 | ✅ cors      | ✅           | ✅           | ✅           | ✅           | ❌ A14.1    |
-| **Rate limiting**        | External     | External     | ✅           | External     | External     | ❌ A14.3    |
-| **Static files**         | ✅ static    | ✅           | ✅           | ✅           | ❌           | ❌ A14.3    |
+| **CORS**                 | ✅ cors      | ✅           | ✅           | ✅           | ✅           | ✅ A14.1  |
+| **Rate limiting**        | External     | External     | ✅           | External     | External     | ✅ A14.3  |
+| **Static files**         | ✅ static    | ✅           | ✅           | ✅           | ❌           | ✅ A14.3  |
 | **WebSocket**            | ❌ ws        | ✅           | ✅           | External     | ✅           | ✅          |
 | **SSE**                  | Manual       | Manual       | ✅           | Manual       | ✅           | ✅          |
 | **GraphQL**              | ✅ apollo    | ✅           | ✅           | ✅           | ✅           | ❌          |
-| **Test utilities**       | ✅ supertest | ✅           | ✅           | ✅           | ✅           | ❌ A14.1    |
+| **Test utilities**       | ✅ supertest | ✅           | ✅           | ✅           | ✅           | ✅ A14.1  |
 | **OpenAPI**              | External     | ✅ Native    | ✅ Native    | External     | ✅           | ✅ Contract |
 | **DI container**         | ❌           | ❌           | ✅ Native    | ❌           | ❌           | ✅          |
 | **OPA authorization**    | ❌           | ❌           | ❌           | ❌           | ❌           | ✅ Built-in |
@@ -2892,12 +2904,12 @@ let router = Router::new()
 | ------- | ----------- | ----------------- |
 | **ASGI standard** | Framework-agnostic | ⚠️ Custom |
 | **Request/Response** | Starlette classes | ✅ Custom types |
-| **Lifespan events** | Startup/shutdown | ❌ A14.1 |
-| **Sessions** | Cookie sessions | ❌ A14.2 |
-| **Static files** | Serve directories | ❌ A14.3 |
+| **Lifespan events** | Startup/shutdown | ✅ A14.1 |
+| **Sessions** | Cookie sessions | ⚠️ Cookie extractors, no sessions |
+| **Static files** | Serve directories | ✅ A14.3 |
 | **Templates** | Jinja2 support | ❌ (API-only) |
 | **GraphQL** | Built-in support | ❌ |
-| **Test client** | httpx-based | ❌ A14.1 |
+| **Test client** | httpx-based | ✅ A14.1 |
 
 #### Tornado Specific Features
 
