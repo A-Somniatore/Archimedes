@@ -422,7 +422,7 @@ impl CorsMiddleware {
         }
 
         // Access-Control-Allow-Methods
-        let methods: Vec<_> = self.config.allowed_methods.iter().map(|m| m.as_str()).collect();
+        let methods: Vec<_> = self.config.allowed_methods.iter().map(Method::as_str).collect();
         if !methods.is_empty() {
             builder = builder.header(headers::ALLOW_METHODS, methods.join(", "));
         }

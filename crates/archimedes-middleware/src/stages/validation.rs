@@ -72,8 +72,8 @@ use archimedes_sentinel::Sentinel;
 ///
 /// This middleware supports multiple validation modes:
 ///
-/// - **AllowAll**: Allow all requests (development mode)
-/// - **RejectAll**: Reject all requests (testing)
+/// - **`AllowAll`**: Allow all requests (development mode)
+/// - **`RejectAll`**: Reject all requests (testing)
 /// - **Schema**: Mock schema-based validation
 /// - **Sentinel**: Real contract validation via archimedes-sentinel (requires `sentinel` feature)
 #[derive(Clone)]

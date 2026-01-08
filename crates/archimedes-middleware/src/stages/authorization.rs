@@ -62,8 +62,8 @@ use std::collections::HashMap as StdHashMap;
 ///
 /// This middleware supports multiple authorization modes:
 ///
-/// - **AllowAll**: Allow all requests (development mode)
-/// - **DenyAll**: Deny all requests (testing)
+/// - **`AllowAll`**: Allow all requests (development mode)
+/// - **`DenyAll`**: Deny all requests (testing)
 /// - **Rbac**: Role-based access control (mock)
 /// - **Custom**: Custom policy evaluator trait
 /// - **Opa**: OPA policy evaluation via archimedes-authz (requires `opa` feature)

@@ -15,17 +15,19 @@
 //! 3. [`identity`] - Extract caller identity
 //! 4. [`authorization`] - OPA policy evaluation
 //! 5. [`validation`] - Request validation
+//! 6. [`rate_limit`] - Rate limiting (optional)
 //!
-//! ## Post-Handler Stages (6-8)
+//! ## Post-Handler Stages (7-9)
 //!
-//! 6. [`validation`] - Response validation (via `ResponseValidationMiddleware`)
-//! 7. [`telemetry`] - Emit metrics and logs
-//! 8. [`error_normalization`] - Error envelope conversion
+//! 7. [`validation`] - Response validation (via `ResponseValidationMiddleware`)
+//! 8. [`telemetry`] - Emit metrics and logs
+//! 9. [`error_normalization`] - Error envelope conversion
 
 pub mod authorization;
 pub mod cors;
 pub mod error_normalization;
 pub mod identity;
+pub mod rate_limit;
 pub mod request_id;
 pub mod telemetry;
 pub mod tracing;
@@ -38,6 +40,7 @@ pub use authorization::{
 pub use cors::{AllowedOrigins, CorsBuilder, CorsConfig, CorsMiddleware};
 pub use error_normalization::{ErrorNormalizationMiddleware, NormalizedError};
 pub use identity::IdentityMiddleware;
+pub use rate_limit::{KeyExtractor, RateLimitBuilder, RateLimitConfig, RateLimitMiddleware};
 pub use request_id::RequestIdMiddleware;
 pub use telemetry::{TelemetryBuilder, TelemetryData, TelemetryMiddleware};
 pub use tracing::{SpanInfo, TraceContext, TracingMiddleware};
