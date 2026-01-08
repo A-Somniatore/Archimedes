@@ -19,6 +19,7 @@ members = [
     "crates/archimedes-sidecar",
     "crates/archimedes-ffi",
     "crates/archimedes-py",
+    "crates/archimedes-node",
 ]
 exclude = ["examples/rust-native"]
 
@@ -54,6 +55,7 @@ archimedes-tasks = { path = "crates/archimedes-tasks" }
 archimedes-sidecar = { path = "crates/archimedes-sidecar" }
 archimedes-ffi = { path = "crates/archimedes-ffi" }
 archimedes-py = { path = "crates/archimedes-py" }
+archimedes-node = { path = "crates/archimedes-node" }
 
 # Themis crates for contract integration
 themis-artifact = { path = "../themis/crates/themis-artifact" }

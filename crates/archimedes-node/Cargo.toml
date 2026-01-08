@@ -1,0 +1,71 @@
+[package]
+name = "archimedes-node"
+version.workspace = true
+edition.workspace = true
+rust-version = "1.77"  # Required for napi-rs cargo:: build script syntax
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Node.js/TypeScript bindings for Archimedes HTTP server framework"
+keywords = ["node", "napi", "typescript", "archimedes", "http"]
+categories = ["api-bindings", "web-programming::http-server"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# NAPI-RS for Node.js bindings
+napi = { version = "2", features = ["async", "serde-json", "napi9"] }
+napi-derive = "2"
+
+# Internal crates
+archimedes-core = { workspace = true }
+archimedes-middleware = { workspace = true }
+archimedes-authz = { workspace = true }
+archimedes-sentinel = { workspace = true }
+archimedes-telemetry = { workspace = true }
+
+# Shared platform types
+themis-platform-types = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true, features = ["full"] }
+
+# HTTP server
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+http = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# UUID generation
+uuid = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+[build-dependencies]
+napi-build = "2"
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+
+# Override workspace lints - Node.js bindings require unsafe for FFI
+[lints.rust]
+unsafe_code = "allow"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
