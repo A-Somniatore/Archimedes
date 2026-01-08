@@ -1883,9 +1883,9 @@ The sidecar pattern (Phase A10) works but has limitations:
 
 > **Goal**: `pip install archimedes` - Python developers use Archimedes directly **with FULL Rust parity**
 > **Technology**: PyO3 (Rust-Python bindings)
-> **Status**: HTTP server working, middleware integration pending
-> **Tests**: 69 passing tests (context: 18, handlers: 16, config: 13, server: 22)
-> **UPDATE 2026-01-08**: Server module complete, comprehensive test coverage added
+> **Status**: Core middleware integration complete (request ID, tracing, identity, error normalization)
+> **Tests**: 98 passing tests (context: 18, handlers: 16, config: 13, server: 26, middleware: 25)
+> **UPDATE 2026-01-11**: Middleware integration complete, error envelope format standardized
 
 #### CRITICAL: Full Rust Parity Requirements
 
@@ -1901,20 +1901,19 @@ Python bindings MUST have the same behavior as native Rust Archimedes. The goal 
 | Query Parameters          | ✅ Complete | ✅ Complete   | P0       | ctx.query() and ctx.query_all()   |
 | Header Access             | ✅ Complete | ✅ Complete   | P0       | ctx.header() case-insensitive     |
 | Health/Ready Endpoints    | ✅ Complete | ✅ Complete   | P0       | Built-in /health, /ready          |
-| Request ID Generation     | ✅ Complete | ⚠️ Basic      | P0       | Generated but not middleware      |
+| Request ID Middleware     | ✅ Complete | ✅ Complete   | P0       | UUID v7 generation/propagation    |
+| Tracing Middleware        | ✅ Complete | ✅ Complete   | P0       | W3C traceparent extraction        |
+| Identity Extraction       | ✅ Complete | ✅ Complete   | P0       | SPIFFE, user, api_key from header |
 | Identity (PyIdentity)     | ✅ Complete | ✅ Complete   | P0       | Roles, permissions, claims        |
-| Authorization Checks      | ✅ Complete | ✅ Types only | P0       | has_role(), has_permission()      |
-| Request ID Middleware     | ✅ Complete | ❌ Missing    | P0       | Add to pipeline                   |
-| Tracing/OpenTelemetry     | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-telemetry      |
-| Identity Extraction       | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-extract        |
-| Authorization (OPA)       | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-authz          |
-| Request Validation        | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-sentinel       |
-| Response Validation       | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-sentinel       |
-| Error Normalization       | ✅ Complete | ⚠️ Basic      | P0       | Need ThemisError envelope         |
-| Telemetry Collection      | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-telemetry      |
-| Contract-based Routing    | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-router         |
+| Authorization Checks      | ✅ Complete | ✅ Complete   | P0       | has_role(), has_permission()      |
+| Error Normalization       | ✅ Complete | ✅ Complete   | P0       | ThemisError envelope with request_id |
 | Graceful Shutdown         | ✅ Complete | ✅ Complete   | P1       | watch::channel shutdown           |
 | Configuration             | ✅ Complete | ✅ Complete   | P1       | YAML/JSON, env vars               |
+| Authorization (OPA)       | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-authz          |
+| Request Validation        | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-sentinel       |
+| Response Validation       | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-sentinel       |
+| Telemetry/Metrics         | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-telemetry      |
+| Contract-based Routing    | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-router         |
 
 #### Rust→Python Mapping (For Parity)
 
@@ -1923,7 +1922,7 @@ Python bindings MUST have the same behavior as native Rust Archimedes. The goal 
 | archimedes-server      | archimedes-py/server.rs          | ✅ Complete |
 | archimedes-core        | archimedes-py/context.rs         | ✅ Complete |
 | archimedes-extract     | Not needed (Python dynamic)      | N/A         |
-| archimedes-middleware  | archimedes-py/middleware.rs      | ❌ Missing  |
+| archimedes-middleware  | archimedes-py/middleware.rs      | ✅ Complete |
 | archimedes-sentinel    | Wire via FFI or re-implement     | ❌ Missing  |
 | archimedes-authz       | Wire via FFI or re-implement     | ❌ Missing  |
 | archimedes-telemetry   | Wire via FFI or OpenTelemetry-py | ❌ Missing  |
@@ -1935,12 +1934,13 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 
 - **Core Classes**: `PyApp`, `PyConfig`, `PyRequestContext`, `PyIdentity`, `PyResponse`
 - **Server Module**: `PyServer` with hyper/tokio, graceful shutdown, health endpoints
+- **Middleware Module**: Request ID, tracing, identity extraction, error normalization
 - **Handler System**: `HandlerRegistry` with decorator-based registration
 - **Configuration**: YAML/JSON config loading, environment variable support
-- **Error Handling**: Custom `ArchimedesError` Python exception
+- **Error Handling**: `ErrorEnvelope` format with request_id correlation
 - **Type Stubs**: Complete `.pyi` files for IDE autocomplete support
 - **Build System**: maturin-based build with pyproject.toml
-- **Test Coverage**: 69 tests covering context, handlers, config, server
+- **Test Coverage**: 98 tests covering context, handlers, config, server, middleware
 
 #### Week 51-52: Core Python Module ✅ COMPLETE
 
@@ -1972,19 +1972,19 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 - [x] Handler invocation from Python
 - [x] Example: `python-native` with 6 handlers + test.sh
 
-#### Week 55-56: Middleware Integration 📋 PLANNED
+#### Week 55-56: Middleware Integration ✅ COMPLETE
 
-- [ ] Request ID middleware (generate UUID, add to context)
-- [ ] Tracing middleware (OpenTelemetry spans)
-- [ ] Identity extraction middleware (from headers/JWT)
-- [ ] Error normalization middleware
-- [ ] Telemetry collection middleware
+- [x] Request ID middleware (UUID v7 generation in process_request)
+- [x] Tracing middleware (W3C traceparent extraction and propagation)
+- [x] Identity extraction middleware (X-Caller-Identity header parsing)
+- [x] Error normalization middleware (ThemisError-style ErrorEnvelope)
+- [ ] Telemetry collection middleware (OpenTelemetry metrics)
 
-#### Week 57-58: Authorization & Validation 📋 PLANNED
+#### Week 57-58: Authorization & Validation 🔄 IN PROGRESS
 
 - [ ] Authorization middleware (OPA/Eunomia integration)
-- [ ] Request validation middleware (JSON Schema)
-- [ ] Response validation middleware
+- [ ] Request validation middleware (JSON Schema via Sentinel)
+- [ ] Response validation middleware (JSON Schema via Sentinel)
 - [ ] Contract-based routing (Sentinel integration)
 - [ ] pytest plugin for testing handlers
 - [ ] Migration guide: FastAPI → Archimedes
