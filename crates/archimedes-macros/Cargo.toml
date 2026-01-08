@@ -23,11 +23,13 @@ syn = { version = "2.0", features = ["full", "parsing", "extra-traits"] }
 archimedes-core.workspace = true
 archimedes-extract.workspace = true
 archimedes-router.workspace = true
+archimedes-sentinel.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 bytes.workspace = true
 http.workspace = true
+indexmap.workspace = true
 
 [lints]
 workspace = true
