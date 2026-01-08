@@ -1,0 +1,35 @@
+[package]
+name = "example-rust-native"
+version = "0.1.0"
+edition = "2021"
+description = "Rust example service demonstrating native Archimedes framework usage"
+license = "Apache-2.0"
+
+[[bin]]
+name = "example-rust-native"
+path = "src/main.rs"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# HTTP server
+axum = { version = "0.7", features = ["macros"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# UUID generation
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Note: In a real deployment, you would use archimedes as a dependency:
+# archimedes = { path = "../../../crates/archimedes" }
+# For this example, we implement a standalone service using axum directly

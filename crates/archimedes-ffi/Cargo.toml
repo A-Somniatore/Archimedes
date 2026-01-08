@@ -1,0 +1,70 @@
+[package]
+name = "archimedes-ffi"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "C ABI foreign function interface for Archimedes"
+keywords = ["ffi", "c", "bindings", "archimedes"]
+categories = ["api-bindings", "development-tools::ffi"]
+
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+# Internal crates
+archimedes-core = { workspace = true }
+archimedes-server = { workspace = true }
+archimedes-middleware = { workspace = true }
+archimedes-config = { workspace = true }
+archimedes-sentinel = { workspace = true }
+archimedes-authz = { workspace = true }
+archimedes-telemetry = { workspace = true }
+archimedes-router = { workspace = true }
+
+# Platform types
+themis-platform-types = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+# UUID
+uuid = { workspace = true }
+
+# Synchronization
+parking_lot = { workspace = true }
+
+# For C string handling
+libc = "0.2"
+
+[dev-dependencies]
+tokio-test = { workspace = true }
+
+[build-dependencies]
+cbindgen = "0.27"
+
+# Override workspace lints - FFI crate requires unsafe code
+[lints.rust]
+unsafe_code = "allow"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+missing_safety_doc = "allow"  # Safety documented at module level

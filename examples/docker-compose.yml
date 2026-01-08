@@ -1,0 +1,183 @@
+# Archimedes Multi-Language Examples
+#
+# This docker-compose file runs all example services with their respective
+# Archimedes sidecars. Each sidecar-based service runs internally on port 3000
+# and is exposed through its sidecar on the designated external port.
+#
+# Services:
+#   - rust-native: Port 8001 (no sidecar, uses Archimedes directly)
+#   - python-sidecar: Port 8002 (Python FastAPI + sidecar)
+#   - go-sidecar: Port 8003 (Go net/http + sidecar)
+#   - typescript-sidecar: Port 8004 (TypeScript Express + sidecar)
+#   - cpp-sidecar: Port 8005 (C++ cpp-httplib + sidecar)
+#
+# Usage:
+#   docker compose up --build
+#   docker compose down
+
+version: "3.8"
+
+services:
+  # ===========================================================================
+  # Rust Native Service (Port 8001)
+  # No sidecar needed - uses Archimedes framework directly
+  # ===========================================================================
+  rust-native:
+    build:
+      context: ./rust-native
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - HOST=0.0.0.0
+      - RUST_LOG=info
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ===========================================================================
+  # Python FastAPI Service (Port 8002)
+  # ===========================================================================
+  python-service:
+    build:
+      context: ./python-sidecar
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3000
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:3000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  python-sidecar:
+    image: ghcr.io/themis-platform/archimedes-sidecar:latest
+    build:
+      context: ../crates/archimedes-sidecar
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8080"
+    environment:
+      - ARCHIMEDES_UPSTREAM_URL=http://python-service:3000
+      - ARCHIMEDES_CONTRACT_PATH=/etc/archimedes/contract.json
+      - ARCHIMEDES_LISTEN_ADDR=0.0.0.0:8080
+      - RUST_LOG=info
+    volumes:
+      - ./contract.json:/etc/archimedes/contract.json:ro
+    depends_on:
+      python-service:
+        condition: service_healthy
+
+  # ===========================================================================
+  # Go Service (Port 8003)
+  # ===========================================================================
+  go-service:
+    build:
+      context: ./go-sidecar
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3000
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  go-sidecar:
+    image: ghcr.io/themis-platform/archimedes-sidecar:latest
+    build:
+      context: ../crates/archimedes-sidecar
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8080"
+    environment:
+      - ARCHIMEDES_UPSTREAM_URL=http://go-service:3000
+      - ARCHIMEDES_CONTRACT_PATH=/etc/archimedes/contract.json
+      - ARCHIMEDES_LISTEN_ADDR=0.0.0.0:8080
+      - RUST_LOG=info
+    volumes:
+      - ./contract.json:/etc/archimedes/contract.json:ro
+    depends_on:
+      go-service:
+        condition: service_healthy
+
+  # ===========================================================================
+  # TypeScript Express Service (Port 8004)
+  # ===========================================================================
+  typescript-service:
+    build:
+      context: ./typescript-sidecar
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3000
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  typescript-sidecar:
+    image: ghcr.io/themis-platform/archimedes-sidecar:latest
+    build:
+      context: ../crates/archimedes-sidecar
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8080"
+    environment:
+      - ARCHIMEDES_UPSTREAM_URL=http://typescript-service:3000
+      - ARCHIMEDES_CONTRACT_PATH=/etc/archimedes/contract.json
+      - ARCHIMEDES_LISTEN_ADDR=0.0.0.0:8080
+      - RUST_LOG=info
+    volumes:
+      - ./contract.json:/etc/archimedes/contract.json:ro
+    depends_on:
+      typescript-service:
+        condition: service_healthy
+
+  # ===========================================================================
+  # C++ Service (Port 8005)
+  # ===========================================================================
+  cpp-service:
+    build:
+      context: ./cpp-sidecar
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3000
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  cpp-sidecar:
+    image: ghcr.io/themis-platform/archimedes-sidecar:latest
+    build:
+      context: ../crates/archimedes-sidecar
+      dockerfile: Dockerfile
+    ports:
+      - "8005:8080"
+    environment:
+      - ARCHIMEDES_UPSTREAM_URL=http://cpp-service:3000
+      - ARCHIMEDES_CONTRACT_PATH=/etc/archimedes/contract.json
+      - ARCHIMEDES_LISTEN_ADDR=0.0.0.0:8080
+      - RUST_LOG=info
+    volumes:
+      - ./contract.json:/etc/archimedes/contract.json:ro
+    depends_on:
+      cpp-service:
+        condition: service_healthy
+
+networks:
+  default:
+    name: archimedes-examples

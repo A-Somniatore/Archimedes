@@ -1,0 +1,59 @@
+# cbindgen configuration for archimedes-ffi
+# Generates archimedes.h C header file
+
+# C header output settings
+header = """
+/*
+ * Archimedes FFI - C Language Bindings
+ * 
+ * This is an auto-generated header file. Do not edit manually.
+ * 
+ * Archimedes is a contract-first HTTP server framework with built-in
+ * authorization, observability, and validation.
+ * 
+ * Copyright (c) 2024 Themis Platform Team
+ * Licensed under the Apache License, Version 2.0
+ */
+"""
+
+include_guard = "ARCHIMEDES_H"
+cpp_compat = true
+language = "C"
+
+[export]
+include = [
+    "ArchimedesError",
+    "ArchimedesConfig",
+    "ArchimedesRequestContext",
+    "ArchimedesResponseData",
+    "ArchimedesApp",
+]
+
+exclude = [
+    "InternalConfig",
+    "AppState",
+    "RegisteredHandler",
+    "HandlerRegistry",
+    "RequestContextBuilder",
+]
+
+[export.rename]
+"ArchimedesError" = "archimedes_error"
+"ArchimedesConfig" = "archimedes_config"
+"ArchimedesRequestContext" = "archimedes_request_context"
+"ArchimedesResponseData" = "archimedes_response_data"
+"ArchimedesApp" = "archimedes_app"
+"ArchimedesHandlerFn" = "archimedes_handler_fn"
+
+[fn]
+rename_args = "SnakeCase"
+
+[struct]
+rename_fields = "SnakeCase"
+
+[enum]
+rename_variants = "ScreamingSnakeCase"
+prefix_with_name = true
+
+[parse]
+parse_deps = false

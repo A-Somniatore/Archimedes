@@ -1,0 +1,161 @@
+{
+  "service": "example-api",
+  "version": "1.0.0",
+  "operations": [
+    {
+      "id": "healthCheck",
+      "method": "GET",
+      "path": "/health",
+      "description": "Health check endpoint",
+      "auth_required": false,
+      "request_schema": null,
+      "response_schemas": {
+        "200": {
+          "type": "object",
+          "properties": {
+            "status": { "type": "string" },
+            "service": { "type": "string" },
+            "timestamp": { "type": "string" }
+          },
+          "required": ["status", "service"]
+        }
+      }
+    },
+    {
+      "id": "listUsers",
+      "method": "GET",
+      "path": "/users",
+      "description": "List all users",
+      "auth_required": true,
+      "request_schema": null,
+      "response_schemas": {
+        "200": {
+          "type": "object",
+          "properties": {
+            "users": {
+              "type": "array",
+              "items": {
+                "$ref": "#/schemas/User"
+              }
+            },
+            "total": { "type": "integer" }
+          },
+          "required": ["users", "total"]
+        }
+      }
+    },
+    {
+      "id": "getUser",
+      "method": "GET",
+      "path": "/users/{userId}",
+      "description": "Get a user by ID",
+      "auth_required": true,
+      "path_params": [
+        {
+          "name": "userId",
+          "type": "string",
+          "description": "User ID"
+        }
+      ],
+      "response_schemas": {
+        "200": {
+          "$ref": "#/schemas/User"
+        },
+        "404": {
+          "$ref": "#/schemas/Error"
+        }
+      }
+    },
+    {
+      "id": "createUser",
+      "method": "POST",
+      "path": "/users",
+      "description": "Create a new user",
+      "auth_required": true,
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "email": { "type": "string", "format": "email" }
+        },
+        "required": ["name", "email"]
+      },
+      "response_schemas": {
+        "201": {
+          "$ref": "#/schemas/User"
+        },
+        "400": {
+          "$ref": "#/schemas/Error"
+        }
+      }
+    },
+    {
+      "id": "updateUser",
+      "method": "PUT",
+      "path": "/users/{userId}",
+      "description": "Update a user",
+      "auth_required": true,
+      "path_params": [
+        {
+          "name": "userId",
+          "type": "string"
+        }
+      ],
+      "request_schema": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "email": { "type": "string", "format": "email" }
+        }
+      },
+      "response_schemas": {
+        "200": {
+          "$ref": "#/schemas/User"
+        },
+        "404": {
+          "$ref": "#/schemas/Error"
+        }
+      }
+    },
+    {
+      "id": "deleteUser",
+      "method": "DELETE",
+      "path": "/users/{userId}",
+      "description": "Delete a user",
+      "auth_required": true,
+      "path_params": [
+        {
+          "name": "userId",
+          "type": "string"
+        }
+      ],
+      "response_schemas": {
+        "204": null,
+        "404": {
+          "$ref": "#/schemas/Error"
+        }
+      }
+    }
+  ],
+  "schemas": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email"]
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "request_id": { "type": "string" }
+      },
+      "required": ["code", "message"]
+    }
+  }
+}

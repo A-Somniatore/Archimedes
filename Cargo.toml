@@ -17,6 +17,10 @@ members = [
     "crates/archimedes-sse",
     "crates/archimedes-tasks",
     "crates/archimedes-sidecar",
+    "crates/archimedes-ffi",
+]
+exclude = [
+    "examples/rust-native",
 ]
 
 [workspace.package]
@@ -49,6 +53,7 @@ archimedes-ws = { path = "crates/archimedes-ws" }
 archimedes-sse = { path = "crates/archimedes-sse" }
 archimedes-tasks = { path = "crates/archimedes-tasks" }
 archimedes-sidecar = { path = "crates/archimedes-sidecar" }
+archimedes-ffi = { path = "crates/archimedes-ffi" }
 
 # Themis crates for contract integration
 themis-artifact = { path = "../themis/crates/themis-artifact" }
