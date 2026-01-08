@@ -1,8 +1,8 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 2.14.0
-> **Status**: Implementation Phase (Phase A10 Complete)
-> **Last Updated**: 2025-01-09
+> **Version**: 3.0.0
+> **Status**: Implementation Phase (Phase A13 Planned)
+> **Last Updated**: 2026-01-10
 > **Component**: archimedes
 
 ---
@@ -27,14 +27,144 @@
 | `archimedes-sse`        | ✅ Complete | 38    | Server-Sent Events with backpressure handling                                                             |
 | `archimedes-tasks`      | ✅ Complete | 41    | Background task spawner and job scheduler                                                                 |
 | `archimedes-sidecar`    | ✅ Complete | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
+| `archimedes-ffi`        | 📋 Planned  | -     | C ABI for cross-language FFI (Phase A13.1)                                                                |
+| `archimedes-python`     | 📋 Planned  | -     | Python bindings via PyO3 (Phase A13.2)                                                                    |
+| `archimedes-go`         | 📋 Planned  | -     | Go bindings via cgo (Phase A13.3)                                                                         |
+| `archimedes-node`       | 📋 Planned  | -     | Node.js bindings via napi-rs (Phase A13.4)                                                                |
+| `libarchimedes`         | 📋 Planned  | -     | C++ headers with C ABI (Phase A13.5)                                                                      |
 
-**Total Tests**: 969 passing across all crates (791 unit/integration + 178 doc-tests)
+**Total Tests**: 1019 passing across all crates
+
+---
+
+## 🚀 Phase A13: Native Language Bindings (PLANNED)
+
+### Vision: One Framework, All Languages
+
+Archimedes will provide **native bindings** for Python, Go, TypeScript, and C++. This means:
+
+- **No more FastAPI, Flask, Express, Gin** for internal services
+- **Archimedes IS the framework** - same behavior across all languages
+- **Single codebase** - Rust core with FFI bindings
+
+### Why Native Bindings Over Sidecar?
+
+| Sidecar Pattern (A10)                    | Native Bindings (A13)                     |
+|------------------------------------------|-------------------------------------------|
+| Extra network hop (~2-4ms latency)       | In-process calls (~100ns overhead)        |
+| Separate process (memory, deployment)    | Single binary deployment                  |
+| Header parsing in each language          | Direct struct access                      |
+| Still using FastAPI/Express/etc.         | Unified Archimedes API                    |
+| Two things to deploy                     | One artifact                              |
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           ARCHIMEDES CORE (Rust)                             │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ HTTP Server │ Router │ Middleware │ Validation │ AuthZ │ Telemetry  │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                      │                                       │
+│                    ┌─────────────────┼─────────────────┐                    │
+│                    ▼                 ▼                 ▼                    │
+│             ┌───────────┐     ┌───────────┐     ┌───────────┐              │
+│             │ C ABI     │     │ C ABI     │     │ C ABI     │              │
+│             │ (stable)  │     │ (stable)  │     │ (stable)  │              │
+│             └───────────┘     └───────────┘     └───────────┘              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                    │                 │                 │
+       ┌────────────┘                 │                 └────────────┐
+       ▼                              ▼                              ▼
+┌─────────────────┐          ┌─────────────────┐          ┌─────────────────┐
+│  archimedes-py  │          │  archimedes-go  │          │ @archimedes/node│
+│    (PyO3)       │          │    (cgo)        │          │   (napi-rs)     │
+└─────────────────┘          └─────────────────┘          └─────────────────┘
+       │                              │                              │
+       ▼                              ▼                              ▼
+┌─────────────────┐          ┌─────────────────┐          ┌─────────────────┐
+│  Python App     │          │    Go App       │          │  Node.js App    │
+│                 │          │                 │          │                 │
+│ @app.operation( │          │ app.Operation(  │          │ app.operation(  │
+│   "listUsers")  │          │   "listUsers",  │          │   "listUsers",  │
+│ async def       │          │   handler)      │          │   async (req)=> │
+│   handler():    │          │                 │          │     {})         │
+└─────────────────┘          └─────────────────┘          └─────────────────┘
+```
+
+### API Preview
+
+**Python** (replaces FastAPI/Flask):
+```python
+from archimedes import Archimedes, Request, Response
+
+app = Archimedes(contract="contract.json")
+
+@app.operation("listUsers")
+async def list_users(request: Request) -> Response:
+    users = await db.get_users()
+    return Response.json({"users": users})
+
+app.run(port=8080)
+```
+
+**Go** (replaces Gin/Chi):
+```go
+app := archimedes.New(archimedes.Config{Contract: "contract.json"})
+
+app.Operation("listUsers", func(ctx *archimedes.Context) error {
+    users, _ := db.GetUsers()
+    return ctx.JSON(200, map[string]any{"users": users})
+})
+
+app.Run(":8080")
+```
+
+**TypeScript** (replaces Express/Fastify):
+```typescript
+const app = new Archimedes({ contract: 'contract.json' });
+
+app.operation('listUsers', async (request: Request): Promise<Response> => {
+  const users = await db.getUsers();
+  return Response.json({ users });
+});
+
+app.listen(8080);
+```
+
+**C++** (replaces cpp-httplib/Crow):
+```cpp
+archimedes::App app{"contract.json"};
+
+app.operation("listUsers", [](const archimedes::Request& req) {
+    auto users = db.get_users();
+    return archimedes::Response::json({{"users", users}});
+});
+
+app.run(8080);
+```
+
+### Frameworks Being Replaced
+
+| Language   | Current (Being Replaced)        | Future (Archimedes)          |
+|------------|--------------------------------|------------------------------|
+| Rust       | -                              | archimedes (native)          |
+| Python     | FastAPI, Flask, Django REST    | archimedes (PyPI)            |
+| Go         | Gin, Chi, Echo, net/http       | archimedes-go (module)       |
+| TypeScript | Express, Fastify, NestJS       | @archimedes/node (npm)       |
+| C++        | cpp-httplib, Crow, Drogon      | libarchimedes                |
 
 ---
 
 ## Recent Updates (Phase A10 Complete)
 
 ### Sidecar Proxy (v2.14.0) - COMPLETE
+
+> **Note**: The sidecar pattern remains useful for:
+> - Gradual migration from existing frameworks
+> - Polyglot environments during transition
+> - Edge cases (WASM, exotic platforms)
 
 - **archimedes-sidecar**: Multi-language support crate (39 tests)
   - `SidecarServer`: HTTP proxy using `hyper`

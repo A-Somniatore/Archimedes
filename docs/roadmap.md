@@ -1,18 +1,60 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 2.15.0
+> **Version**: 3.0.0
 > **Created**: 2026-01-04
-> **Last Updated**: 2026-01-09
-> **Target Completion**: Week 52 (extended for multi-language support)
+> **Last Updated**: 2026-01-10
+> **Target Completion**: Week 64 (extended for native language bindings)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
 > **UPDATE (2026-01-09)**: Phase A10 COMPLETE - Archimedes Sidecar for multi-language support.
 > **UPDATE (2026-01-09)**: Phase A10.5 COMPLETE - P1 items addressed. 1019 tests passing (964 executed, 55 ignored).
+> **UPDATE (2026-01-10)**: Phase A12 (Example Services) STARTED - Created example services for Rust, Python, Go, TypeScript, and C++.
+> **🚨 CRITICAL UPDATE (2026-01-10)**: Phase A13 (Native Language Bindings) ADDED - Archimedes will replace FastAPI, Flask, Express, Gin, etc. internally. Python, Go, TypeScript, and C++ will get native bindings via FFI.
 
 ---
 
-## 🎉 Recent Progress (Phase A10 Complete)
+## 🎉 Recent Progress (Phase A12 In Progress → Phase A13 Planned)
+
+### 🚨 ARCHITECTURE DECISION: Native Language Bindings (v3.0.0)
+
+**Decision**: Archimedes will provide **native bindings** for Python, Go, TypeScript, and C++ via FFI/foreign function interfaces. This means:
+
+- **No more FastAPI, Flask, Express, Gin, etc.** for internal services
+- **Archimedes IS the framework** for all languages
+- **Consistent behavior** across all languages (same middleware, validation, auth)
+- **Single codebase** to maintain (Rust core + language bindings)
+
+| Language       | Binding Technology | Status      | Replaces              |
+|----------------|-------------------|-------------|----------------------|
+| **Rust**       | Native            | ✅ Complete | -                    |
+| **Python**     | PyO3              | 🔄 Planned  | FastAPI, Flask       |
+| **Go**         | cgo               | 🔄 Planned  | Gin, Chi, net/http   |
+| **TypeScript** | napi-rs           | 🔄 Planned  | Express, Fastify     |
+| **C++**        | C ABI             | 🔄 Planned  | cpp-httplib, Crow    |
+
+### Multi-Language Example Services (v2.16.0) - 🔄 TRANSITIONAL
+
+> **Note**: These examples currently use language-native frameworks (FastAPI, Express, etc.) with the sidecar pattern. They will be migrated to native Archimedes bindings in Phase A13.
+
+| Language   | Directory              | Current Framework | Future      | Port |
+|------------|------------------------|-------------------|-------------|------|
+| **Rust**   | `examples/rust-native` | Archimedes        | ✅ Done     | 8001 |
+| **Python** | `examples/python-sidecar` | FastAPI        | archimedes-py | 8002 |
+| **Go**     | `examples/go-sidecar`  | net/http          | archimedes-go | 8003 |
+| **TypeScript** | `examples/typescript-sidecar` | Express  | @archimedes/node | 8004 |
+| **C++**    | `examples/cpp-sidecar` | cpp-httplib       | libarchimedes | 8005 |
+
+**Each example includes:**
+- Complete User CRUD API (List, Get, Create, Update, Delete)
+- Health check endpoint
+- Sidecar header parsing (`X-Request-Id`, `X-Caller-Identity`, `X-Operation-Id`)
+- Dockerfile for containerized deployment
+- README with setup and testing instructions
+
+**Shared resources:**
+- `examples/contract.json` - Themis contract with 6 operations
+- `examples/docker-compose.yml` - Unified deployment for all services
 
 ### Archimedes Sidecar (v2.13.0) - ✅ COMPLETE
 
@@ -306,8 +348,9 @@ The spec (§8.3) originally required a push endpoint, but we've decided to defer
 
 | Decision                                                               | Impact                                                   |
 | ---------------------------------------------------------------------- | -------------------------------------------------------- |
-| [ADR-010](docs/decisions/010-pull-only-policy-model.md)                | **Pull-only policy loading for V1.0 (no push endpoint)** |
-| [ADR-009](docs/decisions/009-archimedes-sidecar-multi-language.md)     | **Sidecar pattern for Python/Go/TS/C++ services**        |
+| [ADR-011](docs/decisions/011-native-language-bindings.md)              | **🆕 Native bindings replace FastAPI/Express/Gin/etc.** |
+| [ADR-010](docs/decisions/010-pull-only-policy-model.md)                | Pull-only policy loading for V1.0 (no push endpoint)    |
+| [ADR-009](docs/decisions/009-archimedes-sidecar-multi-language.md)     | Sidecar pattern (transitional, for migration)           |
 | [ADR-008](docs/decisions/008-archimedes-full-framework.md)             | **Archimedes as internal standardized framework**        |
 | [ADR-005](docs/decisions/005-kubernetes-ingress-over-custom-router.md) | Archimedes handles contract enforcement, not routing     |
 | [ADR-006](docs/decisions/006-grpc-post-mvp.md)                         | MVP is HTTP/REST only, gRPC is post-MVP                  |
@@ -318,12 +361,14 @@ The spec (§8.3) originally required a push endpoint, but we've decided to defer
 
 Archimedes is an **internal platform** that standardizes how we build services:
 
-| Challenge (Per-Team Choice)         | Archimedes Solution           |
-| ----------------------------------- | ----------------------------- |
-| Each team picks different framework | One standard for all services |
-| Auth implemented differently        | OPA-based auth built-in       |
-| Validation varies                   | Contract-driven, automatic    |
-| Observability setup per service     | Built-in, zero config         |
+| Challenge (Per-Team Choice)         | Archimedes Solution                         |
+| ----------------------------------- | ------------------------------------------- |
+| Each team picks different framework | **One framework for all languages**         |
+| Python uses FastAPI, Go uses Gin    | **All use Archimedes native bindings**      |
+| Auth implemented differently        | OPA-based auth built-in                     |
+| Validation varies                   | Contract-driven, automatic                  |
+| Observability setup per service     | Built-in, zero config                       |
+| Different APIs per language         | **Consistent API across Python/Go/TS/C++** |
 
 **Archimedes Responsibilities (V1 Release):**
 
@@ -336,6 +381,7 @@ Archimedes is an **internal platform** that standardizes how we build services:
 - Full observability (OpenTelemetry)
 - WebSocket and SSE support
 - Background tasks and scheduled jobs
+- **🆕 Native bindings for Python, Go, TypeScript, C++**
 
 **Deferred to V1.1:**
 
@@ -388,11 +434,17 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 | A9: Developer Experience         | 4 weeks                              | 33-36 | CLI tool, hot reload, templates      | A8 **(DEFERRED)**       |
 | **Multi-Language (Weeks 37-48)** | 🚨 **CRITICAL: Moved from post-MVP** |       |                                      |                         |
 | A10: Sidecar Foundation          | 3 weeks                              | 37-39 | Archimedes sidecar binary            | A8 ✅ **COMPLETE**      |
-| A10.5: Pre-Production Hardening  | 1 week                               | 40    | P1 backlog, hot-reload, testing      | A10 🔄 **IN PROGRESS**  |
+| A10.5: Pre-Production Hardening  | 1 week                               | 40    | P1 backlog, hot-reload, testing      | A10 ✅ **COMPLETE**     |
 | A11: Type Generation             | 2 weeks                              | 41-42 | Python, Go, TypeScript generators    | **Themis-owned**        |
 | A12: Multi-Language Integration  | 4 weeks                              | 43-46 | Integration tests, deployment guides | A10.5, A11              |
-| **Buffer (Weeks 47-52)**         |                                      |       |                                      |                         |
-| Hardening & Buffer               | 6 weeks                              | 47-52 | Performance tuning, contingency      | All                     |
+| **Native Bindings (Weeks 47-64)**| 🚨 **NEW: Native language support**  |       |                                      |                         |
+| A13.1: Core FFI Layer            | 4 weeks                              | 47-50 | C ABI, memory-safe bindings          | A12                     |
+| A13.2: Python Bindings (PyO3)    | 4 weeks                              | 51-54 | archimedes-py package                | A13.1                   |
+| A13.3: Go Bindings (cgo)         | 3 weeks                              | 55-57 | archimedes-go module                 | A13.1                   |
+| A13.4: TypeScript Bindings       | 3 weeks                              | 58-60 | @archimedes/node package             | A13.1                   |
+| A13.5: C++ Bindings              | 2 weeks                              | 61-62 | libarchimedes headers                | A13.1                   |
+| **Buffer (Weeks 63-64)**         |                                      |       |                                      |                         |
+| Hardening & Buffer               | 2 weeks                              | 63-64 | Performance tuning, contingency      | All                     |
 
 **Total**: 52 weeks (13 months) - **Extended by 4 weeks for multi-language support**
 
@@ -1596,6 +1648,7 @@ $ archimedes dev
 > **Goal**: Auto-generate types from JSON Schema for all languages
 > **Owner**: Themis team (contract tooling)
 > **Archimedes Role**: Provide example services that consume generated types
+> **Status**: ⏳ WAITING ON THEMIS
 
 ### ℹ️ Scope Clarification
 
@@ -1611,10 +1664,15 @@ Phase A11 is primarily **Themis CLI functionality** - generating types from cont
 
 ### What Archimedes WILL Do in This Phase
 
-- [ ] Create example services in each language demonstrating sidecar usage
-- [ ] Document how generated types integrate with sidecar header parsing
-- [ ] Test sidecar with services using generated types
-- [ ] Validate `X-Caller-Identity` header parsing in each language
+- [x] Create example services in each language demonstrating sidecar usage
+  - ✅ Rust native service (`examples/rust-native`)
+  - ✅ Python FastAPI service (`examples/python-sidecar`)
+  - ✅ Go net/http service (`examples/go-sidecar`)
+  - ✅ TypeScript Express service (`examples/typescript-sidecar`)
+  - ✅ C++ cpp-httplib service (`examples/cpp-sidecar`)
+- [x] Document how generated types integrate with sidecar header parsing
+- [ ] Test sidecar with services using generated types (waiting on Themis)
+- [x] Validate `X-Caller-Identity` header parsing in each language
 
 ### What Themis Will Do
 
@@ -1666,36 +1724,315 @@ Phase A11 is primarily **Themis CLI functionality** - generating types from cont
 ## Phase A12: Multi-Language Integration (Weeks 43-46) 🧪 ARCHIMEDES + THEMIS
 
 > **Goal**: Prove end-to-end flow for each language with real integration tests
+> **Status**: 🔄 IN PROGRESS - Example services created, integration testing pending
 
 ### Week 43-44: Python and Go Integration
 
-- [ ] Create example Python service (FastAPI)
-- [ ] Create example Go service (Gin/Echo)
+- [x] Create example Python service (FastAPI)
+- [x] Create example Go service (net/http)
 - [ ] Deploy both with Archimedes sidecar
 - [ ] Test full request flow (identity, contract, policy, telemetry)
 - [ ] Measure latency overhead (target: <2ms p99)
-- [ ] Document deployment guides
+- [x] Document deployment guides
 
 ### Week 45-46: TypeScript and Multi-Language E2E
 
-- [ ] Create example TypeScript service (Express/NestJS)
-- [ ] Create heterogeneous service mesh:
-  - Rust service (native Archimedes)
-  - Python service (sidecar)
-  - Go service (sidecar)
-  - TypeScript service (sidecar)
+- [x] Create example TypeScript service (Express)
+- [x] Create heterogeneous service mesh:
+  - ✅ Rust service (native Archimedes) - `examples/rust-native`
+  - ✅ Python service (sidecar) - `examples/python-sidecar`
+  - ✅ Go service (sidecar) - `examples/go-sidecar`
+  - ✅ TypeScript service (sidecar) - `examples/typescript-sidecar`
+  - ✅ C++ service (sidecar) - `examples/cpp-sidecar`
 - [ ] Test cross-service calls
 - [ ] Test distributed tracing
 - [ ] Performance benchmarks
-- [ ] Write multi-language deployment guide
+- [x] Write multi-language deployment guide (`examples/README.md`)
 
 ### A12 Deliverables
 
-- Integration tests for Python, Go, TypeScript
-- Performance benchmarks showing <2ms sidecar overhead
-- Deployment guides for each language
-- Example service repositories
-- Multi-language E2E test suite
+- [x] Example services for Python, Go, TypeScript, C++, Rust
+- [ ] Integration tests for Python, Go, TypeScript
+- [ ] Performance benchmarks showing <2ms sidecar overhead
+- [x] Deployment guides for each language
+- [ ] Example service repositories (currently in monorepo)
+- [ ] Multi-language E2E test suite
+
+---
+
+## Phase A13: Native Language Bindings (Weeks 47-64) 🚀 NEW
+
+> **Goal**: Archimedes becomes THE framework for all languages - replacing FastAPI, Flask, Express, Gin, etc.
+> **Status**: 📋 PLANNED
+> **Decision**: [ADR-011](docs/decisions/011-native-language-bindings.md) (to be written)
+
+### Why Native Bindings?
+
+The sidecar pattern (Phase A10) works but has limitations:
+
+| Sidecar Limitations                          | Native Bindings Solution                    |
+|----------------------------------------------|---------------------------------------------|
+| Extra network hop (latency)                  | In-process function calls                   |
+| Separate process (memory, deployment)        | Single binary                               |
+| Header parsing required in each language     | Direct struct access                        |
+| Framework-specific code (FastAPI, Express)   | One consistent API                          |
+| Two things to maintain (sidecar + service)   | One unified codebase                        |
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         ARCHIMEDES CORE (Rust)                           │
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │  HTTP Server │ Router │ Middleware │ Validation │ Auth │ Telemetry │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
+│                                    │                                     │
+│                     ┌──────────────┼──────────────┐                     │
+│                     ▼              ▼              ▼                     │
+│              ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
+│              │  C ABI      │ │  C ABI      │ │  C ABI      │           │
+│              │  (stable)   │ │  (stable)   │ │  (stable)   │           │
+│              └─────────────┘ └─────────────┘ └─────────────┘           │
+└─────────────────────────────────────────────────────────────────────────┘
+                     │              │              │
+        ┌────────────┘              │              └────────────┐
+        ▼                          ▼                           ▼
+┌───────────────┐          ┌───────────────┐          ┌───────────────┐
+│ archimedes-py │          │ archimedes-go │          │ @archimedes/  │
+│   (PyO3)      │          │   (cgo)       │          │    node       │
+│               │          │               │          │  (napi-rs)    │
+└───────────────┘          └───────────────┘          └───────────────┘
+        │                          │                           │
+        ▼                          ▼                           ▼
+┌───────────────┐          ┌───────────────┐          ┌───────────────┐
+│ Python App    │          │   Go App      │          │  Node.js App  │
+│               │          │               │          │               │
+│ @app.get("/") │          │ app.Get("/")  │          │ app.get("/")  │
+│ def handler() │          │ func handler()│          │ (req) => {}   │
+└───────────────┘          └───────────────┘          └───────────────┘
+```
+
+### Phase A13.1: Core FFI Layer (Weeks 47-50)
+
+> **Goal**: Create stable C ABI for Archimedes core functionality
+
+#### Week 47-48: FFI Foundation
+
+- [ ] Create `archimedes-ffi` crate with C ABI exports
+- [ ] Define stable memory layout for cross-language types:
+  ```rust
+  // C-compatible types
+  #[repr(C)]
+  pub struct ArchimedesConfig {
+      pub listen_addr: *const c_char,
+      pub listen_port: u16,
+      pub contract_path: *const c_char,
+      // ...
+  }
+  
+  #[repr(C)]
+  pub struct RequestContext {
+      pub request_id: [u8; 16],  // UUID as bytes
+      pub method: *const c_char,
+      pub path: *const c_char,
+      pub caller_identity: *const CallerIdentity,
+      // ...
+  }
+  ```
+- [ ] Implement callback-based handler registration:
+  ```rust
+  pub type HandlerCallback = extern "C" fn(
+      ctx: *const RequestContext,
+      body: *const u8,
+      body_len: usize,
+      response_out: *mut *mut u8,
+      response_len_out: *mut usize,
+  ) -> i32;
+  
+  #[no_mangle]
+  pub extern "C" fn archimedes_register_handler(
+      operation_id: *const c_char,
+      callback: HandlerCallback,
+  ) -> i32;
+  ```
+- [ ] Memory management functions (alloc/free)
+- [ ] Error handling with error codes and messages
+
+#### Week 49-50: FFI Testing & Stability
+
+- [ ] Create C header file (`archimedes.h`) with cbindgen
+- [ ] Create FFI integration tests
+- [ ] Document memory ownership rules
+- [ ] Benchmark FFI call overhead (target: <100ns)
+- [ ] Version the ABI (semver for C ABI)
+
+### Phase A13.2: Python Bindings (Weeks 51-54)
+
+> **Goal**: `pip install archimedes` - Python developers use Archimedes directly
+> **Technology**: PyO3 (Rust-Python bindings)
+
+#### Week 51-52: Core Python Module
+
+- [ ] Create `archimedes-python` crate using PyO3
+- [ ] Python-native API design:
+  ```python
+  from archimedes import Archimedes, Request, Response
+  
+  app = Archimedes(contract="contract.json")
+  
+  @app.operation("listUsers")
+  async def list_users(request: Request) -> Response:
+      # request.caller_identity is typed!
+      # request.body is already validated!
+      users = await db.get_users()
+      return Response.json({"users": users})
+  
+  if __name__ == "__main__":
+      app.run(port=8080)
+  ```
+- [ ] Type stubs (`.pyi` files) for IDE support
+- [ ] Async support via `pyo3-asyncio`
+- [ ] Request/Response types with Pydantic integration
+
+#### Week 53-54: Python Ecosystem Integration
+
+- [ ] Create `archimedes` PyPI package
+- [ ] pytest plugin for testing handlers
+- [ ] OpenTelemetry Python integration
+- [ ] Migration guide: FastAPI → Archimedes
+- [ ] Benchmark: archimedes-py vs FastAPI (target: 2x throughput)
+
+### Phase A13.3: Go Bindings (Weeks 55-57)
+
+> **Goal**: `go get github.com/themis-platform/archimedes-go` - Go developers use Archimedes directly
+> **Technology**: cgo (C bindings for Go)
+
+#### Week 55-56: Core Go Module
+
+- [ ] Create `archimedes-go` module using cgo
+- [ ] Go-idiomatic API design:
+  ```go
+  package main
+  
+  import "github.com/themis-platform/archimedes-go"
+  
+  func main() {
+      app := archimedes.New(archimedes.Config{
+          Contract: "contract.json",
+      })
+      
+      app.Operation("listUsers", func(ctx *archimedes.Context) error {
+          // ctx.CallerIdentity is typed!
+          // ctx.Body is already validated!
+          users, err := db.GetUsers()
+          if err != nil {
+              return err
+          }
+          return ctx.JSON(200, map[string]any{"users": users})
+      })
+      
+      app.Run(":8080")
+  }
+  ```
+- [ ] Context with typed request access
+- [ ] Error handling with Go idioms
+- [ ] Static linking option (no cgo dependency in prod)
+
+#### Week 57: Go Ecosystem Integration
+
+- [ ] Create Go module with proper versioning
+- [ ] Testing utilities
+- [ ] OpenTelemetry Go integration
+- [ ] Migration guide: Gin/Chi → Archimedes
+- [ ] Benchmark: archimedes-go vs Gin (target: 1.5x throughput)
+
+### Phase A13.4: TypeScript/Node.js Bindings (Weeks 58-60)
+
+> **Goal**: `npm install @archimedes/node` - Node.js developers use Archimedes directly
+> **Technology**: napi-rs (Rust-Node.js bindings)
+
+#### Week 58-59: Core Node Module
+
+- [ ] Create `archimedes-node` crate using napi-rs
+- [ ] TypeScript-first API design:
+  ```typescript
+  import { Archimedes, Request, Response } from '@archimedes/node';
+  
+  const app = new Archimedes({ contract: 'contract.json' });
+  
+  app.operation('listUsers', async (request: Request): Promise<Response> => {
+    // request.callerIdentity is typed!
+    // request.body is already validated!
+    const users = await db.getUsers();
+    return Response.json({ users });
+  });
+  
+  app.listen(8080);
+  ```
+- [ ] Full TypeScript types (no `any`)
+- [ ] Native Promise support
+- [ ] Streaming support for SSE/WebSocket
+
+#### Week 60: Node Ecosystem Integration
+
+- [ ] Publish to npm as `@archimedes/node`
+- [ ] Jest/Vitest testing utilities
+- [ ] OpenTelemetry JS integration
+- [ ] Migration guide: Express/Fastify → Archimedes
+- [ ] Benchmark: @archimedes/node vs Fastify (target: 1.5x throughput)
+
+### Phase A13.5: C++ Bindings (Weeks 61-62)
+
+> **Goal**: `#include <archimedes/archimedes.hpp>` - C++ developers use Archimedes directly
+> **Technology**: Direct C ABI with C++ wrapper
+
+#### Week 61-62: C++ Headers
+
+- [ ] Create `libarchimedes` with C++ wrapper headers
+- [ ] Modern C++ API (C++17+):
+  ```cpp
+  #include <archimedes/archimedes.hpp>
+  
+  int main() {
+      archimedes::App app{"contract.json"};
+      
+      app.operation("listUsers", [](const archimedes::Request& req) {
+          // req.caller_identity() is typed!
+          // req.body() is already validated!
+          auto users = db.get_users();
+          return archimedes::Response::json({{"users", users}});
+      });
+      
+      app.run(8080);
+  }
+  ```
+- [ ] RAII for resource management
+- [ ] CMake integration
+- [ ] vcpkg/conan package
+- [ ] Header-only option for simple cases
+
+### A13 Deliverables
+
+| Deliverable                  | Language   | Package Name           | Status   |
+|------------------------------|------------|------------------------|----------|
+| Core FFI Layer               | C          | libarchimedes.so       | 📋 Planned |
+| Python Bindings              | Python     | archimedes (PyPI)      | 📋 Planned |
+| Go Bindings                  | Go         | archimedes-go (module) | 📋 Planned |
+| TypeScript Bindings          | TypeScript | @archimedes/node (npm) | 📋 Planned |
+| C++ Bindings                 | C++        | libarchimedes (vcpkg)  | 📋 Planned |
+| Migration Guides             | All        | docs/migration/        | 📋 Planned |
+| Performance Benchmarks       | All        | benchmarks/            | 📋 Planned |
+
+### Performance Targets
+
+| Language   | Metric                    | Target              |
+|------------|---------------------------|---------------------|
+| Python     | Requests/sec vs FastAPI   | ≥2x improvement     |
+| Go         | Requests/sec vs Gin       | ≥1.5x improvement   |
+| TypeScript | Requests/sec vs Fastify   | ≥1.5x improvement   |
+| C++        | FFI overhead per call     | <100ns              |
+| All        | Memory per connection     | <10KB baseline      |
 
 ---
 
@@ -1719,6 +2056,13 @@ Phase A11 is primarily **Themis CLI functionality** - generating types from cont
 | A10: Sidecar          | Week 39 | Sidecar for non-Rust services    | A9                      |
 | A11: Type Generation  | Week 42 | Python, Go, TypeScript, C++      | Themis codegen          |
 | A12: Integration      | Week 46 | Multi-language E2E tests         | A10, A11                |
+| **Native Bindings**   |         |                                  |                         |
+| A13.1: Core FFI       | Week 50 | Stable C ABI for Archimedes      | A12                     |
+| A13.2: Python         | Week 54 | archimedes PyPI package          | A13.1                   |
+| A13.3: Go             | Week 57 | archimedes-go module             | A13.1                   |
+| A13.4: TypeScript     | Week 60 | @archimedes/node npm package     | A13.1                   |
+| A13.5: C++            | Week 62 | libarchimedes headers            | A13.1                   |
+| **V1.0 Release**      | Week 64 | All languages, production ready  | A13.5                   |
 
 ---
 
@@ -1747,18 +2091,34 @@ Phase A11 is primarily **Themis CLI functionality** - generating types from cont
 - `archimedes-tasks` - Background tasks and scheduled jobs
 - `archimedes-db` - Database connection pooling
 
+### Sidecar (Transitional)
+
+- `archimedes-sidecar` - HTTP proxy for non-Rust services (Phase A10)
+  > **Note**: The sidecar remains useful for:
+  > - Gradual migration from existing frameworks
+  > - Polyglot environments where native bindings aren't ready
+  > - Edge cases (WASM, exotic platforms)
+
+### Native Language Bindings (Phase A13) 🆕
+
+- `archimedes-ffi` - C ABI layer for cross-language FFI
+- `archimedes-python` - PyO3-based Python bindings → **`archimedes` (PyPI)**
+- `archimedes-go` - cgo-based Go bindings → **`github.com/themis-platform/archimedes-go`**
+- `archimedes-node` - napi-rs Node.js bindings → **`@archimedes/node` (npm)**
+- `libarchimedes` - C++ headers with C ABI → **vcpkg/conan package**
+
 ### Tools
 
 - `archimedes-cli` - Command-line scaffolding tool
 - `archimedes-dev` - Development server with hot reload
 
-### Code Generators
+### Code Generators (Themis-Owned)
 
-- `archimedes-codegen-rust` - Rust client/server generation
-- `archimedes-codegen-python` - Python SDK generation
-- `archimedes-codegen-typescript` - TypeScript SDK generation
-- `archimedes-codegen-go` - Go SDK generation
-- `archimedes-codegen-cpp` - C++ SDK generation
+- `themis-codegen-rust` - Rust client/server generation
+- `themis-codegen-python` - Python type generation
+- `themis-codegen-typescript` - TypeScript type generation
+- `themis-codegen-go` - Go type generation
+- `themis-codegen-cpp` - C++ type generation
 
 ### Features (Full Release)
 
@@ -1779,7 +2139,10 @@ Phase A11 is primarily **Themis CLI functionality** - generating types from cont
 - **Database connection pooling**
 - **CLI scaffolding**
 - **Hot reload development**
-- **Multi-language SDK generation**
+- **Native Python bindings (replaces FastAPI/Flask)** 🆕
+- **Native Go bindings (replaces Gin/Chi)** 🆕
+- **Native TypeScript bindings (replaces Express/Fastify)** 🆕
+- **Native C++ bindings (replaces cpp-httplib/Crow)** 🆕
 
 ---
 
