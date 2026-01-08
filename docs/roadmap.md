@@ -1981,7 +1981,7 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 - [x] Tracing middleware (W3C traceparent extraction and propagation)
 - [x] Identity extraction middleware (X-Caller-Identity header parsing)
 - [x] Error normalization middleware (ThemisError-style ErrorEnvelope)
-- [ ] Telemetry collection middleware (OpenTelemetry metrics)
+- [x] Telemetry collection middleware (PyTelemetry, PyTelemetryConfig)
 
 #### Week 57-58: Authorization & Validation ✅ COMPLETE
 
