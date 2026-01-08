@@ -10,6 +10,7 @@
 //! | [`JsonResponse`] | `application/json` | JSON serialized response |
 //! | [`HtmlResponse`] | `text/html` | HTML content |
 //! | [`TextResponse`] | `text/plain` | Plain text |
+//! | [`FileResponse`] | Auto-detected | File download response |
 //! | [`Redirect`] | N/A | HTTP redirect (301, 302, etc.) |
 //! | [`NoContent`] | N/A | 204 No Content |
 //!
@@ -482,6 +483,276 @@ impl ErrorResponse {
     }
 }
 
+/// File download response builder.
+///
+/// Creates an HTTP response for file downloads with proper
+/// `Content-Disposition` and `Content-Type` headers.
+///
+/// # Example
+///
+/// ```rust
+/// use archimedes_extract::response::FileResponse;
+///
+/// // Simple file download
+/// let response = FileResponse::new(b"file content".to_vec())
+///     .filename("document.txt");
+///
+/// // With explicit content type
+/// let response = FileResponse::new(vec![0x89, 0x50, 0x4E, 0x47])
+///     .filename("image.png")
+///     .content_type("image/png");
+///
+/// // Inline display (browser shows instead of downloads)
+/// let response = FileResponse::new(b"PDF content".to_vec())
+///     .filename("report.pdf")
+///     .inline();
+/// ```
+#[derive(Debug, Clone)]
+pub struct FileResponse {
+    data: Vec<u8>,
+    filename: Option<String>,
+    content_type: Option<String>,
+    disposition: ContentDisposition,
+    status: StatusCode,
+}
+
+/// Content-Disposition type for file responses.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ContentDisposition {
+    /// Browser should download the file.
+    #[default]
+    Attachment,
+    /// Browser should display the file inline if possible.
+    Inline,
+}
+
+impl FileResponse {
+    /// Creates a new file response from bytes.
+    #[must_use]
+    pub fn new(data: impl Into<Vec<u8>>) -> Self {
+        Self {
+            data: data.into(),
+            filename: None,
+            content_type: None,
+            disposition: ContentDisposition::default(),
+            status: StatusCode::OK,
+        }
+    }
+
+    /// Creates a file response from a string.
+    #[must_use]
+    pub fn from_string(content: impl Into<String>) -> Self {
+        Self::new(content.into().into_bytes())
+    }
+
+    /// Sets the filename for the `Content-Disposition` header.
+    ///
+    /// This also attempts to auto-detect the content type from the extension
+    /// if not explicitly set.
+    #[must_use]
+    pub fn filename(mut self, filename: impl Into<String>) -> Self {
+        self.filename = Some(filename.into());
+        self
+    }
+
+    /// Sets the content type explicitly.
+    #[must_use]
+    pub fn content_type(mut self, content_type: impl Into<String>) -> Self {
+        self.content_type = Some(content_type.into());
+        self
+    }
+
+    /// Sets the disposition to inline (browser displays instead of downloads).
+    #[must_use]
+    pub fn inline(mut self) -> Self {
+        self.disposition = ContentDisposition::Inline;
+        self
+    }
+
+    /// Sets the disposition to attachment (browser downloads).
+    #[must_use]
+    pub fn attachment(mut self) -> Self {
+        self.disposition = ContentDisposition::Attachment;
+        self
+    }
+
+    /// Sets a custom status code (default is 200 OK).
+    #[must_use]
+    pub fn with_status(mut self, status: StatusCode) -> Self {
+        self.status = status;
+        self
+    }
+
+    /// Returns the status code.
+    #[must_use]
+    pub fn status(&self) -> StatusCode {
+        self.status
+    }
+
+    /// Returns the filename if set.
+    #[must_use]
+    pub fn get_filename(&self) -> Option<&str> {
+        self.filename.as_deref()
+    }
+
+    /// Returns the content type, auto-detecting from filename if not set.
+    #[must_use]
+    pub fn get_content_type(&self) -> &str {
+        if let Some(ref ct) = self.content_type {
+            return ct;
+        }
+
+        // Auto-detect from filename extension
+        if let Some(ref filename) = self.filename {
+            return Self::mime_from_extension(filename);
+        }
+
+        "application/octet-stream"
+    }
+
+    /// Returns the content disposition.
+    #[must_use]
+    pub fn get_disposition(&self) -> ContentDisposition {
+        self.disposition
+    }
+
+    /// Returns the data length.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
+    /// Returns true if the data is empty.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+
+    /// Guesses MIME type from file extension.
+    fn mime_from_extension(filename: &str) -> &'static str {
+        let ext = filename
+            .rsplit('.')
+            .next()
+            .unwrap_or("")
+            .to_lowercase();
+
+        match ext.as_str() {
+            // Text
+            "txt" => "text/plain",
+            "html" | "htm" => "text/html",
+            "css" => "text/css",
+            "csv" => "text/csv",
+            "xml" => "text/xml",
+            "md" => "text/markdown",
+
+            // JavaScript/JSON
+            "js" | "mjs" => "application/javascript",
+            "json" => "application/json",
+
+            // Images
+            "png" => "image/png",
+            "jpg" | "jpeg" => "image/jpeg",
+            "gif" => "image/gif",
+            "svg" => "image/svg+xml",
+            "webp" => "image/webp",
+            "ico" => "image/x-icon",
+            "bmp" => "image/bmp",
+
+            // Audio
+            "mp3" => "audio/mpeg",
+            "wav" => "audio/wav",
+            "ogg" => "audio/ogg",
+            "flac" => "audio/flac",
+
+            // Video
+            "mp4" => "video/mp4",
+            "webm" => "video/webm",
+            "avi" => "video/x-msvideo",
+            "mov" => "video/quicktime",
+
+            // Documents
+            "pdf" => "application/pdf",
+            "doc" => "application/msword",
+            "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "xls" => "application/vnd.ms-excel",
+            "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "ppt" => "application/vnd.ms-powerpoint",
+            "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+
+            // Archives
+            "zip" => "application/zip",
+            "tar" => "application/x-tar",
+            "gz" | "gzip" => "application/gzip",
+            "rar" => "application/vnd.rar",
+            "7z" => "application/x-7z-compressed",
+
+            // Fonts
+            "woff" => "font/woff",
+            "woff2" => "font/woff2",
+            "ttf" => "font/ttf",
+            "otf" => "font/otf",
+            "eot" => "application/vnd.ms-fontobject",
+
+            // Other
+            "wasm" => "application/wasm",
+            "yaml" | "yml" => "application/x-yaml",
+            "toml" => "application/toml",
+
+            // Default
+            _ => "application/octet-stream",
+        }
+    }
+
+    /// Builds the `Content-Disposition` header value.
+    fn build_content_disposition(&self) -> String {
+        let disposition_type = match self.disposition {
+            ContentDisposition::Attachment => "attachment",
+            ContentDisposition::Inline => "inline",
+        };
+
+        match &self.filename {
+            Some(filename) => {
+                // RFC 5987 encoding for non-ASCII filenames
+                let needs_encoding = filename.bytes().any(|b| b > 127 || b == b'"' || b == b'\\');
+
+                if needs_encoding {
+                    // Use UTF-8 encoded filename* parameter
+                    let encoded: String = filename
+                        .bytes()
+                        .map(|b| {
+                            if b.is_ascii_alphanumeric() || b == b'.' || b == b'-' || b == b'_' {
+                                format!("{}", b as char)
+                            } else {
+                                format!("%{:02X}", b)
+                            }
+                        })
+                        .collect();
+                    format!("{}; filename*=UTF-8''{}", disposition_type, encoded)
+                } else {
+                    format!("{}; filename=\"{}\"", disposition_type, filename)
+                }
+            }
+            None => disposition_type.to_string(),
+        }
+    }
+
+    /// Builds the HTTP response.
+    #[must_use]
+    pub fn into_response(self) -> Response<Bytes> {
+        let content_type = self.get_content_type().to_string();
+        let content_disposition = self.build_content_disposition();
+        let content_length = self.data.len();
+
+        Response::builder()
+            .status(self.status)
+            .header(header::CONTENT_TYPE, content_type)
+            .header(header::CONTENT_DISPOSITION, content_disposition)
+            .header(header::CONTENT_LENGTH, content_length)
+            .body(Bytes::from(self.data))
+            .expect("Failed to build response")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -639,5 +910,192 @@ mod tests {
         let body: serde_json::Value = serde_json::from_slice(http_response.body()).unwrap();
 
         assert_eq!(body["request_id"], "req-123");
+    }
+
+    #[test]
+    fn test_file_response_basic() {
+        let data = b"Hello, World!".to_vec();
+        let response = FileResponse::new(data.clone());
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.len(), 13);
+        assert!(!response.is_empty());
+        assert_eq!(response.get_content_type(), "application/octet-stream");
+    }
+
+    #[test]
+    fn test_file_response_with_filename() {
+        let response = FileResponse::new(b"content".to_vec())
+            .filename("document.pdf");
+
+        assert_eq!(response.get_filename(), Some("document.pdf"));
+        assert_eq!(response.get_content_type(), "application/pdf");
+    }
+
+    #[test]
+    fn test_file_response_explicit_content_type() {
+        let response = FileResponse::new(b"content".to_vec())
+            .filename("file.txt")
+            .content_type("application/custom");
+
+        // Explicit content type takes precedence
+        assert_eq!(response.get_content_type(), "application/custom");
+    }
+
+    #[test]
+    fn test_file_response_inline() {
+        let response = FileResponse::new(b"content".to_vec())
+            .filename("image.png")
+            .inline();
+
+        assert_eq!(response.get_disposition(), ContentDisposition::Inline);
+
+        let http_response = response.into_response();
+        let disposition = http_response
+            .headers()
+            .get(header::CONTENT_DISPOSITION)
+            .unwrap()
+            .to_str()
+            .unwrap();
+
+        assert!(disposition.starts_with("inline"));
+        assert!(disposition.contains("filename=\"image.png\""));
+    }
+
+    #[test]
+    fn test_file_response_attachment() {
+        let response = FileResponse::new(b"content".to_vec())
+            .filename("doc.pdf")
+            .attachment();
+
+        let http_response = response.into_response();
+        let disposition = http_response
+            .headers()
+            .get(header::CONTENT_DISPOSITION)
+            .unwrap()
+            .to_str()
+            .unwrap();
+
+        assert!(disposition.starts_with("attachment"));
+    }
+
+    #[test]
+    fn test_file_response_into_response() {
+        let data = b"file content".to_vec();
+        let response = FileResponse::new(data.clone())
+            .filename("test.txt")
+            .into_response();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            response.headers().get(header::CONTENT_TYPE).unwrap(),
+            "text/plain"
+        );
+        assert_eq!(
+            response.headers().get(header::CONTENT_LENGTH).unwrap(),
+            "12"
+        );
+        assert_eq!(response.body().as_ref(), b"file content");
+    }
+
+    #[test]
+    fn test_file_response_from_string() {
+        let response = FileResponse::from_string("Hello!")
+            .filename("greeting.txt");
+
+        assert_eq!(response.len(), 6);
+        assert_eq!(response.get_content_type(), "text/plain");
+    }
+
+    #[test]
+    fn test_file_response_custom_status() {
+        let response = FileResponse::new(b"data".to_vec())
+            .with_status(StatusCode::CREATED);
+
+        assert_eq!(response.status(), StatusCode::CREATED);
+    }
+
+    #[test]
+    fn test_file_response_mime_detection() {
+        // Images
+        assert_eq!(
+            FileResponse::new(vec![]).filename("photo.jpg").get_content_type(),
+            "image/jpeg"
+        );
+        assert_eq!(
+            FileResponse::new(vec![]).filename("image.png").get_content_type(),
+            "image/png"
+        );
+        assert_eq!(
+            FileResponse::new(vec![]).filename("icon.svg").get_content_type(),
+            "image/svg+xml"
+        );
+
+        // Documents
+        assert_eq!(
+            FileResponse::new(vec![]).filename("doc.pdf").get_content_type(),
+            "application/pdf"
+        );
+        assert_eq!(
+            FileResponse::new(vec![]).filename("data.json").get_content_type(),
+            "application/json"
+        );
+
+        // Archives
+        assert_eq!(
+            FileResponse::new(vec![]).filename("archive.zip").get_content_type(),
+            "application/zip"
+        );
+
+        // Unknown extension
+        assert_eq!(
+            FileResponse::new(vec![]).filename("file.xyz").get_content_type(),
+            "application/octet-stream"
+        );
+    }
+
+    #[test]
+    fn test_file_response_unicode_filename() {
+        let response = FileResponse::new(b"data".to_vec())
+            .filename("документ.pdf");
+
+        let http_response = response.into_response();
+        let disposition = http_response
+            .headers()
+            .get(header::CONTENT_DISPOSITION)
+            .unwrap()
+            .to_str()
+            .unwrap();
+
+        // Should use UTF-8 encoding
+        assert!(disposition.contains("filename*=UTF-8''"));
+    }
+
+    #[test]
+    fn test_file_response_no_filename() {
+        let response = FileResponse::new(b"data".to_vec());
+
+        let http_response = response.into_response();
+        let disposition = http_response
+            .headers()
+            .get(header::CONTENT_DISPOSITION)
+            .unwrap()
+            .to_str()
+            .unwrap();
+
+        assert_eq!(disposition, "attachment");
+    }
+
+    #[test]
+    fn test_file_response_empty() {
+        let response = FileResponse::new(Vec::new());
+        assert!(response.is_empty());
+        assert_eq!(response.len(), 0);
+    }
+
+    #[test]
+    fn test_content_disposition_default() {
+        let disposition = ContentDisposition::default();
+        assert_eq!(disposition, ContentDisposition::Attachment);
     }
 }
