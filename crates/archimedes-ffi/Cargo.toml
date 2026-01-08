@@ -67,4 +67,4 @@ must_use_candidate = "allow"
 missing_errors_doc = "allow"
 missing_panics_doc = "allow"
 module_name_repetitions = "allow"
-missing_safety_doc = "allow"  # Safety documented at module level
+missing_safety_doc = "allow"                 # Safety documented at module level

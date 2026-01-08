@@ -135,12 +135,7 @@ fn c_str_to_rust(ptr: *const c_char) -> Option<String> {
     if ptr.is_null() {
         return None;
     }
-    unsafe {
-        CStr::from_ptr(ptr)
-            .to_str()
-            .ok()
-            .map(|s| s.to_string())
-    }
+    unsafe { CStr::from_ptr(ptr).to_str().ok().map(|s| s.to_string()) }
 }
 
 /// Helper to convert C string to Rust &str

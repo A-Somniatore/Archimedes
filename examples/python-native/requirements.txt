@@ -1,0 +1,24 @@
+# Requirements for Python Native Example
+#
+# Note: The main dependency is the archimedes native extension,
+# which is built from crates/archimedes-py using maturin.
+#
+# For development:
+#   cd crates/archimedes-py
+#   pip install maturin
+#   maturin develop
+#
+# The native extension provides:
+# - App: Application instance
+# - Config: Configuration loader  
+# - Response: HTTP response builder
+# - RequestContext: Request metadata and identity
+# - ArchimedesError: Error type
+
+# Development dependencies
+maturin>=1.5
+pytest>=7.0
+pytest-asyncio>=0.21
+
+# Optional: for local testing without full Archimedes
+# (remove once archimedes wheel is available)

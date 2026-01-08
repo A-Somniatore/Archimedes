@@ -7,9 +7,7 @@ name = "archimedes"
 version = "0.1.0"
 description = "Python bindings for Archimedes HTTP server framework"
 readme = "README.md"
-authors = [
-    { name = "Themis Platform Team" }
-]
+authors = [{ name = "Themis Platform Team" }]
 license = { text = "MIT OR Apache-2.0" }
 keywords = ["http", "server", "framework", "contract-first", "api"]
 classifiers = [
@@ -36,14 +34,12 @@ Repository = "https://github.com/ThemisPlatform/archimedes"
 Documentation = "https://github.com/ThemisPlatform/archimedes/tree/main/crates/archimedes-py"
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "pytest-asyncio>=0.21",
-]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.21"]
 
 [tool.maturin]
 # Build the extension module from the crate
-module-name = "archimedes"
+# The native module is archimedes._archimedes, with Python wrapper in archimedes/
+module-name = "archimedes._archimedes"
 features = ["pyo3/extension-module"]
 python-source = "python"
 # Strip release builds for smaller binary

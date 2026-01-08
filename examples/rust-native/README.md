@@ -5,6 +5,7 @@ A Rust service demonstrating **native** Archimedes framework usage without a sid
 ## Overview
 
 This example shows how to build a Rust microservice that:
+
 - Uses Archimedes directly (no sidecar needed)
 - Gets contract validation, authorization, and observability built-in
 - Implements a simple User CRUD API
@@ -76,24 +77,24 @@ docker run -p 8001:8001 example-rust-native
 
 ## API Endpoints
 
-| Method | Path              | Operation       | Auth Required |
-|--------|-------------------|-----------------|---------------|
-| GET    | `/health`         | Health Check    | No            |
-| GET    | `/users`          | List Users      | Yes           |
-| GET    | `/users/{userId}` | Get User        | Yes           |
-| POST   | `/users`          | Create User     | Yes           |
-| PUT    | `/users/{userId}` | Update User     | Yes           |
-| DELETE | `/users/{userId}` | Delete User     | Yes           |
+| Method | Path              | Operation    | Auth Required |
+| ------ | ----------------- | ------------ | ------------- |
+| GET    | `/health`         | Health Check | No            |
+| GET    | `/users`          | List Users   | Yes           |
+| GET    | `/users/{userId}` | Get User     | Yes           |
+| POST   | `/users`          | Create User  | Yes           |
+| PUT    | `/users/{userId}` | Update User  | Yes           |
+| DELETE | `/users/{userId}` | Delete User  | Yes           |
 
 ## Key Differences from Sidecar Pattern
 
-| Aspect              | Native (Rust)           | Sidecar (Other Languages) |
-|---------------------|-------------------------|---------------------------|
-| Latency             | ~0.5ms p50              | ~1.5ms p50 (+1ms)         |
-| Deployment          | Single binary           | Two containers            |
-| Type Safety         | Compile-time types      | Runtime validation        |
-| Memory              | Lower (shared runtime)  | Higher (two processes)    |
-| Complexity          | Lower                   | Slightly higher           |
+| Aspect      | Native (Rust)          | Sidecar (Other Languages) |
+| ----------- | ---------------------- | ------------------------- |
+| Latency     | ~0.5ms p50             | ~1.5ms p50 (+1ms)         |
+| Deployment  | Single binary          | Two containers            |
+| Type Safety | Compile-time types     | Runtime validation        |
+| Memory      | Lower (shared runtime) | Higher (two processes)    |
+| Complexity  | Lower                  | Slightly higher           |
 
 ## Testing
 
@@ -125,9 +126,9 @@ curl -X DELETE http://localhost:8001/users/1
 
 Environment variables:
 
-| Variable         | Default     | Description                |
-|------------------|-------------|----------------------------|
-| `PORT`           | `8001`      | Server port                |
-| `HOST`           | `0.0.0.0`   | Server host                |
-| `CONTRACT_PATH`  | `contract.json` | Path to Themis contract |
-| `RUST_LOG`       | `info`      | Log level                  |
+| Variable        | Default         | Description             |
+| --------------- | --------------- | ----------------------- |
+| `PORT`          | `8001`          | Server port             |
+| `HOST`          | `0.0.0.0`       | Server host             |
+| `CONTRACT_PATH` | `contract.json` | Path to Themis contract |
+| `RUST_LOG`      | `info`          | Log level               |

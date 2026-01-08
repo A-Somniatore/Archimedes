@@ -20,9 +20,7 @@ members = [
     "crates/archimedes-ffi",
     "crates/archimedes-py",
 ]
-exclude = [
-    "examples/rust-native",
-]
+exclude = ["examples/rust-native"]
 
 [workspace.package]
 version = "0.1.0"

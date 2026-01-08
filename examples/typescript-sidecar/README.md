@@ -5,6 +5,7 @@ A TypeScript/Express service demonstrating integration with the Archimedes sidec
 ## Overview
 
 This example shows how to build a TypeScript microservice that:
+
 - Implements a simple User CRUD API with Express
 - Receives validated requests through the Archimedes sidecar
 - Uses caller identity for authorization decisions
@@ -73,26 +74,26 @@ docker run -p 3000:3000 example-typescript-sidecar
 
 ## API Endpoints
 
-| Method | Path              | Operation       | Auth Required |
-|--------|-------------------|-----------------|---------------|
-| GET    | `/health`         | Health Check    | No            |
-| GET    | `/users`          | List Users      | Yes           |
-| GET    | `/users/:userId`  | Get User        | Yes           |
-| POST   | `/users`          | Create User     | Yes           |
-| PUT    | `/users/:userId`  | Update User     | Yes           |
-| DELETE | `/users/:userId`  | Delete User     | Yes           |
+| Method | Path             | Operation    | Auth Required |
+| ------ | ---------------- | ------------ | ------------- |
+| GET    | `/health`        | Health Check | No            |
+| GET    | `/users`         | List Users   | Yes           |
+| GET    | `/users/:userId` | Get User     | Yes           |
+| POST   | `/users`         | Create User  | Yes           |
+| PUT    | `/users/:userId` | Update User  | Yes           |
+| DELETE | `/users/:userId` | Delete User  | Yes           |
 
 ## Headers from Sidecar
 
 The sidecar injects these headers into every request:
 
-| Header              | Description                        |
-|---------------------|------------------------------------|
-| `X-Request-Id`      | Unique request identifier          |
-| `X-Caller-Identity` | JSON-encoded caller identity       |
-| `X-Operation-Id`    | Matched operation from contract    |
-| `traceparent`       | W3C Trace Context parent           |
-| `tracestate`        | W3C Trace Context state            |
+| Header              | Description                     |
+| ------------------- | ------------------------------- |
+| `X-Request-Id`      | Unique request identifier       |
+| `X-Caller-Identity` | JSON-encoded caller identity    |
+| `X-Operation-Id`    | Matched operation from contract |
+| `traceparent`       | W3C Trace Context parent        |
+| `tracestate`        | W3C Trace Context state         |
 
 ## Testing
 
@@ -124,7 +125,7 @@ curl -X DELETE http://localhost:3000/users/1
 
 Environment variables:
 
-| Variable | Default   | Description       |
-|----------|-----------|-------------------|
-| `PORT`   | `3000`    | Server port       |
-| `HOST`   | `0.0.0.0` | Server host       |
+| Variable | Default   | Description |
+| -------- | --------- | ----------- |
+| `PORT`   | `3000`    | Server port |
+| `HOST`   | `0.0.0.0` | Server host |

@@ -655,12 +655,12 @@ Native bindings expose Archimedes functionality through a stable C ABI (Applicat
 ### 17.2 Supported Languages
 
 | Language   | Binding Technology | Package Name             | Status   |
-|------------|-------------------|--------------------------|----------|
-| Rust       | Native            | `archimedes`             | Complete |
-| Python     | PyO3              | `archimedes` (PyPI)      | Planned  |
-| Go         | cgo               | `archimedes-go`          | Planned  |
-| TypeScript | napi-rs           | `@archimedes/node` (npm) | Planned  |
-| C++        | C ABI + headers   | `libarchimedes`          | Planned  |
+| ---------- | ------------------ | ------------------------ | -------- |
+| Rust       | Native             | `archimedes`             | Complete |
+| Python     | PyO3               | `archimedes` (PyPI)      | Planned  |
+| Go         | cgo                | `archimedes-go`          | Planned  |
+| TypeScript | napi-rs            | `@archimedes/node` (npm) | Planned  |
+| C++        | C ABI + headers    | `libarchimedes`          | Planned  |
 
 ### 17.3 C ABI Specification
 
@@ -795,14 +795,14 @@ app = Archimedes(
 async def list_users(request: Request) -> Response:
     # Type-safe access to caller identity
     caller: CallerIdentity = request.caller_identity
-    
+
     # Request body already validated against contract
     users = await db.get_users()
-    
+
     # Response validated before sending
     return Response.json({"users": users}, status=200)
 
-@app.operation("getUser")  
+@app.operation("getUser")
 async def get_user(request: Request) -> Response:
     user_id = request.path_params["userId"]
     user = await db.get_user(user_id)
@@ -832,12 +832,12 @@ func main() {
     app.Operation("listUsers", func(ctx *archimedes.Context) error {
         // Type-safe access to caller identity
         caller := ctx.CallerIdentity()
-        
+
         users, err := db.GetUsers()
         if err != nil {
             return err
         }
-        
+
         return ctx.JSON(200, map[string]any{"users": users})
     })
 
@@ -857,27 +857,27 @@ func main() {
 #### 17.4.3 TypeScript API
 
 ```typescript
-import { Archimedes, Request, Response } from '@archimedes/node';
+import { Archimedes, Request, Response } from "@archimedes/node";
 
 const app = new Archimedes({
-  contract: 'contract.json',
-  policyBundle: 'policy.tar.gz', // optional
+  contract: "contract.json",
+  policyBundle: "policy.tar.gz", // optional
 });
 
-app.operation('listUsers', async (request: Request): Promise<Response> => {
+app.operation("listUsers", async (request: Request): Promise<Response> => {
   // Type-safe access to caller identity
   const caller = request.callerIdentity;
-  
+
   const users = await db.getUsers();
   return Response.json({ users });
 });
 
-app.operation('getUser', async (request: Request): Promise<Response> => {
+app.operation("getUser", async (request: Request): Promise<Response> => {
   const userId = request.pathParams.userId;
   const user = await db.getUser(userId);
-  
+
   if (!user) {
-    return Response.error('USER_NOT_FOUND', `User ${userId} not found`, 404);
+    return Response.error("USER_NOT_FOUND", `User ${userId} not found`, 404);
   }
   return Response.json(user);
 });
@@ -899,7 +899,7 @@ int main() {
     app.operation("listUsers", [](const archimedes::Request& req) {
         // Type-safe access to caller identity
         auto caller = req.caller_identity();
-        
+
         auto users = db.get_users();
         return archimedes::Response::json({{"users", users}});
     });
@@ -907,7 +907,7 @@ int main() {
     app.operation("getUser", [](const archimedes::Request& req) {
         auto user_id = req.path_param("userId");
         auto user = db.get_user(user_id);
-        
+
         if (!user) {
             return archimedes::Response::error("USER_NOT_FOUND", "User not found", 404);
         }
@@ -922,18 +922,18 @@ int main() {
 
 All language bindings provide:
 
-| Feature                    | Description                                          |
-|----------------------------|------------------------------------------------------|
-| HTTP Server                | Full HTTP/1.1 and HTTP/2 support                     |
-| Contract Validation        | Automatic request/response validation                |
-| Authorization              | OPA policy evaluation built-in                       |
-| Identity Extraction        | SPIFFE, JWT, API key identity parsing                |
-| Request ID                 | UUID v7 generation and propagation                   |
-| Tracing                    | OpenTelemetry trace context                          |
-| Metrics                    | Prometheus metrics (automatic)                       |
-| Logging                    | Structured JSON logging                              |
-| Health Checks              | `/_archimedes/health` and `/_archimedes/ready`       |
-| Graceful Shutdown          | SIGTERM handling with connection draining            |
+| Feature             | Description                                    |
+| ------------------- | ---------------------------------------------- |
+| HTTP Server         | Full HTTP/1.1 and HTTP/2 support               |
+| Contract Validation | Automatic request/response validation          |
+| Authorization       | OPA policy evaluation built-in                 |
+| Identity Extraction | SPIFFE, JWT, API key identity parsing          |
+| Request ID          | UUID v7 generation and propagation             |
+| Tracing             | OpenTelemetry trace context                    |
+| Metrics             | Prometheus metrics (automatic)                 |
+| Logging             | Structured JSON logging                        |
+| Health Checks       | `/_archimedes/health` and `/_archimedes/ready` |
+| Graceful Shutdown   | SIGTERM handling with connection draining      |
 
 ### 17.6 What Applications Must NOT Do
 
@@ -997,12 +997,12 @@ app.operation('listUsers', async (request: Request) => {
 
 ### 17.8 Performance Requirements
 
-| Metric                          | Requirement                    |
-|---------------------------------|--------------------------------|
-| FFI call overhead               | < 100ns per call               |
-| Handler invocation overhead     | < 1μs per request              |
-| Memory per connection           | < 10KB baseline                |
-| Throughput vs native frameworks | ≥ 1.5x (Go/TS), ≥ 2x (Python)  |
+| Metric                          | Requirement                   |
+| ------------------------------- | ----------------------------- |
+| FFI call overhead               | < 100ns per call              |
+| Handler invocation overhead     | < 1μs per request             |
+| Memory per connection           | < 10KB baseline               |
+| Throughput vs native frameworks | ≥ 1.5x (Go/TS), ≥ 2x (Python) |
 
 ### 17.9 Sidecar vs Native Bindings
 
@@ -1014,12 +1014,12 @@ The sidecar pattern (§16) remains available for:
 
 For new services, native bindings are preferred:
 
-| Aspect        | Sidecar           | Native Bindings |
-|---------------|-------------------|-----------------|
-| Latency       | +2-4ms per request| < 0.1ms         |
-| Deployment    | Two containers    | Single binary   |
-| Memory        | ~50MB overhead    | ~10MB overhead  |
-| Complexity    | Two processes     | One process     |
+| Aspect     | Sidecar            | Native Bindings |
+| ---------- | ------------------ | --------------- |
+| Latency    | +2-4ms per request | < 0.1ms         |
+| Deployment | Two containers     | Single binary   |
+| Memory     | ~50MB overhead     | ~10MB overhead  |
+| Complexity | Two processes      | One process     |
 
 ---
 

@@ -94,7 +94,9 @@ const usersDb = new Map<string, User>([
 // Helper Functions
 // =============================================================================
 
-function parseCallerIdentity(headerValue: string | undefined): CallerIdentity | null {
+function parseCallerIdentity(
+  headerValue: string | undefined
+): CallerIdentity | null {
   if (!headerValue) {
     return null;
   }
@@ -108,7 +110,9 @@ function parseCallerIdentity(headerValue: string | undefined): CallerIdentity | 
 
 function getRequestContext(req: Request): RequestContext {
   const requestId = (req.headers["x-request-id"] as string) || uuidv4();
-  const caller = parseCallerIdentity(req.headers["x-caller-identity"] as string);
+  const caller = parseCallerIdentity(
+    req.headers["x-caller-identity"] as string
+  );
   const operationId = (req.headers["x-operation-id"] as string) || null;
 
   return {
@@ -242,7 +246,10 @@ app.post("/users", (req: Request, res: Response) => {
 app.put("/users/:userId", (req: Request, res: Response) => {
   const ctx = getRequestContext(req);
   const { userId } = req.params;
-  console.log(`[${ctx.requestId}] Updating user ${userId}, caller:`, ctx.caller);
+  console.log(
+    `[${ctx.requestId}] Updating user ${userId}, caller:`,
+    ctx.caller
+  );
 
   const user = usersDb.get(userId);
   if (!user) {
@@ -271,7 +278,10 @@ app.put("/users/:userId", (req: Request, res: Response) => {
 app.delete("/users/:userId", (req: Request, res: Response) => {
   const ctx = getRequestContext(req);
   const { userId } = req.params;
-  console.log(`[${ctx.requestId}] Deleting user ${userId}, caller:`, ctx.caller);
+  console.log(
+    `[${ctx.requestId}] Deleting user ${userId}, caller:`,
+    ctx.caller
+  );
 
   if (!usersDb.has(userId)) {
     return sendError(

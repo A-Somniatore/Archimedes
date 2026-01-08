@@ -4,20 +4,24 @@ This directory contains example services demonstrating how to use Archimedes wit
 
 ## Overview
 
-Archimedes supports two deployment patterns:
+Archimedes supports three deployment patterns:
 
-1. **Native (Rust)**: Use the Archimedes framework directly for maximum performance
-2. **Sidecar (All Languages)**: Deploy Archimedes as a reverse proxy sidecar for any language
+1. **Native Rust**: Use the Archimedes framework directly for maximum performance
+2. **Native Bindings**: Use language-specific bindings (Python, Go, TypeScript, C++) for in-process middleware
+3. **Sidecar (Legacy)**: Deploy Archimedes as a reverse proxy sidecar for gradual migration
 
 ## Services
 
-| Language   | Framework    | Pattern  | Port | Description                        |
-| ---------- | ------------ | -------- | ---- | ---------------------------------- |
-| Rust       | Archimedes   | Native   | 8001 | Direct framework usage             |
-| Python     | FastAPI      | Sidecar  | 8002 | Python web service with sidecar    |
-| Go         | net/http     | Sidecar  | 8003 | Go service with sidecar            |
-| TypeScript | Express      | Sidecar  | 8004 | Node.js/TypeScript with sidecar    |
-| C++        | cpp-httplib  | Sidecar  | 8005 | C++ service with sidecar           |
+| Language   | Framework      | Pattern        | Port | Description                           |
+| ---------- | -------------- | -------------- | ---- | ------------------------------------- |
+| Rust       | Archimedes     | Native         | 8001 | Direct framework usage                |
+| Python     | archimedes-py  | Native Binding | 8002 | **NEW** Python with native bindings   |
+| Go         | net/http       | Sidecar        | 8003 | Go service with sidecar (migration)   |
+| TypeScript | Express        | Sidecar        | 8004 | Node.js with sidecar (migration)      |
+| C++        | cpp-httplib    | Sidecar        | 8005 | C++ service with sidecar (migration)  |
+
+> **Note**: Python now uses native bindings (`archimedes-py`). Go, TypeScript, and C++ bindings are planned.
+> The sidecar pattern remains available for gradual migration.
 
 ## Quick Start
 
@@ -29,6 +33,7 @@ docker-compose up --build
 ```
 
 This starts:
+
 - All 5 example services
 - An Archimedes sidecar for each non-Rust service
 - A Jaeger instance for distributed tracing
@@ -93,13 +98,13 @@ curl -X POST http://localhost:8001/users \
 
 When using the sidecar, your service receives these headers:
 
-| Header              | Description                                      | Example                                    |
-| ------------------- | ------------------------------------------------ | ------------------------------------------ |
-| `X-Request-Id`      | Unique request correlation ID                    | `01234567-89ab-cdef-0123-456789abcdef`     |
-| `X-Caller-Identity` | JSON-encoded caller identity                     | `{"type":"spiffe","id":"spiffe://..."}` |
-| `traceparent`       | W3C Trace Context parent                         | `00-abc123...-def456...-01`                |
-| `tracestate`        | W3C Trace Context state                          | `archimedes=...`                           |
-| `X-Operation-Id`    | Matched operation from contract (if matched)     | `getUser`                                  |
+| Header              | Description                                  | Example                                 |
+| ------------------- | -------------------------------------------- | --------------------------------------- |
+| `X-Request-Id`      | Unique request correlation ID                | `01234567-89ab-cdef-0123-456789abcdef`  |
+| `X-Caller-Identity` | JSON-encoded caller identity                 | `{"type":"spiffe","id":"spiffe://..."}` |
+| `traceparent`       | W3C Trace Context parent                     | `00-abc123...-def456...-01`             |
+| `tracestate`        | W3C Trace Context state                      | `archimedes=...`                        |
+| `X-Operation-Id`    | Matched operation from contract (if matched) | `getUser`                               |
 
 ## Directory Structure
 
@@ -115,7 +120,13 @@ examples/
 │   ├── Dockerfile
 │   └── src/main.rs
 │
-├── python-sidecar/        # Python + Sidecar
+├── python-native/         # Python with Native Bindings (NEW)
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── archimedes.yaml    # Native config (no sidecar)
+│   └── main.py
+│
+├── python-sidecar/        # Python + Sidecar (Legacy)
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── main.py
@@ -139,13 +150,14 @@ examples/
 
 ## Performance Expectations
 
-| Metric         | Native Rust | With Sidecar |
-| -------------- | ----------- | ------------ |
-| Latency (p50)  | ~0.5ms      | ~1.5ms       |
-| Latency (p99)  | ~2ms        | ~4ms         |
-| Throughput     | ~50k rps    | ~30k rps     |
+| Metric        | Native Rust | With Sidecar |
+| ------------- | ----------- | ------------ |
+| Latency (p50) | ~0.5ms      | ~1.5ms       |
+| Latency (p99) | ~2ms        | ~4ms         |
+| Throughput    | ~50k rps    | ~30k rps     |
 
 The sidecar adds approximately 1-2ms of latency for the benefits of:
+
 - Language-agnostic deployment
 - Zero changes to existing services
 - Consistent observability across all services

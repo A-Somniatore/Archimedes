@@ -1,0 +1,55 @@
+# Archimedes Python Native Example Configuration
+#
+# This is the configuration file for the native Archimedes Python server.
+# No sidecar needed - all middleware runs in-process.
+
+# Server configuration
+server:
+  # Address to listen on
+  listen_addr: "0.0.0.0"
+  # Port to listen on  
+  listen_port: 8002
+
+# Contract configuration (Themis)
+contract:
+  # Path to the Themis contract artifact
+  path: "../contract.json"
+  # Enable request validation (default: true)
+  validate_requests: true
+  # Enable response validation (default: false for performance)
+  validate_responses: false
+
+# Authorization configuration (Eunomia/OPA)
+authorization:
+  # Enable authorization (default: true)
+  enabled: true
+  # Path to OPA policy bundle (optional - can use inline policies)
+  # bundle_path: "./policies/bundle.tar.gz"
+  # Default decision for missing policies
+  default_allow: false
+
+# Telemetry configuration
+telemetry:
+  # Enable OpenTelemetry tracing
+  tracing_enabled: true
+  # OTLP endpoint for traces (optional)
+  # otlp_endpoint: "http://otel-collector:4317"
+  # Enable Prometheus metrics
+  metrics_enabled: true
+  # Metrics port (separate from main server)
+  metrics_port: 9092
+  # Log level (trace, debug, info, warn, error)
+  log_level: "info"
+
+# Identity extraction configuration  
+identity:
+  # Enable mTLS identity extraction
+  mtls_enabled: false
+  # Enable JWT validation
+  jwt_enabled: true
+  # JWT issuer whitelist (optional)
+  # jwt_issuers: ["https://auth.example.com"]
+  # Enable API key authentication
+  api_key_enabled: true
+  # API key header name
+  api_key_header: "X-API-Key"

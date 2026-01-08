@@ -185,10 +185,8 @@ pub type ArchimedesHandlerFn = extern "C" fn(
 ///
 /// For languages that need async handlers, this callback is invoked when the
 /// handler completes. The callback receives the response data and user context.
-pub type ArchimedesAsyncCallback = extern "C" fn(
-    response: ArchimedesResponseData,
-    callback_data: *mut std::ffi::c_void,
-);
+pub type ArchimedesAsyncCallback =
+    extern "C" fn(response: ArchimedesResponseData, callback_data: *mut std::ffi::c_void);
 
 #[cfg(test)]
 mod tests {

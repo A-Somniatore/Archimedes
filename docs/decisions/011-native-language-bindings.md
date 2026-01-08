@@ -2,7 +2,7 @@
 
 **Status**: Accepted  
 **Date**: 2026-01-10  
-**Decision Makers**: Platform Architecture Team  
+**Decision Makers**: Platform Architecture Team
 
 ## Context
 
@@ -34,12 +34,12 @@ This means:
 
 ### Binding Technologies
 
-| Language   | Binding Technology | Package                        |
-|------------|-------------------|--------------------------------|
-| Python     | PyO3              | `archimedes` (PyPI)            |
-| Go         | cgo               | `github.com/themis/archimedes-go` |
-| TypeScript | napi-rs           | `@archimedes/node` (npm)       |
-| C++        | C ABI             | `libarchimedes` (vcpkg/conan)  |
+| Language   | Binding Technology | Package                           |
+| ---------- | ------------------ | --------------------------------- |
+| Python     | PyO3               | `archimedes` (PyPI)               |
+| Go         | cgo                | `github.com/themis/archimedes-go` |
+| TypeScript | napi-rs            | `@archimedes/node` (npm)          |
+| C++        | C ABI              | `libarchimedes` (vcpkg/conan)     |
 
 ### Architecture
 
@@ -131,12 +131,12 @@ This means:
 
 ## Frameworks Being Replaced
 
-| Language   | Being Replaced                  | Reason for Replacement                    |
-|------------|--------------------------------|-------------------------------------------|
-| Python     | FastAPI, Flask, Django REST    | Inconsistent validation, no contract-first |
-| Go         | Gin, Chi, Echo                 | No built-in auth, manual validation       |
-| TypeScript | Express, Fastify, NestJS       | No contract enforcement, varied patterns  |
-| C++        | cpp-httplib, Crow, Drogon      | No middleware standardization             |
+| Language   | Being Replaced              | Reason for Replacement                     |
+| ---------- | --------------------------- | ------------------------------------------ |
+| Python     | FastAPI, Flask, Django REST | Inconsistent validation, no contract-first |
+| Go         | Gin, Chi, Echo              | No built-in auth, manual validation        |
+| TypeScript | Express, Fastify, NestJS    | No contract enforcement, varied patterns   |
+| C++        | cpp-httplib, Crow, Drogon   | No middleware standardization              |
 
 ## Migration Strategy
 
@@ -147,13 +147,13 @@ This means:
 
 ## Performance Targets
 
-| Metric                          | Sidecar (Current) | Native (Target) |
-|---------------------------------|-------------------|-----------------|
-| Request overhead                | ~4ms              | <0.1ms          |
-| Memory per connection           | ~20KB (two procs) | <10KB           |
-| Requests/sec (Python)           | 10K (FastAPI)     | 20K+ (2x)       |
-| Requests/sec (Go)               | 50K (Gin)         | 75K+ (1.5x)     |
-| Requests/sec (TypeScript)       | 30K (Fastify)     | 45K+ (1.5x)     |
+| Metric                    | Sidecar (Current) | Native (Target) |
+| ------------------------- | ----------------- | --------------- |
+| Request overhead          | ~4ms              | <0.1ms          |
+| Memory per connection     | ~20KB (two procs) | <10KB           |
+| Requests/sec (Python)     | 10K (FastAPI)     | 20K+ (2x)       |
+| Requests/sec (Go)         | 50K (Gin)         | 75K+ (1.5x)     |
+| Requests/sec (TypeScript) | 30K (Fastify)     | 45K+ (1.5x)     |
 
 ## Alternatives Considered
 

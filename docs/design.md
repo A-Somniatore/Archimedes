@@ -49,13 +49,13 @@ Archimedes will provide **native bindings** for Python, Go, TypeScript, and C++.
 
 ### Why Native Bindings Over Sidecar?
 
-| Sidecar Pattern (A10)                    | Native Bindings (A13)                     |
-|------------------------------------------|-------------------------------------------|
-| Extra network hop (~2-4ms latency)       | In-process calls (~100ns overhead)        |
-| Separate process (memory, deployment)    | Single binary deployment                  |
-| Header parsing in each language          | Direct struct access                      |
-| Still using FastAPI/Express/etc.         | Unified Archimedes API                    |
-| Two things to deploy                     | One artifact                              |
+| Sidecar Pattern (A10)                 | Native Bindings (A13)              |
+| ------------------------------------- | ---------------------------------- |
+| Extra network hop (~2-4ms latency)    | In-process calls (~100ns overhead) |
+| Separate process (memory, deployment) | Single binary deployment           |
+| Header parsing in each language       | Direct struct access               |
+| Still using FastAPI/Express/etc.      | Unified Archimedes API             |
+| Two things to deploy                  | One artifact                       |
 
 ### Architecture
 
@@ -96,6 +96,7 @@ Archimedes will provide **native bindings** for Python, Go, TypeScript, and C++.
 ### API Preview
 
 **Python** (replaces FastAPI/Flask):
+
 ```python
 from archimedes import Archimedes, Request, Response
 
@@ -110,6 +111,7 @@ app.run(port=8080)
 ```
 
 **Go** (replaces Gin/Chi):
+
 ```go
 app := archimedes.New(archimedes.Config{Contract: "contract.json"})
 
@@ -122,10 +124,11 @@ app.Run(":8080")
 ```
 
 **TypeScript** (replaces Express/Fastify):
-```typescript
-const app = new Archimedes({ contract: 'contract.json' });
 
-app.operation('listUsers', async (request: Request): Promise<Response> => {
+```typescript
+const app = new Archimedes({ contract: "contract.json" });
+
+app.operation("listUsers", async (request: Request): Promise<Response> => {
   const users = await db.getUsers();
   return Response.json({ users });
 });
@@ -134,6 +137,7 @@ app.listen(8080);
 ```
 
 **C++** (replaces cpp-httplib/Crow):
+
 ```cpp
 archimedes::App app{"contract.json"};
 
@@ -147,13 +151,13 @@ app.run(8080);
 
 ### Frameworks Being Replaced
 
-| Language   | Current (Being Replaced)        | Future (Archimedes)          |
-|------------|--------------------------------|------------------------------|
-| Rust       | -                              | archimedes (native)          |
-| Python     | FastAPI, Flask, Django REST    | archimedes (PyPI)            |
-| Go         | Gin, Chi, Echo, net/http       | archimedes-go (module)       |
-| TypeScript | Express, Fastify, NestJS       | @archimedes/node (npm)       |
-| C++        | cpp-httplib, Crow, Drogon      | libarchimedes                |
+| Language   | Current (Being Replaced)    | Future (Archimedes)    |
+| ---------- | --------------------------- | ---------------------- |
+| Rust       | -                           | archimedes (native)    |
+| Python     | FastAPI, Flask, Django REST | archimedes (PyPI)      |
+| Go         | Gin, Chi, Echo, net/http    | archimedes-go (module) |
+| TypeScript | Express, Fastify, NestJS    | @archimedes/node (npm) |
+| C++        | cpp-httplib, Crow, Drogon   | libarchimedes          |
 
 ---
 
@@ -162,6 +166,7 @@ app.run(8080);
 ### Sidecar Proxy (v2.14.0) - COMPLETE
 
 > **Note**: The sidecar pattern remains useful for:
+>
 > - Gradual migration from existing frameworks
 > - Polyglot environments during transition
 > - Edge cases (WASM, exotic platforms)
