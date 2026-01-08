@@ -28,13 +28,13 @@
 - **Consistent behavior** across all languages (same middleware, validation, auth)
 - **Single codebase** to maintain (Rust core + language bindings)
 
-| Language       | Binding Technology | Phase   | Status         | Replaces           |
-| -------------- | ------------------ | ------- | -------------- | ------------------ |
-| **Rust**       | Native             | -       | ✅ Complete    | -                  |
-| **Python**     | PyO3               | A13.2   | 🔄 In Progress | FastAPI, Flask     |
-| **TypeScript** | napi-rs            | A13.3   | 📋 Planned     | Express, Fastify   |
-| **C++**        | C ABI              | A13.4   | 📋 Planned     | cpp-httplib, Crow  |
-| **Go**         | cgo                | A13.5   | 📋 Planned     | Gin, Chi, net/http |
+| Language       | Binding Technology | Phase | Status         | Replaces           |
+| -------------- | ------------------ | ----- | -------------- | ------------------ |
+| **Rust**       | Native             | -     | ✅ Complete    | -                  |
+| **Python**     | PyO3               | A13.2 | 🔄 In Progress | FastAPI, Flask     |
+| **TypeScript** | napi-rs            | A13.3 | 📋 Planned     | Express, Fastify   |
+| **C++**        | C ABI              | A13.4 | 📋 Planned     | cpp-httplib, Crow  |
+| **Go**         | cgo                | A13.5 | 📋 Planned     | Gin, Chi, net/http |
 
 ### Multi-Language Example Services (v2.16.0) - 🔄 TRANSITIONAL
 
@@ -1879,8 +1879,7 @@ The sidecar pattern (Phase A10) works but has limitations:
 
 ### Phase A13.2: Python Bindings - Full Rust Parity (Weeks 51-58) 🔄 IN PROGRESS
 
-> **Goal**: `pip install archimedes` - Python developers use Archimedes directly **with FULL Rust parity**
-> **Technology**: PyO3 (Rust-Python bindings)
+> **Goal**: `pip install archimedes` - Python developers use Archimedes directly **with FULL Rust parity** > **Technology**: PyO3 (Rust-Python bindings)
 > **Status**: Basic HTTP server working, middleware integration pending
 > **Tests**: 18 passing tests
 
@@ -2122,21 +2121,21 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 
 Archimedes needs these features to replace existing services:
 
-| Category               | FastAPI/Axum Has | Archimedes Status | Migration Blocker? |
-| ---------------------- | ---------------- | ----------------- | ------------------ |
-| CORS middleware        | ✅               | ❌ Missing        | **YES - P0**       |
-| Test client            | ✅               | ❌ Missing        | **YES - P0**       |
-| Startup/shutdown hooks | ✅               | ❌ Missing        | **YES - P0**       |
-| File uploads           | ✅               | ❌ Missing        | **YES - P1**       |
-| Rate limiting          | ✅               | ❌ Missing        | **YES - P1**       |
-| Cookie extraction      | ✅               | ❌ Missing        | P1                 |
-| File download response | ✅               | ❌ Missing        | P1                 |
-| Static file serving    | ✅               | ❌ Missing        | P1                 |
-| Sub-router nesting     | ✅               | ❌ Missing        | P2                 |
-| Route prefixes         | ✅               | ❌ Missing        | P2                 |
-| Compression middleware | ✅               | ❌ Missing        | P2                 |
-| Streaming responses    | ✅               | ⚠️ SSE only       | P2                 |
-| Response header helpers| ✅               | ❌ Missing        | P2                 |
+| Category                | FastAPI/Axum Has | Archimedes Status | Migration Blocker? |
+| ----------------------- | ---------------- | ----------------- | ------------------ |
+| CORS middleware         | ✅               | ❌ Missing        | **YES - P0**       |
+| Test client             | ✅               | ❌ Missing        | **YES - P0**       |
+| Startup/shutdown hooks  | ✅               | ❌ Missing        | **YES - P0**       |
+| File uploads            | ✅               | ❌ Missing        | **YES - P1**       |
+| Rate limiting           | ✅               | ❌ Missing        | **YES - P1**       |
+| Cookie extraction       | ✅               | ❌ Missing        | P1                 |
+| File download response  | ✅               | ❌ Missing        | P1                 |
+| Static file serving     | ✅               | ❌ Missing        | P1                 |
+| Sub-router nesting      | ✅               | ❌ Missing        | P2                 |
+| Route prefixes          | ✅               | ❌ Missing        | P2                 |
+| Compression middleware  | ✅               | ❌ Missing        | P2                 |
+| Streaming responses     | ✅               | ⚠️ SSE only       | P2                 |
+| Response header helpers | ✅               | ❌ Missing        | P2                 |
 
 ### Phase A14.1: Critical Missing Features (Weeks 71-73) 📋 P0
 
@@ -2354,20 +2353,20 @@ let router = Router::new()
 
 ### A14 Deliverables
 
-| Feature                | Crate               | Priority | Status     |
-| ---------------------- | ------------------- | -------- | ---------- |
-| CORS middleware        | archimedes-middleware | P0     | 📋 Planned |
-| Test client            | archimedes-test       | P0     | 📋 Planned |
-| Lifecycle hooks        | archimedes-server     | P0     | 📋 Planned |
-| Multipart/file uploads | archimedes-extract    | P1     | 📋 Planned |
-| File download response | archimedes-extract    | P1     | 📋 Planned |
-| Cookie extractor       | archimedes-extract    | P1     | 📋 Planned |
-| Rate limiting          | archimedes-middleware | P1     | 📋 Planned |
-| Compression middleware | archimedes-middleware | P2     | 📋 Planned |
-| Static file serving    | archimedes-server     | P1     | 📋 Planned |
-| Sub-router nesting     | archimedes-router     | P2     | 📋 Planned |
-| Route prefixes/tags    | archimedes-router     | P2     | 📋 Planned |
-| Streaming responses    | archimedes-extract    | P2     | 📋 Planned |
+| Feature                | Crate                 | Priority | Status     |
+| ---------------------- | --------------------- | -------- | ---------- |
+| CORS middleware        | archimedes-middleware | P0       | 📋 Planned |
+| Test client            | archimedes-test       | P0       | 📋 Planned |
+| Lifecycle hooks        | archimedes-server     | P0       | 📋 Planned |
+| Multipart/file uploads | archimedes-extract    | P1       | 📋 Planned |
+| File download response | archimedes-extract    | P1       | 📋 Planned |
+| Cookie extractor       | archimedes-extract    | P1       | 📋 Planned |
+| Rate limiting          | archimedes-middleware | P1       | 📋 Planned |
+| Compression middleware | archimedes-middleware | P2       | 📋 Planned |
+| Static file serving    | archimedes-server     | P1       | 📋 Planned |
+| Sub-router nesting     | archimedes-router     | P2       | 📋 Planned |
+| Route prefixes/tags    | archimedes-router     | P2       | 📋 Planned |
+| Streaming responses    | archimedes-extract    | P2       | 📋 Planned |
 
 ---
 
@@ -2375,79 +2374,178 @@ let router = Router::new()
 
 ### Archimedes vs FastAPI vs Axum
 
-| Category | FastAPI | Axum | Archimedes | Notes |
-| -------- | ------- | ---- | ---------- | ----- |
-| **Routing** | ✅ | ✅ | ✅ | Radix tree router |
-| **Path parameters** | ✅ | ✅ | ✅ | Contract-style `{id}` |
-| **Sub-routers** | ✅ | ✅ | ❌ | Phase A14.4 |
-| **JSON body** | ✅ | ✅ | ✅ | Contract-validated |
-| **Form data** | ✅ | ✅ | ✅ | `Form<T>` extractor |
-| **File uploads** | ✅ | ✅ | ❌ | Phase A14.2 |
-| **Cookies** | ✅ | ⚠️ | ❌ | Phase A14.2 |
-| **Request validation** | ✅ Pydantic | Manual | ✅ Contract | Auto from Themis |
-| **Response validation** | ✅ | Manual | ✅ Contract | Auto from Themis |
-| **Background tasks** | ✅ | Via tokio | ✅ Superior | Built-in scheduler |
-| **Scheduled jobs** | External | External | ✅ Built-in | Cron expressions |
-| **Startup hooks** | ✅ | ✅ | ❌ | Phase A14.1 |
-| **Shutdown hooks** | ✅ | ✅ | ⚠️ | Graceful shutdown only |
-| **Middleware** | ✅ | ✅ Tower | ✅ Fixed | Contract-enforced order |
-| **CORS** | ✅ | ✅ | ❌ | Phase A14.1 |
-| **Rate limiting** | External | External | ❌ | Phase A14.3 |
-| **Compression** | ✅ | ✅ | ❌ | Phase A14.3 |
-| **Static files** | ✅ | ✅ | ❌ | Phase A14.3 |
-| **WebSocket** | ✅ | ✅ | ✅ | Full support |
-| **SSE** | External | External | ✅ | Built-in |
-| **OpenAPI docs** | ✅ Auto | External | ✅ Contract | From Themis |
-| **Swagger UI** | ✅ | External | ✅ | Built-in |
-| **Test client** | ✅ | ✅ | ❌ | Phase A14.1 |
-| **OPA authorization** | External | External | ✅ Built-in | Unique feature |
-| **Contract enforcement** | ❌ | ❌ | ✅ Built-in | Unique feature |
-| **Multi-language** | Python only | Rust only | ✅ 5 langs | Unique feature |
+| Category                 | FastAPI     | Axum      | Archimedes  | Notes                   |
+| ------------------------ | ----------- | --------- | ----------- | ----------------------- |
+| **Routing**              | ✅          | ✅        | ✅          | Radix tree router       |
+| **Path parameters**      | ✅          | ✅        | ✅          | Contract-style `{id}`   |
+| **Sub-routers**          | ✅          | ✅        | ❌          | Phase A14.4             |
+| **JSON body**            | ✅          | ✅        | ✅          | Contract-validated      |
+| **Form data**            | ✅          | ✅        | ✅          | `Form<T>` extractor     |
+| **File uploads**         | ✅          | ✅        | ❌          | Phase A14.2             |
+| **Cookies**              | ✅          | ⚠️        | ❌          | Phase A14.2             |
+| **Request validation**   | ✅ Pydantic | Manual    | ✅ Contract | Auto from Themis        |
+| **Response validation**  | ✅          | Manual    | ✅ Contract | Auto from Themis        |
+| **Background tasks**     | ✅          | Via tokio | ✅ Superior | Built-in scheduler      |
+| **Scheduled jobs**       | External    | External  | ✅ Built-in | Cron expressions        |
+| **Startup hooks**        | ✅          | ✅        | ❌          | Phase A14.1             |
+| **Shutdown hooks**       | ✅          | ✅        | ⚠️          | Graceful shutdown only  |
+| **Middleware**           | ✅          | ✅ Tower  | ✅ Fixed    | Contract-enforced order |
+| **CORS**                 | ✅          | ✅        | ❌          | Phase A14.1             |
+| **Rate limiting**        | External    | External  | ❌          | Phase A14.3             |
+| **Compression**          | ✅          | ✅        | ❌          | Phase A14.3             |
+| **Static files**         | ✅          | ✅        | ❌          | Phase A14.3             |
+| **WebSocket**            | ✅          | ✅        | ✅          | Full support            |
+| **SSE**                  | External    | External  | ✅          | Built-in                |
+| **OpenAPI docs**         | ✅ Auto     | External  | ✅ Contract | From Themis             |
+| **Swagger UI**           | ✅          | External  | ✅          | Built-in                |
+| **Test client**          | ✅          | ✅        | ❌          | Phase A14.1             |
+| **OPA authorization**    | External    | External  | ✅ Built-in | Unique feature          |
+| **Contract enforcement** | ❌          | ❌        | ✅ Built-in | Unique feature          |
+| **Multi-language**       | Python only | Rust only | ✅ 5 langs  | Unique feature          |
 
-### Unique Archimedes Features (Not in FastAPI/Axum)
+### Extended Comparison: Flask, Sanic, Boost.Beast
 
-| Feature | Description | Benefit |
-| ------- | ----------- | ------- |
+| Category                 | Flask       | Sanic      | Boost.Beast | Archimedes  | Notes                      |
+| ------------------------ | ----------- | ---------- | ----------- | ----------- | -------------------------- |
+| **Language**             | Python      | Python     | C++         | Rust + FFI  |                            |
+| **Async support**        | ⚠️ Limited  | ✅ Native  | ✅ Boost.Asio | ✅ Tokio   | Flask needs async wrapper  |
+| **Performance**          | Slow        | Fast       | Very Fast   | Very Fast   | Rust/C++ > Python          |
+| **Routing**              | ✅          | ✅         | Manual      | ✅          | Boost needs manual routing |
+| **Path parameters**      | ✅ `<id>`   | ✅ `<id>`  | Manual      | ✅ `{id}`   |                            |
+| **Blueprints/routers**   | ✅ Blueprint| ✅ Blueprint| ❌         | ❌          | Phase A14.4                |
+| **JSON body**            | ✅ Manual   | ✅ Auto    | Manual      | ✅ Contract |                            |
+| **Form data**            | ✅          | ✅         | Manual      | ✅          |                            |
+| **File uploads**         | ✅          | ✅         | Manual      | ❌          | Phase A14.2                |
+| **Cookies**              | ✅          | ✅         | Manual      | ❌          | Phase A14.2                |
+| **Sessions**             | ✅ Built-in | ✅ External| ❌          | ❌          | Not planned (stateless)    |
+| **Request validation**   | ❌ External | ❌ External| ❌          | ✅ Contract | Archimedes unique          |
+| **Response validation**  | ❌          | ❌         | ❌          | ✅ Contract | Archimedes unique          |
+| **Background tasks**     | ❌ Celery   | ✅ add_task| ❌          | ✅ Superior | Built-in scheduler         |
+| **Scheduled jobs**       | ❌ Celery   | ❌ External| ❌          | ✅ Built-in | Cron expressions           |
+| **Startup hooks**        | ✅ before_first_request | ✅ @before_server_start | ❌ | ❌ | Phase A14.1    |
+| **Shutdown hooks**       | ✅ atexit   | ✅ @after_server_stop | ❌ | ⚠️       | Graceful shutdown only     |
+| **Middleware**           | ✅ WSGI     | ✅ Middleware | Manual   | ✅ Fixed    | Contract-enforced order    |
+| **CORS**                 | ✅ Flask-CORS | ✅ Built-in | Manual   | ❌          | Phase A14.1                |
+| **Rate limiting**        | ✅ Flask-Limiter | ❌ External | ❌    | ❌          | Phase A14.3                |
+| **Compression**          | ❌ External | ✅ Built-in | Manual    | ❌          | Phase A14.3                |
+| **Static files**         | ✅ Built-in | ✅ Built-in | Manual    | ❌          | Phase A14.3                |
+| **Templates (Jinja2)**   | ✅ Built-in | ✅ Jinja2  | ❌          | ❌          | Not planned (API-only)     |
+| **WebSocket**            | ❌ Flask-SocketIO | ✅ Built-in | ✅ | ✅          | Full support               |
+| **SSE**                  | ❌ External | ❌ Manual  | Manual      | ✅          | Built-in                   |
+| **OpenAPI docs**         | ❌ Flask-RESTx | ✅ External | ❌      | ✅ Contract | From Themis                |
+| **Swagger UI**           | ❌ External | ❌ External | ❌         | ✅          | Built-in                   |
+| **Test client**          | ✅ Built-in | ✅ Built-in | ❌        | ❌          | Phase A14.1                |
+| **OPA authorization**    | ❌          | ❌         | ❌          | ✅ Built-in | Unique feature             |
+| **Contract enforcement** | ❌          | ❌         | ❌          | ✅ Built-in | Unique feature             |
+| **Hot reload**           | ✅ Debug mode | ✅ Auto-reload | ❌   | ⚠️ Planned  | Phase A9                   |
+
+### Framework Summary by Use Case
+
+| Use Case | Best Choice | Why |
+| -------- | ----------- | --- |
+| **Rapid prototyping (Python)** | Flask | Simple, lots of extensions, huge ecosystem |
+| **High-performance Python** | Sanic or FastAPI | Async, fast, modern Python |
+| **Maximum performance** | Boost.Beast or Archimedes | C++/Rust, zero-overhead |
+| **Contract-first APIs** | **Archimedes** | Only framework with built-in contract validation |
+| **Multi-language platform** | **Archimedes** | Same behavior across Python, Go, TS, C++ |
+| **Microservices with OPA** | **Archimedes** | Built-in authorization, no boilerplate |
+| **Legacy migration** | Flask/Sanic → Archimedes-py | Use sidecar for gradual migration |
+
+### Flask-Specific Features Missing in Archimedes
+
+| Flask Feature | Description | Archimedes Status | Priority |
+| ------------- | ----------- | ----------------- | -------- |
+| **Blueprints** | Modular route organization | ❌ → Sub-routers | P2 (A14.4) |
+| **Application factory** | Create app instances dynamically | ⚠️ Builder pattern | Low |
+| **Flask-Login** | Session-based authentication | ❌ Not planned | N/A (JWT/SPIFFE) |
+| **Flask-SQLAlchemy** | ORM integration | ⚠️ DI container | Low |
+| **Flask-Migrate** | Database migrations | ❌ Out of scope | N/A |
+| **Flask-WTF** | Form validation with CSRF | ❌ Contract validation | N/A |
+| **Flask-RESTful** | REST API helpers | ✅ Contract-based | Done |
+| **Flask-CORS** | CORS handling | ❌ → Middleware | P0 (A14.1) |
+| **Flask-Limiter** | Rate limiting | ❌ → Middleware | P1 (A14.3) |
+| **Debug toolbar** | Development debugging | ❌ Not planned | Low |
+| **Error handlers** | Custom error pages | ✅ Error normalization | Done |
+| **Context locals** | Request/app context | ✅ RequestContext | Done |
+| **Signals (blinker)** | Event system | ❌ Not planned | Low |
+
+### Sanic-Specific Features Missing in Archimedes
+
+| Sanic Feature | Description | Archimedes Status | Priority |
+| ------------- | ----------- | ----------------- | -------- |
+| **Blueprints** | Route grouping | ❌ → Sub-routers | P2 (A14.4) |
+| **Blueprint groups** | Nested blueprints | ❌ | P2 |
+| **Middleware (request/response)** | Pre/post processing | ✅ Fixed pipeline | Done |
+| **Listeners** | Startup/shutdown events | ❌ → Lifecycle hooks | P0 (A14.1) |
+| **Background tasks** | `app.add_task()` | ✅ Superior | Done |
+| **Streaming** | Request/response streaming | ⚠️ SSE only | P2 |
+| **WebSocket** | Native support | ✅ | Done |
+| **Named routes** | URL building | ❌ Not needed | N/A (contracts) |
+| **Versioning** | API versioning | ❌ → Route prefixes | P2 (A14.4) |
+| **Auto-reload** | Development hot reload | ⚠️ Planned | Low (A9) |
+| **SSL/TLS** | Built-in HTTPS | ✅ Via config | Done |
+| **Unix sockets** | Socket-based serving | ❌ | Low |
+| **Inspector** | Runtime inspection | ❌ | Low |
+
+### Boost.Beast-Specific Features Missing in Archimedes
+
+| Boost.Beast Feature | Description | Archimedes Status | Priority |
+| ------------------- | ----------- | ----------------- | -------- |
+| **HTTP/1.1 parser** | Low-level HTTP | ✅ Via hyper | Done |
+| **HTTP/2 support** | HTTP/2 protocol | ✅ Via hyper | Done |
+| **WebSocket** | RFC 6455 support | ✅ | Done |
+| **SSL/TLS** | Boost.Asio SSL | ✅ Via rustls | Done |
+| **Custom allocators** | Memory control | ❌ | Low |
+| **Zero-copy parsing** | Performance | ⚠️ Via hyper | Partial |
+| **Coroutines** | C++20 coroutines | ✅ async/await | Done |
+| **io_uring support** | Linux async I/O | ⚠️ Via tokio | Partial |
+| **Header-only** | No linking | ❌ | N/A |
+| **CMake integration** | Build system | ✅ Cargo | Done |
+
+### Unique Archimedes Features (Not in FastAPI/Axum/Flask/Sanic/Boost)
+
+| Feature                       | Description                                         | Benefit                   |
+| ----------------------------- | --------------------------------------------------- | ------------------------- |
 | **Contract-first validation** | Request/response validated against Themis contracts | No validation code needed |
-| **OPA authorization** | Built-in policy evaluation with Eunomia bundles | No auth boilerplate |
-| **Fixed middleware order** | Cannot be reordered or disabled | Security by design |
-| **Multi-language bindings** | Python, TypeScript, C++, Go from one codebase | Consistent behavior |
-| **Sidecar mode** | Proxy for gradual migration | Easy adoption |
+| **OPA authorization**         | Built-in policy evaluation with Eunomia bundles     | No auth boilerplate       |
+| **Fixed middleware order**    | Cannot be reordered or disabled                     | Security by design        |
+| **Multi-language bindings**   | Python, TypeScript, C++, Go from one codebase       | Consistent behavior       |
+| **Sidecar mode**              | Proxy for gradual migration                         | Easy adoption             |
 
 ---
 
 ## Milestones Summary
 
-| Milestone             | Target  | Criteria                         | Dependencies            |
-| --------------------- | ------- | -------------------------------- | ----------------------- |
-| **MVP Release**       |         |                                  |                         |
-| A0: Shared Types      | Week 1  | Using `themis-platform-types`    | Themis creates crate    |
-| A1: Foundation        | Week 4  | Core types, mock contracts       | `themis-platform-types` |
-| A2: Server            | Week 8  | HTTP server, routing, handlers   | None                    |
-| A3: Middleware        | Week 12 | Full pipeline with mocks         | None                    |
-| A4: Observability     | Week 16 | Metrics, traces, logs, config    | None                    |
-| A5: Integrated        | Week 20 | Themis + Eunomia integration     | Themis, Eunomia         |
-| **Framework Release** |         |                                  |                         |
-| A6: Core Framework    | Week 24 | Router, extractors (Axum parity) | MVP                     |
-| A7: FastAPI Parity    | Week 28 | Handler macros, auto-docs        | A6                      |
-| A8: Extended Features | Week 32 | WebSocket, SSE, background tasks | A7                      |
-| A9: Developer Exp     | Week 36 | CLI, hot reload, templates       | A8                      |
-| **Multi-Language**    |         |                                  |                         |
-| A10: Sidecar          | Week 39 | Sidecar for non-Rust services    | A9                      |
-| A11: Type Generation  | Week 42 | Python, Go, TypeScript, C++      | Themis codegen          |
-| A12: Integration      | Week 46 | Multi-language E2E tests         | A10, A11                |
-| **Native Bindings**   |         |                                  |                         |
-| A13.1: Core FFI       | Week 50 | Stable C ABI for Archimedes      | A12                     |
-| A13.2: Python         | Week 58 | archimedes PyPI (full parity)    | A13.1                   |
-| A13.3: TypeScript     | Week 62 | @archimedes/node npm package     | A13.1                   |
-| A13.4: C++            | Week 65 | libarchimedes headers            | A13.1                   |
-| A13.5: Go             | Week 69 | archimedes-go module             | A13.1                   |
-| **Framework Parity**  |         |                                  |                         |
-| A14.1: Critical       | Week 73 | CORS, TestClient, lifecycle hooks| A13                     |
-| A14.2: File Handling  | Week 75 | Uploads, downloads, cookies      | A14.1                   |
-| A14.3: Security       | Week 77 | Rate limit, compression, static  | A14.2                   |
-| A14.4: Router         | Week 78 | Sub-routers, prefixes, tags      | A14.3                   |
-| **V1.0 Release**      | Week 78 | All features, production ready   | A14.4                   |
+| Milestone             | Target  | Criteria                          | Dependencies            |
+| --------------------- | ------- | --------------------------------- | ----------------------- |
+| **MVP Release**       |         |                                   |                         |
+| A0: Shared Types      | Week 1  | Using `themis-platform-types`     | Themis creates crate    |
+| A1: Foundation        | Week 4  | Core types, mock contracts        | `themis-platform-types` |
+| A2: Server            | Week 8  | HTTP server, routing, handlers    | None                    |
+| A3: Middleware        | Week 12 | Full pipeline with mocks          | None                    |
+| A4: Observability     | Week 16 | Metrics, traces, logs, config     | None                    |
+| A5: Integrated        | Week 20 | Themis + Eunomia integration      | Themis, Eunomia         |
+| **Framework Release** |         |                                   |                         |
+| A6: Core Framework    | Week 24 | Router, extractors (Axum parity)  | MVP                     |
+| A7: FastAPI Parity    | Week 28 | Handler macros, auto-docs         | A6                      |
+| A8: Extended Features | Week 32 | WebSocket, SSE, background tasks  | A7                      |
+| A9: Developer Exp     | Week 36 | CLI, hot reload, templates        | A8                      |
+| **Multi-Language**    |         |                                   |                         |
+| A10: Sidecar          | Week 39 | Sidecar for non-Rust services     | A9                      |
+| A11: Type Generation  | Week 42 | Python, Go, TypeScript, C++       | Themis codegen          |
+| A12: Integration      | Week 46 | Multi-language E2E tests          | A10, A11                |
+| **Native Bindings**   |         |                                   |                         |
+| A13.1: Core FFI       | Week 50 | Stable C ABI for Archimedes       | A12                     |
+| A13.2: Python         | Week 58 | archimedes PyPI (full parity)     | A13.1                   |
+| A13.3: TypeScript     | Week 62 | @archimedes/node npm package      | A13.1                   |
+| A13.4: C++            | Week 65 | libarchimedes headers             | A13.1                   |
+| A13.5: Go             | Week 69 | archimedes-go module              | A13.1                   |
+| **Framework Parity**  |         |                                   |                         |
+| A14.1: Critical       | Week 73 | CORS, TestClient, lifecycle hooks | A13                     |
+| A14.2: File Handling  | Week 75 | Uploads, downloads, cookies       | A14.1                   |
+| A14.3: Security       | Week 77 | Rate limit, compression, static   | A14.2                   |
+| A14.4: Router         | Week 78 | Sub-routers, prefixes, tags       | A14.3                   |
+| **V1.0 Release**      | Week 78 | All features, production ready    | A14.4                   |
 
 ---
 

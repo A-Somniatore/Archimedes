@@ -50,13 +50,13 @@ Archimedes provides **native bindings** for Python, TypeScript, C++, and Go (in 
 
 ### Phase Ordering (CRITICAL)
 
-| Phase | Language   | Package              | Goal                              | Status         |
-| ----- | ---------- | -------------------- | --------------------------------- | -------------- |
-| A13.1 | C (FFI)    | libarchimedes.so     | Stable C ABI                      | ✅ Complete    |
-| A13.2 | Python     | archimedes (PyPI)    | **FULL Rust parity** first        | 🔄 In Progress |
-| A13.3 | TypeScript | @archimedes/node     | Native Node.js bindings           | 📋 Planned     |
-| A13.4 | C++        | libarchimedes (vcpkg)| Modern C++17+ headers             | 📋 Planned     |
-| A13.5 | Go         | archimedes-go        | Go module with cgo                | 📋 Planned     |
+| Phase | Language   | Package               | Goal                       | Status         |
+| ----- | ---------- | --------------------- | -------------------------- | -------------- |
+| A13.1 | C (FFI)    | libarchimedes.so      | Stable C ABI               | ✅ Complete    |
+| A13.2 | Python     | archimedes (PyPI)     | **FULL Rust parity** first | 🔄 In Progress |
+| A13.3 | TypeScript | @archimedes/node      | Native Node.js bindings    | 📋 Planned     |
+| A13.4 | C++        | libarchimedes (vcpkg) | Modern C++17+ headers      | 📋 Planned     |
+| A13.5 | Go         | archimedes-go         | Go module with cgo         | 📋 Planned     |
 
 ### Why This Order?
 
@@ -69,22 +69,22 @@ Archimedes provides **native bindings** for Python, TypeScript, C++, and Go (in 
 
 Every language binding MUST have these features before moving to the next language:
 
-| Feature                   | Description                                    |
-| ------------------------- | ---------------------------------------------- |
-| HTTP Server               | Hyper-based server with routing                |
-| Handler Registration      | Decorator/function-based handler registration  |
-| Request Context           | Request ID, method, path, headers, body        |
-| Response Builder          | JSON, text, binary responses with status codes |
-| Request ID Middleware     | Generate/propagate X-Request-Id                |
-| Tracing Middleware        | OpenTelemetry spans with W3C trace context     |
-| Identity Middleware       | Extract caller identity from headers/JWT       |
-| Authorization Middleware  | OPA/Eunomia policy evaluation                  |
-| Request Validation        | JSON Schema validation against contract        |
-| Response Validation       | Validate responses against contract schemas    |
-| Error Normalization       | Consistent error format across all languages   |
-| Telemetry Collection      | Prometheus metrics, structured logging         |
-| Contract-based Routing    | Sentinel integration for operation routing     |
-| Graceful Shutdown         | Clean shutdown with in-flight request handling |
+| Feature                  | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| HTTP Server              | Hyper-based server with routing                |
+| Handler Registration     | Decorator/function-based handler registration  |
+| Request Context          | Request ID, method, path, headers, body        |
+| Response Builder         | JSON, text, binary responses with status codes |
+| Request ID Middleware    | Generate/propagate X-Request-Id                |
+| Tracing Middleware       | OpenTelemetry spans with W3C trace context     |
+| Identity Middleware      | Extract caller identity from headers/JWT       |
+| Authorization Middleware | OPA/Eunomia policy evaluation                  |
+| Request Validation       | JSON Schema validation against contract        |
+| Response Validation      | Validate responses against contract schemas    |
+| Error Normalization      | Consistent error format across all languages   |
+| Telemetry Collection     | Prometheus metrics, structured logging         |
+| Contract-based Routing   | Sentinel integration for operation routing     |
+| Graceful Shutdown        | Clean shutdown with in-flight request handling |
 
 ### Why Native Bindings Over Sidecar?
 
@@ -190,57 +190,74 @@ app.run(8080);
 
 ### Frameworks Being Replaced
 
-| Language   | Current (Being Replaced)    | Future (Archimedes)    |
-| ---------- | --------------------------- | ---------------------- |
-| Rust       | -                           | archimedes (native)    |
-| Python     | FastAPI, Flask, Django REST | archimedes (PyPI)      |
-| Go         | Gin, Chi, Echo, net/http    | archimedes-go (module) |
-| TypeScript | Express, Fastify, NestJS    | @archimedes/node (npm) |
-| C++        | cpp-httplib, Crow, Drogon   | libarchimedes          |
+| Language   | Current (Being Replaced)         | Future (Archimedes)    |
+| ---------- | -------------------------------- | ---------------------- |
+| Rust       | Axum, Actix-web, Rocket          | archimedes (native)    |
+| Python     | FastAPI, Flask, Sanic, Django    | archimedes (PyPI)      |
+| Go         | Gin, Chi, Echo, net/http         | archimedes-go (module) |
+| TypeScript | Express, Fastify, NestJS, Koa    | @archimedes/node (npm) |
+| C++        | Boost.Beast, cpp-httplib, Crow   | libarchimedes          |
 
 ---
 
 ## 🔄 Phase A14: Framework Parity (PLANNED)
 
-> **Goal**: Achieve feature parity with FastAPI and Axum for seamless migrations
+> **Goal**: Achieve feature parity with FastAPI, Axum, Flask, Sanic for seamless migrations
 > **Detailed Plan**: See [roadmap.md](roadmap.md#phase-a14-framework-parity-weeks-71-78--planned)
 
 ### Feature Gap Analysis: FastAPI/Axum vs Archimedes
 
-| Feature | FastAPI | Axum | Archimedes | Priority |
-| ------- | ------- | ---- | ---------- | -------- |
-| **CORS middleware** | ✅ | ✅ | ❌ Missing | **P0** |
-| **Test client** | ✅ | ✅ | ❌ Missing | **P0** |
-| **Startup/shutdown hooks** | ✅ | ✅ | ❌ Missing | **P0** |
-| **File uploads (Multipart)** | ✅ | ✅ | ❌ Missing | P1 |
-| **Rate limiting** | External | External | ❌ Missing | P1 |
-| **Cookie extraction** | ✅ | ⚠️ | ❌ Missing | P1 |
-| **File download response** | ✅ | ⚠️ | ❌ Missing | P1 |
-| **Static file serving** | ✅ | ✅ | ❌ Missing | P1 |
-| **Sub-router nesting** | ✅ | ✅ | ❌ Missing | P2 |
-| **Route prefixes** | ✅ | ✅ | ❌ Missing | P2 |
-| **Compression middleware** | ✅ | ✅ | ❌ Missing | P2 |
-| **Streaming responses** | ✅ | ✅ | ⚠️ SSE only | P2 |
+| Feature                      | FastAPI  | Axum     | Archimedes  | Priority |
+| ---------------------------- | -------- | -------- | ----------- | -------- |
+| **CORS middleware**          | ✅       | ✅       | ❌ Missing  | **P0**   |
+| **Test client**              | ✅       | ✅       | ❌ Missing  | **P0**   |
+| **Startup/shutdown hooks**   | ✅       | ✅       | ❌ Missing  | **P0**   |
+| **File uploads (Multipart)** | ✅       | ✅       | ❌ Missing  | P1       |
+| **Rate limiting**            | External | External | ❌ Missing  | P1       |
+| **Cookie extraction**        | ✅       | ⚠️       | ❌ Missing  | P1       |
+| **File download response**   | ✅       | ⚠️       | ❌ Missing  | P1       |
+| **Static file serving**      | ✅       | ✅       | ❌ Missing  | P1       |
+| **Sub-router nesting**       | ✅       | ✅       | ❌ Missing  | P2       |
+| **Route prefixes**           | ✅       | ✅       | ❌ Missing  | P2       |
+| **Compression middleware**   | ✅       | ✅       | ❌ Missing  | P2       |
+| **Streaming responses**      | ✅       | ✅       | ⚠️ SSE only | P2       |
 
-### Archimedes Advantages Over FastAPI/Axum
+### Extended Comparison: Flask, Sanic, Boost.Beast
 
-| Feature | Description |
-| ------- | ----------- |
-| **Contract-first validation** | Automatic request/response validation from Themis contracts |
-| **Built-in OPA authorization** | Policy evaluation without external dependencies |
-| **Fixed middleware order** | Security by design - cannot be bypassed |
-| **Multi-language support** | Python, TypeScript, C++, Go from single codebase |
-| **Superior background tasks** | Built-in scheduler with cron, unlike FastAPI's basic BackgroundTasks |
-| **Built-in SSE** | Native Server-Sent Events support |
+| Feature               | Flask       | Sanic        | Boost.Beast | Archimedes  |
+| --------------------- | ----------- | ------------ | ----------- | ----------- |
+| **Async support**     | ⚠️ Limited  | ✅ Native    | ✅ Asio     | ✅ Tokio    |
+| **Performance**       | Slow        | Fast         | Very Fast   | Very Fast   |
+| **Blueprints**        | ✅          | ✅           | ❌          | ❌ → A14.4  |
+| **Background tasks**  | ❌ Celery   | ✅ add_task  | ❌          | ✅ Superior |
+| **Scheduled jobs**    | ❌ Celery   | ❌ External  | ❌          | ✅ Built-in |
+| **Lifecycle hooks**   | ✅          | ✅           | ❌          | ❌ → A14.1  |
+| **Sessions**          | ✅ Built-in | ✅ External  | ❌          | ❌          |
+| **Templates**         | ✅ Jinja2   | ✅ Jinja2    | ❌          | ❌          |
+| **Test client**       | ✅          | ✅           | ❌          | ❌ → A14.1  |
+| **Hot reload**        | ✅          | ✅           | ❌          | ⚠️ Planned  |
+| **Contract validation** | ❌        | ❌           | ❌          | ✅ Unique   |
+| **OPA authorization** | ❌          | ❌           | ❌          | ✅ Unique   |
+
+### Archimedes Advantages Over FastAPI/Axum/Flask/Sanic
+
+| Feature                        | Description                                                          |
+| ------------------------------ | -------------------------------------------------------------------- |
+| **Contract-first validation**  | Automatic request/response validation from Themis contracts          |
+| **Built-in OPA authorization** | Policy evaluation without external dependencies                      |
+| **Fixed middleware order**     | Security by design - cannot be bypassed                              |
+| **Multi-language support**     | Python, TypeScript, C++, Go from single codebase                     |
+| **Superior background tasks**  | Built-in scheduler with cron, unlike FastAPI's basic BackgroundTasks |
+| **Built-in SSE**               | Native Server-Sent Events support                                    |
 
 ### Phase A14 Deliverables
 
-| Phase | Focus | Week | Key Features |
-| ----- | ----- | ---- | ------------ |
-| A14.1 | Critical | 71-73 | CORS, TestClient, lifecycle hooks |
-| A14.2 | Files | 74-75 | Multipart uploads, file downloads, cookies |
-| A14.3 | Security | 76-77 | Rate limiting, compression, static files |
-| A14.4 | Router | 78 | Sub-routers, prefixes, tags |
+| Phase | Focus    | Week  | Key Features                               |
+| ----- | -------- | ----- | ------------------------------------------ |
+| A14.1 | Critical | 71-73 | CORS, TestClient, lifecycle hooks          |
+| A14.2 | Files    | 74-75 | Multipart uploads, file downloads, cookies |
+| A14.3 | Security | 76-77 | Rate limiting, compression, static files   |
+| A14.4 | Router   | 78    | Sub-routers, prefixes, tags                |
 
 ---
 
