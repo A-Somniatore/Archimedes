@@ -1,6 +1,6 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.4.0
+> **Version**: 3.5.0
 > **Created**: 2026-01-04
 > **Last Updated**: 2026-01-12
 > **Target Completion**: Week 78 (extended for framework parity features)
@@ -16,6 +16,7 @@
 > **UPDATE (2026-01-11)**: Phase A14 (Framework Parity) ADDED - CORS, TestClient, file uploads, rate limiting, static files to match FastAPI/Axum.
 > **🔥 UPDATE (2026-01-08)**: rust-native example rewritten to use Archimedes directly (not Axum) - 14 unit tests added.
 > **🔥 UPDATE (2026-01-12)**: Phase A13.3 (TypeScript/Node.js Bindings) COMPLETE - archimedes-node crate with napi-rs, 95 tests passing.
+> **🔥 UPDATE (2026-01-12)**: Phase A13.4 (C++ Bindings) IN PROGRESS - C++ headers created with RAII, modern C++17 API.
 
 ---
 
@@ -2028,15 +2029,16 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 - [ ] Migration guide: Express/Fastify → Archimedes
 - [ ] Benchmark: @archimedes/node vs Fastify (target: 1.5x throughput)
 
-### Phase A13.4: C++ Bindings (Weeks 63-65)
+### Phase A13.4: C++ Bindings (Weeks 63-65) - 🔄 IN PROGRESS
 
 > **Goal**: `#include <archimedes/archimedes.hpp>` - C++ developers use Archimedes directly
 > **Technology**: Direct C ABI with C++ wrapper
+> **Status**: Headers created, example and tests in progress
 
-#### Week 63-64: C++ Headers
+#### Week 63-64: C++ Headers ✅ COMPLETE
 
-- [ ] Create `libarchimedes` with C++ wrapper headers
-- [ ] Modern C++ API (C++17+):
+- [x] Create `include/archimedes/` with C++ wrapper headers
+- [x] Modern C++ API (C++17+):
 
   ```cpp
   #include <archimedes/archimedes.hpp>
@@ -2045,22 +2047,21 @@ Created `archimedes-py` crate with comprehensive Python bindings:
       archimedes::App app{"contract.json"};
 
       app.operation("listUsers", [](const archimedes::Request& req) {
-          // req.caller_identity() is typed!
+          // req.caller() is typed!
           // req.body() is already validated!
-          auto users = db.get_users();
-          return archimedes::Response::json({{"users", users}});
+          return archimedes::Response::json({{"users", "[]"}});
       });
 
       app.run(8080);
   }
   ```
 
-- [ ] RAII for resource management
-- [ ] CMake integration
-- [ ] vcpkg/conan package
-- [ ] Header-only option for simple cases
+- [x] RAII for resource management (archimedes::App destructor)
+- [x] CMake integration (examples/cpp-native/CMakeLists.txt)
+- [x] vcpkg/conan package manifests
+- [ ] Header-only option for simple cases (stretch goal)
 
-#### Week 65: C++ Ecosystem Integration
+#### Week 65: C++ Ecosystem Integration - 🔄 IN PROGRESS
 
 - [ ] Full middleware parity with Rust
 - [ ] Documentation and examples
@@ -2120,7 +2121,7 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 | Core FFI Layer         | C          | libarchimedes.so       | A13.1 | ✅ Complete    | 44    |
 | Python Bindings        | Python     | archimedes (PyPI)      | A13.2 | ✅ Complete    | 111   |
 | TypeScript Bindings    | TypeScript | @archimedes/node (npm) | A13.3 | ✅ Complete    | 95    |
-| C++ Bindings           | C++        | libarchimedes (vcpkg)  | A13.4 | 📋 Planned     | -     |
+| C++ Bindings           | C++        | libarchimedes (vcpkg)  | A13.4 | � In Progress | -     |
 | Go Bindings            | Go         | archimedes-go (module) | A13.5 | 📋 Planned     | -     |
 | Migration Guides       | All        | docs/migration/        | -     | 📋 Planned     | -     |
 | Performance Benchmarks | All        | benchmarks/            | -     | 📋 Planned     | -     |

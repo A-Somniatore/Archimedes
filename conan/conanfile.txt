@@ -1,0 +1,25 @@
+[package]
+name = "archimedes"
+version = "0.1.0"
+description = "Contract-first HTTP server framework with built-in authorization and observability"
+homepage = "https://github.com/themis-platform/archimedes"
+license = "Apache-2.0"
+topics = ["http", "server", "framework", "contract-first", "rust"]
+
+[settings]
+os = ["Linux", "Macos", "Windows"]
+compiler = ["gcc", "clang", "apple-clang", "Visual Studio"]
+build_type = ["Release", "Debug"]
+arch = ["x86_64", "armv8"]
+
+[options]
+shared = [True, False]
+fPIC = [True, False]
+
+[default_options]
+shared = True
+fPIC = True
+
+[build_requires]
+
+[requires]

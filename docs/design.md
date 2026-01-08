@@ -1,7 +1,7 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 3.4.0
-> **Status**: Implementation Phase (Phase A13.3 Complete, Phase A13.4 Next)
+> **Version**: 3.5.0
+> **Status**: Implementation Phase (Phase A13.4 In Progress)
 > **Last Updated**: 2026-01-12
 > **Component**: archimedes
 
@@ -30,10 +30,10 @@
 | `archimedes-ffi`        | ✅ Complete    | 44    | C ABI for cross-language FFI (Phase A13.1)                                                                |
 | `archimedes-py`         | ✅ Complete    | 111   | Python bindings via PyO3 - Full Rust parity (Phase A13.2)                                                 |
 | `archimedes-node`       | ✅ Complete    | 95    | Node.js/TypeScript bindings via napi-rs (Phase A13.3)                                                     |
-| `libarchimedes`         | 📋 Planned     | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
+| `include/archimedes/`   | 🔄 In Progress | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
 | `archimedes-go`         | 📋 Planned     | -     | Go bindings via cgo (Phase A13.5)                                                                         |
 
-**Total Tests**: 1119+ passing across all crates (95 new from archimedes-node)
+**Total Tests**: 1119+ passing across all crates
 
 ---
 
@@ -55,7 +55,7 @@ Archimedes provides **native bindings** for Python, TypeScript, C++, and Go (in 
 | A13.1 | C (FFI)    | libarchimedes.so      | Stable C ABI               | ✅ Complete    |
 | A13.2 | Python     | archimedes (PyPI)     | **FULL Rust parity** first | ✅ Complete    |
 | A13.3 | TypeScript | @archimedes/node      | Native Node.js bindings    | ✅ Complete    |
-| A13.4 | C++        | libarchimedes (vcpkg) | Modern C++17+ headers      | 📋 Planned     |
+| A13.4 | C++        | libarchimedes (vcpkg) | Modern C++17+ headers      | � In Progress |
 | A13.5 | Go         | archimedes-go         | Go module with cgo         | 📋 Planned     |
 
 ### Why This Order?

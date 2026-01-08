@@ -78,6 +78,7 @@ if(BUILD_TESTS)
         tests/test_request.cpp
         tests/test_response.cpp
         tests/test_config.cpp
+        tests/test_error.cpp
     )
 
     target_link_libraries(cpp-native-tests PRIVATE

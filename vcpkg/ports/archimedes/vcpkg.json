@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "archimedes",
+  "version": "0.1.0",
+  "description": "Contract-first HTTP server framework with built-in authorization and observability",
+  "homepage": "https://github.com/themis-platform/archimedes",
+  "license": "Apache-2.0",
+  "supports": "!uwp",
+  "dependencies": [],
+  "default-features": [],
+  "features": {
+    "tests": {
+      "description": "Build tests",
+      "dependencies": [
+        "gtest"
+      ]
+    }
+  }
+}
