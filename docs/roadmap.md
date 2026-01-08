@@ -2244,7 +2244,7 @@ Flask            | 3,000     | 15.0     | 80.0     | 200 MB
 ## Phase A14: Framework Parity (Weeks 71-78) 🔄 IN PROGRESS
 
 > **Goal**: Achieve feature parity with FastAPI and Axum to enable seamless migrations
-> **Status**: ✅ P0 COMPLETE - Starting P1 file handling features
+> **Status**: ✅ P0 COMPLETE, ✅ P1 File Handling COMPLETE - Starting P1 Security & Performance
 > **Rationale**: Services already written in FastAPI/Axum/Express need a migration path
 
 ### Why Framework Parity?
@@ -2256,7 +2256,9 @@ Archimedes needs these features to replace existing services:
 | CORS middleware         | ✅               | ✅ Complete (19)     | **YES - P0** ✅    |
 | Test client             | ✅               | ✅ Complete (30)     | **YES - P0** ✅    |
 | Startup/shutdown hooks  | ✅               | ✅ Complete (11)     | **YES - P0** ✅    |
-| File uploads            | ✅               | ❌ Missing           | **YES - P1**       |
+| File uploads            | ✅               | ✅ Complete (14)     | **YES - P1** ✅    |
+| File downloads          | ✅               | ✅ Complete (13)     | **YES - P1** ✅    |
+| Cookies                 | ✅               | ✅ Complete (16)     | **YES - P1** ✅    |
 | Rate limiting           | ✅               | ❌ Missing           | **YES - P1**       |
 | Cookie extraction       | ✅               | ❌ Missing           | P1                 |
 | File download response  | ✅               | ❌ Missing           | P1                 |
@@ -2350,20 +2352,21 @@ let lifecycle = Lifecycle::new()
 });
 ```
 
-### Phase A14.2: File Handling (Weeks 74-75) 📋 P1
+### Phase A14.2: File Handling (Weeks 74-75) ✅ COMPLETE
 
 > **Goal**: Support file uploads and downloads
+> **Status**: ✅ Complete - Multipart uploads (14 tests), Cookie extractor (16 tests), FileResponse (13 tests)
 
 #### Multipart File Uploads
 
-- [ ] Create `Multipart` extractor for form-data
-- [ ] Create `File` type with filename, content_type, data
-- [ ] Support streaming file uploads (don't buffer entire file)
-- [ ] Support multiple files in single request
-- [ ] Size limits and validation
+- [x] Create `Multipart` extractor for form-data
+- [x] Create `UploadedFile` type with filename, content_type, data
+- [x] Support streaming file uploads via `multer` crate
+- [x] Support multiple files in single request
+- [x] Size limits and validation (`MultipartConfig`)
 
 ```rust
-// Target API
+// Implemented API
 #[handler(operation = "uploadDocument")]
 async fn upload(mut multipart: Multipart) -> Result<Response, ThemisError> {
     while let Some(field) = multipart.next().await? {
@@ -2377,29 +2380,31 @@ async fn upload(mut multipart: Multipart) -> Result<Response, ThemisError> {
 
 #### File Download Response
 
-- [ ] Create `FileResponse` builder
-- [ ] Support `Content-Disposition: attachment`
-- [ ] Support `Content-Type` detection from extension
-- [ ] Support streaming large files
-- [ ] Support range requests (partial content)
+- [x] Create `FileResponse` builder
+- [x] Support `Content-Disposition: attachment` and `inline`
+- [x] Support `Content-Type` detection from extension (40+ MIME types)
+- [x] Support UTF-8 encoded filenames (RFC 5987)
+- [ ] Support streaming large files (P2 - future)
+- [ ] Support range requests (partial content) (P2 - future)
 
 ```rust
-// Target API
-Response::file("/path/to/document.pdf")
+// Implemented API
+FileResponse::new(data)
     .filename("report.pdf")
     .content_type("application/pdf")
-    .build()
+    .into_response()
 ```
 
 #### Cookie Extractor
 
-- [ ] Create `Cookie` extractor for reading cookies
-- [ ] Create `SetCookie` response helper
-- [ ] Support SameSite, Secure, HttpOnly flags
-- [ ] Support signed/encrypted cookies (optional)
+- [x] Create `Cookies` extractor for reading cookies
+- [x] Create `SetCookie` response builder
+- [x] Support `SameSite`, Secure, `HttpOnly` flags
+- [x] Support Max-Age, Expires, Domain, Path attributes
+- [ ] Support signed/encrypted cookies (P2 - future)
 
 ```rust
-// Target API
+// Implemented API
 #[handler(operation = "getSession")]
 async fn get_session(cookies: Cookies) -> Result<Response, ThemisError> {
     let session_id = cookies.get("session_id")?;
@@ -2504,9 +2509,9 @@ let router = Router::new()
 | CORS middleware        | archimedes-middleware | P0       | ✅ Complete   | 19    |
 | Test client            | archimedes-test       | P0       | ✅ Complete   | 30    |
 | Lifecycle hooks        | archimedes-server     | P0       | ✅ Complete   | 11    |
-| Multipart/file uploads | archimedes-extract    | P1       | 🔄 In Progress| -     |
-| File download response | archimedes-extract    | P1       | 📋 Planned    | -     |
-| Cookie extractor       | archimedes-extract    | P1       | 📋 Planned    | -     |
+| Multipart/file uploads | archimedes-extract    | P1       | ✅ Complete   | 14    |
+| File download response | archimedes-extract    | P1       | ✅ Complete   | 13    |
+| Cookie extractor       | archimedes-extract    | P1       | ✅ Complete   | 16    |
 | Rate limiting          | archimedes-middleware | P1       | 📋 Planned    | -     |
 | Compression middleware | archimedes-middleware | P2       | 📋 Planned    | -     |
 | Static file serving    | archimedes-server     | P1       | 📋 Planned    | -     |
@@ -2527,8 +2532,9 @@ let router = Router::new()
 | **Sub-routers**          | ✅          | ✅        | ❌          | Phase A14.4             |
 | **JSON body**            | ✅          | ✅        | ✅          | Contract-validated      |
 | **Form data**            | ✅          | ✅        | ✅          | `Form<T>` extractor     |
-| **File uploads**         | ✅          | ✅        | ❌          | Phase A14.2             |
-| **Cookies**              | ✅          | ⚠️        | ❌          | Phase A14.2             |
+| **File uploads**         | ✅          | ✅        | ✅          | Phase A14.2 COMPLETE    |
+| **File downloads**       | ✅          | ✅        | ✅          | Phase A14.2 COMPLETE    |
+| **Cookies**              | ✅          | ⚠️        | ✅          | Phase A14.2 COMPLETE    |
 | **Request validation**   | ✅ Pydantic | Manual    | ✅ Contract | Auto from Themis        |
 | **Response validation**  | ✅          | Manual    | ✅ Contract | Auto from Themis        |
 | **Background tasks**     | ✅          | Via tokio | ✅ Superior | Built-in scheduler      |
