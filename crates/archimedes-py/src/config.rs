@@ -263,6 +263,15 @@ impl PyConfig {
         self.listen_port
     }
 
+    /// Get contract path
+    pub fn contract_path(&self) -> Option<&str> {
+        if self.contract_path.is_empty() {
+            None
+        } else {
+            Some(&self.contract_path)
+        }
+    }
+
     fn from_json_value(value: serde_json::Value) -> PyResult<Self> {
         let obj = value.as_object().ok_or_else(|| {
             pyo3::exceptions::PyValueError::new_err("Config must be a JSON object")
@@ -272,9 +281,7 @@ impl PyConfig {
             .get("contract_path")
             .or_else(|| obj.get("contractPath"))
             .and_then(|v| v.as_str())
-            .ok_or_else(|| {
-                pyo3::exceptions::PyValueError::new_err("contract_path is required")
-            })?
+            .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("contract_path is required"))?
             .to_string();
 
         Ok(Self {
@@ -406,5 +413,216 @@ mod tests {
         assert_eq!(config.contract_path, "api.json");
         assert_eq!(config.listen_port, 9000);
         assert_eq!(config.listen_addr, "localhost");
+    }
+
+    #[test]
+    fn test_config_from_json_value_with_defaults() {
+        // Only required field provided
+        let json = serde_json::json!({
+            "contract_path": "api.json"
+        });
+
+        let config = PyConfig::from_json_value(json).unwrap();
+        assert_eq!(config.contract_path, "api.json");
+        assert_eq!(config.listen_port, 8080); // Default
+        assert_eq!(config.listen_addr, "127.0.0.1"); // Default
+        assert!(config.enable_validation); // Default true
+    }
+
+    #[test]
+    fn test_config_from_json_value_missing_contract_path() {
+        let json = serde_json::json!({
+            "listen_port": 9000
+        });
+
+        let result = PyConfig::from_json_value(json);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_config_from_json_value_camel_case() {
+        // Support camelCase for JS/TS compatibility
+        let json = serde_json::json!({
+            "contractPath": "api.json",
+            "listen_port": 8000
+        });
+
+        let config = PyConfig::from_json_value(json).unwrap();
+        assert_eq!(config.contract_path, "api.json");
+    }
+
+    #[test]
+    fn test_config_validation_flags() {
+        let config = PyConfig::new(
+            "contract.json".to_string(),
+            8080,
+            "127.0.0.1".to_string(),
+            false,
+            "info".to_string(),
+            "test".to_string(),
+            None,
+            false, // disable validation
+            false, // disable authorization
+            1_048_576,
+            30,
+        );
+
+        assert!(!config.enable_validation);
+        assert!(!config.enable_authorization);
+    }
+
+    #[test]
+    fn test_config_opa_bundle_url() {
+        let config = PyConfig::new(
+            "contract.json".to_string(),
+            8080,
+            "127.0.0.1".to_string(),
+            false,
+            "info".to_string(),
+            "test".to_string(),
+            Some("https://opa.example.com/bundle.tar.gz".to_string()),
+            true,
+            true,
+            1_048_576,
+            30,
+        );
+
+        assert_eq!(
+            config.opa_bundle_url,
+            Some("https://opa.example.com/bundle.tar.gz".to_string())
+        );
+    }
+
+    #[test]
+    fn test_config_telemetry_enabled() {
+        let config = PyConfig::new(
+            "contract.json".to_string(),
+            8080,
+            "127.0.0.1".to_string(),
+            true, // enable telemetry
+            "debug".to_string(),
+            "my-service".to_string(),
+            None,
+            true,
+            true,
+            1_048_576,
+            30,
+        );
+
+        assert!(config.enable_telemetry);
+        assert_eq!(config.log_level, "debug");
+        assert_eq!(config.service_name, "my-service");
+    }
+
+    #[test]
+    fn test_config_body_size_limits() {
+        // Small body limit for testing
+        let small = PyConfig::new(
+            "contract.json".to_string(),
+            8080,
+            "127.0.0.1".to_string(),
+            false,
+            "info".to_string(),
+            "test".to_string(),
+            None,
+            true,
+            true,
+            1024, // 1KB
+            30,
+        );
+        assert_eq!(small.max_body_size, 1024);
+
+        // Large body limit for uploads
+        let large = PyConfig::new(
+            "contract.json".to_string(),
+            8080,
+            "127.0.0.1".to_string(),
+            false,
+            "info".to_string(),
+            "test".to_string(),
+            None,
+            true,
+            true,
+            104_857_600, // 100MB
+            30,
+        );
+        assert_eq!(large.max_body_size, 104_857_600);
+    }
+
+    #[test]
+    fn test_config_request_timeout() {
+        let config = PyConfig::new(
+            "contract.json".to_string(),
+            8080,
+            "127.0.0.1".to_string(),
+            false,
+            "info".to_string(),
+            "test".to_string(),
+            None,
+            true,
+            true,
+            1_048_576,
+            60, // 60 second timeout
+        );
+        assert_eq!(config.request_timeout_secs, 60);
+    }
+
+    #[test]
+    fn test_config_contract_path_accessor() {
+        let with_path = PyConfig::new(
+            "api/contract.json".to_string(),
+            8080,
+            "127.0.0.1".to_string(),
+            false,
+            "info".to_string(),
+            "test".to_string(),
+            None,
+            true,
+            true,
+            1_048_576,
+            30,
+        );
+        assert_eq!(with_path.contract_path(), Some("api/contract.json"));
+
+        let empty_path = PyConfig::new(
+            "".to_string(), // Empty contract path
+            8080,
+            "127.0.0.1".to_string(),
+            false,
+            "info".to_string(),
+            "test".to_string(),
+            None,
+            true,
+            true,
+            1_048_576,
+            30,
+        );
+        assert_eq!(empty_path.contract_path(), None);
+    }
+
+    #[test]
+    fn test_config_repr() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|_py| {
+            let config = PyConfig::new(
+                "contract.json".to_string(),
+                8080,
+                "localhost".to_string(),
+                false,
+                "info".to_string(),
+                "test".to_string(),
+                None,
+                true,
+                true,
+                1_048_576,
+                30,
+            );
+
+            let repr = config.__repr__();
+            assert!(repr.contains("contract_path"));
+            assert!(repr.contains("8080"));
+            assert!(repr.contains("localhost"));
+        });
     }
 }

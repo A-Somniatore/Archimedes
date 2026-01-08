@@ -100,15 +100,15 @@ impl TryFrom<&ArchimedesConfig> for InternalConfig {
     fn try_from(config: &ArchimedesConfig) -> Result<Self, Self::Error> {
         use crate::c_str_to_rust;
 
-        let contract_path = c_str_to_rust(config.contract_path)
-            .ok_or("contract_path is required")?;
+        let contract_path =
+            c_str_to_rust(config.contract_path).ok_or("contract_path is required")?;
 
         let policy_bundle_path = c_str_to_rust(config.policy_bundle_path);
-        let listen_addr = c_str_to_rust(config.listen_addr)
-            .unwrap_or_else(|| "0.0.0.0".to_string());
+        let listen_addr =
+            c_str_to_rust(config.listen_addr).unwrap_or_else(|| "0.0.0.0".to_string());
         let otlp_endpoint = c_str_to_rust(config.otlp_endpoint);
-        let service_name = c_str_to_rust(config.service_name)
-            .unwrap_or_else(|| "archimedes-service".to_string());
+        let service_name =
+            c_str_to_rust(config.service_name).unwrap_or_else(|| "archimedes-service".to_string());
 
         let has_policy = policy_bundle_path.is_some();
 

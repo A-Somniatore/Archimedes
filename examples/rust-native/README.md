@@ -1,15 +1,17 @@
 # Rust Example Service (Native Archimedes)
 
-A Rust service demonstrating **native** Archimedes framework usage without a sidecar. This showcases the full power of the Archimedes framework for Rust services.
+A Rust service demonstrating **native** Archimedes framework usage. This is the **RECOMMENDED** way to build services in Rust - using Archimedes directly rather than axum, actix-web, or other frameworks.
 
 ## Overview
 
 This example shows how to build a Rust microservice that:
 
-- Uses Archimedes directly (no sidecar needed)
-- Gets contract validation, authorization, and observability built-in
+- Uses Archimedes directly (`archimedes-server`, `archimedes-core`)
+- No sidecar needed - all middleware is built-in
+- Gets contract validation, authorization, and observability out of the box
 - Implements a simple User CRUD API
 - Has full type-safety through Rust's type system
+- Includes 14 unit tests demonstrating handler patterns
 
 ## Architecture
 

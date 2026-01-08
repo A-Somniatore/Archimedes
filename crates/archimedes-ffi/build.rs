@@ -8,14 +8,22 @@ use std::path::PathBuf;
 fn main() {
     // Only generate header if we're building the crate (not running tests)
     let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let target_dir = env::var("CARGO_TARGET_DIR")
-        .unwrap_or_else(|_| {
-            let manifest_dir = PathBuf::from(&crate_dir);
-            manifest_dir.parent().unwrap().parent().unwrap().join("target").to_string_lossy().to_string()
-        });
+    let target_dir = env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| {
+        let manifest_dir = PathBuf::from(&crate_dir);
+        manifest_dir
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("target")
+            .to_string_lossy()
+            .to_string()
+    });
 
     // Output header path
-    let header_path = PathBuf::from(&target_dir).join("include").join("archimedes.h");
+    let header_path = PathBuf::from(&target_dir)
+        .join("include")
+        .join("archimedes.h");
 
     // Create include directory if it doesn't exist
     if let Some(parent) = header_path.parent() {

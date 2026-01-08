@@ -1,8 +1,8 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.2.0
+> **Version**: 3.3.0
 > **Created**: 2026-01-04
-> **Last Updated**: 2026-01-11
+> **Last Updated**: 2026-01-08
 > **Target Completion**: Week 78 (extended for framework parity features)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
@@ -13,7 +13,9 @@
 > **UPDATE (2026-01-10)**: Phase A13.1 (Core FFI Layer) COMPLETE - 44 tests, archimedes-ffi crate with C ABI.
 > **UPDATE (2026-01-11)**: Phase A13.2 (Python Bindings) IN PROGRESS - Basic HTTP server working, middleware integration pending.
 > **UPDATE (2026-01-11)**: Phase A13 ordering finalized: Python (FULL Rust parity) → TypeScript → C++ → Go.
-> **🚨 NEW (2026-01-11)**: Phase A14 (Framework Parity) ADDED - CORS, TestClient, file uploads, rate limiting, static files to match FastAPI/Axum.
+> **UPDATE (2026-01-11)**: Phase A14 (Framework Parity) ADDED - CORS, TestClient, file uploads, rate limiting, static files to match FastAPI/Axum.
+> **🔥 UPDATE (2026-01-08)**: Phase A13.6 (Performance Benchmarking) ADDED as **PRIORITY #1** - Prove Archimedes is 5-20x faster than FastAPI/Flask.
+> **🔥 UPDATE (2026-01-08)**: rust-native example rewritten to use Archimedes directly (not Axum) - 14 unit tests added.
 
 ---
 
@@ -1879,42 +1881,66 @@ The sidecar pattern (Phase A10) works but has limitations:
 
 ### Phase A13.2: Python Bindings - Full Rust Parity (Weeks 51-58) 🔄 IN PROGRESS
 
-> **Goal**: `pip install archimedes` - Python developers use Archimedes directly **with FULL Rust parity** > **Technology**: PyO3 (Rust-Python bindings)
-> **Status**: Basic HTTP server working, middleware integration pending
-> **Tests**: 18 passing tests
+> **Goal**: `pip install archimedes` - Python developers use Archimedes directly **with FULL Rust parity**
+> **Technology**: PyO3 (Rust-Python bindings)
+> **Status**: HTTP server working, middleware integration pending
+> **Tests**: 69 passing tests (context: 18, handlers: 16, config: 13, server: 22)
+> **UPDATE 2026-01-08**: Server module complete, comprehensive test coverage added
 
 #### CRITICAL: Full Rust Parity Requirements
 
-Python bindings MUST have the same behavior as native Rust Archimedes:
+Python bindings MUST have the same behavior as native Rust Archimedes. The goal is **exact parity** - every feature in `examples/rust-native` must work identically in `examples/python-native`.
 
-| Feature                   | Rust Status | Python Status | Priority |
-| ------------------------- | ----------- | ------------- | -------- |
-| HTTP Server               | ✅ Complete | ✅ Basic      | P0       |
-| Handler Registration      | ✅ Complete | ✅ Complete   | P0       |
-| Request Context           | ✅ Complete | ✅ Complete   | P0       |
-| Response Builder          | ✅ Complete | ✅ Complete   | P0       |
-| Request ID Middleware     | ✅ Complete | ❌ Missing    | P0       |
-| Tracing/OpenTelemetry     | ✅ Complete | ❌ Missing    | P0       |
-| Identity Extraction       | ✅ Complete | ❌ Missing    | P0       |
-| Authorization (OPA)       | ✅ Complete | ❌ Missing    | P0       |
-| Request Validation        | ✅ Complete | ❌ Missing    | P0       |
-| Response Validation       | ✅ Complete | ❌ Missing    | P0       |
-| Error Normalization       | ✅ Complete | ❌ Missing    | P0       |
-| Telemetry Collection      | ✅ Complete | ❌ Missing    | P0       |
-| Contract-based Routing    | ✅ Complete | ❌ Missing    | P1       |
-| Graceful Shutdown         | ✅ Complete | ❌ Missing    | P1       |
-| Configuration (TOML/JSON) | ✅ Complete | ✅ YAML/JSON  | P1       |
+| Feature                   | Rust Status | Python Status | Priority | Notes                             |
+| ------------------------- | ----------- | ------------- | -------- | --------------------------------- |
+| HTTP Server (hyper)       | ✅ Complete | ✅ Complete   | P0       | server.rs with graceful shutdown  |
+| Handler Registration      | ✅ Complete | ✅ Complete   | P0       | @app.handler decorator            |
+| Request Context           | ✅ Complete | ✅ Complete   | P0       | PyRequestContext with all fields  |
+| Response Builder          | ✅ Complete | ✅ Complete   | P0       | PyResponse with status methods    |
+| Path Parameter Extraction | ✅ Complete | ✅ Complete   | P0       | ctx.path_params["userId"]         |
+| Query Parameters          | ✅ Complete | ✅ Complete   | P0       | ctx.query() and ctx.query_all()   |
+| Header Access             | ✅ Complete | ✅ Complete   | P0       | ctx.header() case-insensitive     |
+| Health/Ready Endpoints    | ✅ Complete | ✅ Complete   | P0       | Built-in /health, /ready          |
+| Request ID Generation     | ✅ Complete | ⚠️ Basic      | P0       | Generated but not middleware      |
+| Identity (PyIdentity)     | ✅ Complete | ✅ Complete   | P0       | Roles, permissions, claims        |
+| Authorization Checks      | ✅ Complete | ✅ Types only | P0       | has_role(), has_permission()      |
+| Request ID Middleware     | ✅ Complete | ❌ Missing    | P0       | Add to pipeline                   |
+| Tracing/OpenTelemetry     | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-telemetry      |
+| Identity Extraction       | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-extract        |
+| Authorization (OPA)       | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-authz          |
+| Request Validation        | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-sentinel       |
+| Response Validation       | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-sentinel       |
+| Error Normalization       | ✅ Complete | ⚠️ Basic      | P0       | Need ThemisError envelope         |
+| Telemetry Collection      | ✅ Complete | ❌ Missing    | P0       | Wire to archimedes-telemetry      |
+| Contract-based Routing    | ✅ Complete | ❌ Missing    | P1       | Wire to archimedes-router         |
+| Graceful Shutdown         | ✅ Complete | ✅ Complete   | P1       | watch::channel shutdown           |
+| Configuration             | ✅ Complete | ✅ Complete   | P1       | YAML/JSON, env vars               |
 
-#### Implementation Summary (Basic Complete)
+#### Rust→Python Mapping (For Parity)
+
+| Rust Crate             | Python Equivalent                | Status      |
+| ---------------------- | -------------------------------- | ----------- |
+| archimedes-server      | archimedes-py/server.rs          | ✅ Complete |
+| archimedes-core        | archimedes-py/context.rs         | ✅ Complete |
+| archimedes-extract     | Not needed (Python dynamic)      | N/A         |
+| archimedes-middleware  | archimedes-py/middleware.rs      | ❌ Missing  |
+| archimedes-sentinel    | Wire via FFI or re-implement     | ❌ Missing  |
+| archimedes-authz       | Wire via FFI or re-implement     | ❌ Missing  |
+| archimedes-telemetry   | Wire via FFI or OpenTelemetry-py | ❌ Missing  |
+| archimedes-router      | archimedes-py/server.rs (basic)  | ⚠️ Partial  |
+
+#### Implementation Summary
 
 Created `archimedes-py` crate with comprehensive Python bindings:
 
 - **Core Classes**: `PyApp`, `PyConfig`, `PyRequestContext`, `PyIdentity`, `PyResponse`
+- **Server Module**: `PyServer` with hyper/tokio, graceful shutdown, health endpoints
 - **Handler System**: `HandlerRegistry` with decorator-based registration
 - **Configuration**: YAML/JSON config loading, environment variable support
 - **Error Handling**: Custom `ArchimedesError` Python exception
 - **Type Stubs**: Complete `.pyi` files for IDE autocomplete support
 - **Build System**: maturin-based build with pyproject.toml
+- **Test Coverage**: 69 tests covering context, handlers, config, server
 
 #### Week 51-52: Core Python Module ✅ COMPLETE
 
@@ -2108,6 +2134,98 @@ Created `archimedes-py` crate with comprehensive Python bindings:
 | C++        | FFI overhead per call   | <100ns            |
 | Go         | Requests/sec vs Gin     | ≥1.5x improvement |
 | All        | Memory per connection   | <10KB baseline    |
+
+---
+
+## Phase A13.6: Performance Benchmarking (Weeks 69-70) 🔥 PRIORITY #1
+
+> **Goal**: Establish performance baselines and prove Archimedes is faster than competing frameworks
+> **Status**: 📋 PLANNED
+> **Priority**: **#1** - This validates our claim that Archimedes is 5-20x faster
+
+### Why Benchmarking is Critical
+
+Archimedes is built on Rust/Tokio/Hyper which should deliver:
+
+| Comparison              | Expected Improvement | Rationale                                  |
+| ----------------------- | -------------------- | ------------------------------------------ |
+| Archimedes vs FastAPI   | 10-30x faster        | No Python GIL, no interpreter overhead     |
+| Archimedes vs Flask     | 20-100x faster       | Flask is synchronous + Python overhead     |
+| Archimedes vs Express   | 5-15x faster         | Node.js event loop has inherent overhead   |
+| Archimedes vs Gin       | 2-5x faster          | Go's GC pauses, Rust has zero-cost allocs  |
+| Archimedes vs Axum      | ~1x (parity)         | Same tech stack, validation adds overhead  |
+
+### Benchmarking Deliverables
+
+#### Week 69: Benchmark Infrastructure
+
+- [ ] Create `benches/` directory with Criterion benchmarks
+- [ ] Set up benchmark CI (run on every PR, store results)
+- [ ] Create standard benchmark scenarios:
+  - [ ] Hello World (minimal overhead)
+  - [ ] JSON serialization (medium payload)
+  - [ ] Large response (1MB payload)
+  - [ ] Concurrent requests (10k, 100k connections)
+  - [ ] Contract validation overhead
+  - [ ] OPA policy evaluation overhead
+- [ ] Integrate with TechEmpower benchmark suite format
+- [ ] Create `BENCHMARKS.md` documenting methodology
+
+#### Week 70: Cross-Framework Comparison
+
+- [ ] Benchmark Archimedes (Rust native) vs:
+  - [ ] FastAPI (Python) - same endpoints
+  - [ ] Flask (Python) - same endpoints
+  - [ ] Axum (Rust) - same endpoints
+  - [ ] Actix-web (Rust) - same endpoints
+  - [ ] Express (Node.js) - same endpoints
+  - [ ] Gin (Go) - same endpoints
+- [ ] Measure metrics:
+  - [ ] Requests per second (RPS)
+  - [ ] Latency percentiles (p50, p95, p99)
+  - [ ] Memory usage under load
+  - [ ] CPU utilization
+  - [ ] Startup time
+- [ ] Document results with graphs
+- [ ] Publish results to README and docs
+
+### Benchmark Tools
+
+| Tool     | Purpose                          |
+| -------- | -------------------------------- |
+| wrk      | HTTP benchmarking (RPS, latency) |
+| hey      | Simple load testing              |
+| k6       | Complex scenario testing         |
+| Criterion| Rust micro-benchmarks            |
+| perf     | CPU profiling                    |
+| heaptrack| Memory profiling                 |
+
+### Expected Results (Hypothesis)
+
+```
+Benchmark: GET /users (JSON response, 10 users)
+================================================================
+Framework        | RPS       | p50 (ms) | p99 (ms) | Memory
+-----------------+-----------+----------+----------+---------
+Archimedes       | 150,000   | 0.2      | 1.5      | 45 MB
+Axum             | 145,000   | 0.2      | 1.5      | 42 MB
+Actix-web        | 148,000   | 0.2      | 1.4      | 40 MB
+Gin              | 80,000    | 0.5      | 3.0      | 60 MB
+Express          | 25,000    | 2.0      | 15.0     | 120 MB
+FastAPI          | 12,000    | 4.0      | 25.0     | 180 MB
+Flask            | 3,000     | 15.0     | 80.0     | 200 MB
+================================================================
+```
+
+### A13.6 Milestone
+
+**Criteria**: Documented benchmarks proving Archimedes is ≥2x faster than FastAPI
+
+> 📊 Status: 📋 PLANNED
+>
+> - Benchmark infrastructure
+> - Cross-framework comparison
+> - Published results with methodology
 
 ---
 

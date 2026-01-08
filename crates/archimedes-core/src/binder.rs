@@ -94,7 +94,7 @@ impl HandlerBinder {
     /// ```
     pub fn new(operations: Vec<&str>) -> Self {
         Self {
-            required_operations: operations.iter().map(|s| s.to_string()).collect(),
+            required_operations: operations.into_iter().map(ToString::to_string).collect(),
             handlers: std::collections::HashMap::new(),
         }
     }

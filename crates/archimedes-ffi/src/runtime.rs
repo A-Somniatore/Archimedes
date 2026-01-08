@@ -54,7 +54,7 @@ pub struct RuntimeConfig {
 impl Default for RuntimeConfig {
     fn default() -> Self {
         Self {
-            worker_threads: 0, // Auto-detect
+            worker_threads: 0,                  // Auto-detect
             thread_stack_size: 2 * 1024 * 1024, // 2MB
             thread_name: "archimedes-ffi".to_string(),
         }

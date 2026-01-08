@@ -4,36 +4,64 @@ This example demonstrates using **native Archimedes Python bindings** instead of
 
 ## Key Differences from Sidecar Pattern
 
-| Sidecar Pattern | Native Bindings |
-|-----------------|-----------------|
-| Requires separate sidecar container | Single process |
-| FastAPI/Flask for business logic | Archimedes handlers directly |
-| Network hop between sidecar ↔ app | In-process calls |
-| Parse headers manually | Typed `RequestContext` |
-| Two deployments | One deployment |
+| Sidecar Pattern                     | Native Bindings              |
+| ----------------------------------- | ---------------------------- |
+| Requires separate sidecar container | Single process               |
+| FastAPI/Flask for business logic    | Archimedes handlers directly |
+| Network hop between sidecar ↔ app   | In-process calls             |
+| Parse headers manually              | Typed `RequestContext`       |
+| Two deployments                     | One deployment               |
 
 ## Prerequisites
 
-1. **Build the native module**:
-   ```bash
-   cd crates/archimedes-py
-   pip install maturin
-   maturin develop
-   ```
+**Rust** (latest stable) and **Python 3.8+** are required.
 
-2. **Or install from wheel**:
-   ```bash
-   pip install archimedes  # Once published to PyPI
-   ```
+### Quick Start
+
+```bash
+# From this directory
+cd examples/python-native
+
+# Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install maturin
+pip install maturin
+
+# Build and install the archimedes native bindings
+maturin develop --manifest-path ../../crates/archimedes-py/Cargo.toml
+
+# Run the example
+python main.py
+```
+
+### Alternative: Install from Wheel
+
+```bash
+# Once published to PyPI
+pip install archimedes
+```
 
 ## Running the Example
 
 ```bash
-# From this directory
+# From this directory (with venv activated)
 python main.py
 ```
 
-The server will start on port 8002 with all middleware enabled:
+**Output:**
+
+```
+Starting Archimedes Python server...
+Registered operations: ['healthCheck', 'listUsers', 'getUser', 'createUser', 'updateUser', 'deleteUser']
+Config: Config(contract_path="../contract.json", listen_port=8002, listen_addr="0.0.0.0")
+[archimedes] Binding to 0.0.0.0:8002...
+[archimedes] Archimedes Python server listening on http://0.0.0.0:8002
+```
+
+The server starts on port 8002 with all middleware enabled:
+
 - Request ID generation
 - Distributed tracing (OpenTelemetry)
 - Identity extraction (mTLS/JWT/API Key)
@@ -44,39 +72,54 @@ The server will start on port 8002 with all middleware enabled:
 
 All endpoints are validated against `../contract.json`:
 
-| Operation | Method | Path | Description |
-|-----------|--------|------|-------------|
-| `healthCheck` | GET | `/health` | Health check |
-| `listUsers` | GET | `/users` | List all users |
-| `getUser` | GET | `/users/{userId}` | Get user by ID |
-| `createUser` | POST | `/users` | Create a user |
-| `updateUser` | PUT | `/users/{userId}` | Update a user |
-| `deleteUser` | DELETE | `/users/{userId}` | Delete a user |
+| Operation     | Method | Path              | Description    |
+| ------------- | ------ | ----------------- | -------------- |
+| `healthCheck` | GET    | `/health`         | Health check   |
+| `listUsers`   | GET    | `/users`          | List all users |
+| `getUser`     | GET    | `/users/{userId}` | Get user by ID |
+| `createUser`  | POST   | `/users`          | Create a user  |
+| `updateUser`  | PUT    | `/users/{userId}` | Update a user  |
+| `deleteUser`  | DELETE | `/users/{userId}` | Delete a user  |
 
 ## Example Requests
+
+Test the server with `curl`:
 
 ```bash
 # Health check
 curl http://localhost:8002/health
+# Response: {"service":"archimedes-python","status":"healthy"}
 
-# List users
-curl http://localhost:8002/users
+# List users (pre-seeded data)
+curl http://localhost:8002/users | jq .
+# Response:
+# {
+#   "users": [
+#     {"id": "1", "name": "Alice Smith", "email": "alice@example.com", ...},
+#     {"id": "2", "name": "Bob Johnson", "email": "bob@example.com", ...}
+#   ],
+#   "total": 2
+# }
 
-# Get user
-curl http://localhost:8002/users/1
+# Get user by ID
+curl http://localhost:8002/users/1 | jq .
+# Response: {"id": "1", "name": "Alice Smith", "email": "alice@example.com", ...}
 
 # Create user
 curl -X POST http://localhost:8002/users \
   -H "Content-Type: application/json" \
-  -d '{"name": "Charlie Brown", "email": "charlie@example.com"}'
+  -d '{"name": "Charlie Brown", "email": "charlie@example.com"}' | jq .
+# Response: {"id": "<uuid>", "name": "Charlie Brown", "email": "charlie@example.com", ...}
 
 # Update user
 curl -X PUT http://localhost:8002/users/1 \
   -H "Content-Type: application/json" \
-  -d '{"name": "Alice Updated"}'
+  -d '{"name": "Alice Updated"}' | jq .
+# Response: {"id": "1", "name": "Alice Updated", "email": "alice@example.com", ...}
 
 # Delete user
-curl -X DELETE http://localhost:8002/users/1
+curl -X DELETE http://localhost:8002/users/1 -w "\nHTTP Status: %{http_code}\n"
+# Response: HTTP Status: 204
 ```
 
 ## Code Comparison
@@ -143,10 +186,39 @@ docker run -p 8002:8002 example-python-native
 
 ## Testing
 
+### Quick Test Script
+
+Run the included test script to validate all endpoints:
+
+```bash
+# Make sure server is running first
+python main.py &
+
+# Run tests
+./test.sh
+# Or: bash test.sh
+
+# Stop server when done
+pkill -f "python main.py"
+```
+
+### Manual Testing
+
 ```bash
 # Install test dependencies
-pip install pytest pytest-asyncio
+pip install pytest pytest-asyncio httpx
 
 # Run tests
 pytest tests/
 ```
+
+### Expected Test Results
+
+All 6 operations should work:
+
+- ✅ `healthCheck` - Returns 200 with status "healthy"
+- ✅ `listUsers` - Returns 200 with list of users
+- ✅ `getUser` - Returns 200 with user data, 404 if not found
+- ✅ `createUser` - Returns 201 with created user
+- ✅ `updateUser` - Returns 200 with updated user
+- ✅ `deleteUser` - Returns 204 on success

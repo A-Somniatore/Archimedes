@@ -36,12 +36,7 @@ pub(crate) struct RequestContextBuilder {
 
 impl RequestContextBuilder {
     /// Create a new builder with required fields
-    pub fn new(
-        request_id: &str,
-        operation_id: &str,
-        method: &str,
-        path: &str,
-    ) -> Self {
+    pub fn new(request_id: &str, operation_id: &str, method: &str, path: &str) -> Self {
         Self {
             request_id: CString::new(request_id).unwrap_or_default(),
             trace_id: CString::new("").unwrap_or_default(),
@@ -113,28 +108,12 @@ impl RequestContextBuilder {
     /// be kept alive for the duration of the handler call.
     pub fn build(&mut self) -> ArchimedesRequestContext {
         // Build pointer arrays for path params
-        self.path_param_name_ptrs = self
-            .path_param_names
-            .iter()
-            .map(|s| s.as_ptr())
-            .collect();
-        self.path_param_value_ptrs = self
-            .path_param_values
-            .iter()
-            .map(|s| s.as_ptr())
-            .collect();
+        self.path_param_name_ptrs = self.path_param_names.iter().map(|s| s.as_ptr()).collect();
+        self.path_param_value_ptrs = self.path_param_values.iter().map(|s| s.as_ptr()).collect();
 
         // Build pointer arrays for headers
-        self.header_name_ptrs = self
-            .header_names
-            .iter()
-            .map(|s| s.as_ptr())
-            .collect();
-        self.header_value_ptrs = self
-            .header_values
-            .iter()
-            .map(|s| s.as_ptr())
-            .collect();
+        self.header_name_ptrs = self.header_names.iter().map(|s| s.as_ptr()).collect();
+        self.header_value_ptrs = self.header_values.iter().map(|s| s.as_ptr()).collect();
 
         ArchimedesRequestContext {
             request_id: self.request_id.as_ptr(),
@@ -178,19 +157,11 @@ mod tests {
 
     #[test]
     fn test_builder_basic() {
-        let mut builder = RequestContextBuilder::new(
-            "req-123",
-            "listUsers",
-            "GET",
-            "/users",
-        );
+        let mut builder = RequestContextBuilder::new("req-123", "listUsers", "GET", "/users");
         let ctx = builder.build();
 
         unsafe {
-            assert_eq!(
-                CStr::from_ptr(ctx.request_id).to_str().unwrap(),
-                "req-123"
-            );
+            assert_eq!(CStr::from_ptr(ctx.request_id).to_str().unwrap(), "req-123");
             assert_eq!(
                 CStr::from_ptr(ctx.operation_id).to_str().unwrap(),
                 "listUsers"
@@ -207,10 +178,7 @@ mod tests {
         let ctx = builder.build();
 
         unsafe {
-            assert_eq!(
-                CStr::from_ptr(ctx.trace_id).to_str().unwrap(),
-                "trace-abc"
-            );
+            assert_eq!(CStr::from_ptr(ctx.trace_id).to_str().unwrap(), "trace-abc");
             assert_eq!(CStr::from_ptr(ctx.span_id).to_str().unwrap(), "span-xyz");
         }
     }
@@ -222,8 +190,8 @@ mod tests {
             ("postId".to_string(), "456".to_string()),
         ];
 
-        let mut builder = RequestContextBuilder::new("req-1", "op", "GET", "/")
-            .with_path_params(&params);
+        let mut builder =
+            RequestContextBuilder::new("req-1", "op", "GET", "/").with_path_params(&params);
         let ctx = builder.build();
 
         assert_eq!(ctx.path_params_count, 2);
@@ -248,8 +216,8 @@ mod tests {
             ("Authorization".to_string(), "Bearer token".to_string()),
         ];
 
-        let mut builder = RequestContextBuilder::new("req-1", "op", "GET", "/")
-            .with_headers(&headers);
+        let mut builder =
+            RequestContextBuilder::new("req-1", "op", "GET", "/").with_headers(&headers);
         let ctx = builder.build();
 
         assert_eq!(ctx.headers_count, 2);

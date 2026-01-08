@@ -12,13 +12,13 @@ Archimedes supports three deployment patterns:
 
 ## Services
 
-| Language   | Framework      | Pattern        | Port | Description                           |
-| ---------- | -------------- | -------------- | ---- | ------------------------------------- |
-| Rust       | Archimedes     | Native         | 8001 | Direct framework usage                |
-| Python     | archimedes-py  | Native Binding | 8002 | **NEW** Python with native bindings   |
-| Go         | net/http       | Sidecar        | 8003 | Go service with sidecar (migration)   |
-| TypeScript | Express        | Sidecar        | 8004 | Node.js with sidecar (migration)      |
-| C++        | cpp-httplib    | Sidecar        | 8005 | C++ service with sidecar (migration)  |
+| Language   | Framework     | Pattern        | Port | Description                          |
+| ---------- | ------------- | -------------- | ---- | ------------------------------------ |
+| Rust       | Archimedes    | Native         | 8001 | Direct framework usage               |
+| Python     | archimedes-py | Native Binding | 8002 | **NEW** Python with native bindings  |
+| Go         | net/http      | Sidecar        | 8003 | Go service with sidecar (migration)  |
+| TypeScript | Express       | Sidecar        | 8004 | Node.js with sidecar (migration)     |
+| C++        | cpp-httplib   | Sidecar        | 8005 | C++ service with sidecar (migration) |
 
 > **Note**: Python now uses native bindings (`archimedes-py`). Go, TypeScript, and C++ bindings are planned.
 > The sidecar pattern remains available for gradual migration.

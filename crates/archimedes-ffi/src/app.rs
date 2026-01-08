@@ -361,8 +361,12 @@ mod tests {
             let app = archimedes_new(&config);
             assert!(!app.is_null());
 
-            let result =
-                archimedes_register_handler(app, op_id.as_ptr(), test_handler, std::ptr::null_mut());
+            let result = archimedes_register_handler(
+                app,
+                op_id.as_ptr(),
+                test_handler,
+                std::ptr::null_mut(),
+            );
             assert_eq!(result, ArchimedesError::Ok);
 
             archimedes_free(app);

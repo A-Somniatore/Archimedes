@@ -35,13 +35,19 @@ mod config;
 mod context;
 mod error;
 mod handlers;
+mod middleware;
 mod response;
+mod server;
 
 pub use config::PyConfig;
 pub use context::{PyIdentity, PyRequestContext};
 pub use error::PyArchimedesError;
 pub use handlers::HandlerRegistry;
+pub use middleware::{
+    add_response_headers, process_request, request_duration_ms, MiddlewareResult,
+};
 pub use response::PyResponse;
+pub use server::{PyServer, ServerError};
 
 /// Archimedes application instance
 ///
@@ -124,31 +130,31 @@ impl PyApp {
 
         self.running = true;
 
-        // Release the GIL while running the server
+        // Get server configuration
         let listen_addr = self.config.listen_addr().to_string();
         let listen_port = self.config.listen_port();
+        let contract_path = self.config.contract_path().map(|s| s.to_string());
+        let handlers = Arc::clone(&self.handlers);
 
-        py.allow_threads(|| {
+        // Parse socket address
+        let addr: std::net::SocketAddr = format!("{}:{}", listen_addr, listen_port)
+            .parse()
+            .map_err(|e| PyArchimedesError::new_err(format!("Invalid address: {e}")))?;
+
+        // Release the GIL while running the server
+        let result = py.allow_threads(|| {
             let rt = tokio::runtime::Runtime::new()
-                .map_err(|e| PyArchimedesError::new_err(format!("Failed to create runtime: {e}")))?;
+                .map_err(|e| format!("Failed to create runtime: {e}"))?;
 
             rt.block_on(async {
-                // TODO: Integrate with archimedes-server
-                tracing::info!(
-                    "Archimedes Python server starting on {}:{}",
-                    listen_addr,
-                    listen_port
-                );
-
-                // Placeholder - actual server integration coming
-                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-
-                Ok::<(), PyErr>(())
+                let server = server::PyServer::new(addr, handlers, contract_path);
+                server.run().await.map_err(|e| format!("Server error: {e}"))
             })
-        })?;
+        });
 
         self.running = false;
-        Ok(())
+
+        result.map_err(|e| PyArchimedesError::new_err(e))
     }
 
     /// Run the application asynchronously
@@ -178,13 +184,7 @@ impl PyApp {
         let asyncio = py.import("asyncio")?;
         let coro = asyncio.call_method1(
             "to_thread",
-            (
-                py.eval(
-                    pyo3::ffi::c_str!("lambda: None"),
-                    None,
-                    None,
-                )?,
-            ),
+            (py.eval(pyo3::ffi::c_str!("lambda: None"), None, None)?,),
         )?;
 
         // Log startup
@@ -245,7 +245,8 @@ pub struct HandlerDecorator {
 impl HandlerDecorator {
     fn __call__(&self, py: Python<'_>, handler: PyObject) -> PyResult<PyObject> {
         let handler_clone = handler.clone_ref(py);
-        self.registry.register(self.operation_id.clone(), handler_clone)?;
+        self.registry
+            .register(self.operation_id.clone(), handler_clone)?;
         Ok(handler)
     }
 }

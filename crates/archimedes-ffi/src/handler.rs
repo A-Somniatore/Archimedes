@@ -45,7 +45,7 @@ impl HandlerRegistry {
         user_data: *mut c_void,
     ) -> Result<(), String> {
         let mut handlers = self.handlers.write();
-        
+
         if handlers.contains_key(operation_id) {
             return Err(format!(
                 "Handler already registered for operation '{operation_id}'"
@@ -54,7 +54,10 @@ impl HandlerRegistry {
 
         handlers.insert(
             operation_id.to_string(),
-            RegisteredHandler { callback, user_data },
+            RegisteredHandler {
+                callback,
+                user_data,
+            },
         );
 
         tracing::debug!(operation_id, "Registered handler");

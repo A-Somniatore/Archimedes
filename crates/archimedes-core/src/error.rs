@@ -3,24 +3,24 @@
 //! This module provides the [`ThemisError`] type, which is the standard error
 //! type used throughout the Archimedes framework.
 //!
-//! # ErrorCategory vs ErrorCode
+//! # `ErrorCategory` vs `ErrorCode`
 //!
 //! This crate currently uses [`ErrorCategory`] for error classification. This is being
 //! unified with `ErrorCode` from `themis-platform-types` in V1.1. The mapping is:
 //!
-//! | ErrorCategory | ErrorCode (Target) |
+//! | `ErrorCategory` | `ErrorCode` (Target) |
 //! |---|---|
-//! | Validation | ValidationError |
-//! | Authentication | AuthenticationError |
-//! | Authorization | AuthorizationDenied |
-//! | NotFound | ResourceNotFound |
-//! | RateLimited | RateLimitExceeded |
-//! | Internal | InternalServerError |
-//! | External | ExternalServiceError |
-//! | Timeout | TimeoutError |
-//! | Conflict | ConflictError |
+//! | `Validation` | `ValidationError` |
+//! | `Authentication` | `AuthenticationError` |
+//! | `Authorization` | `AuthorizationDenied` |
+//! | `NotFound` | `ResourceNotFound` |
+//! | `RateLimited` | `RateLimitExceeded` |
+//! | `Internal` | `InternalServerError` |
+//! | `External` | `ExternalServiceError` |
+//! | `Timeout` | `TimeoutError` |
+//! | `Conflict` | `ConflictError` |
 //!
-//! Until V1.1, `ErrorCategory` is serialized with snake_case names that match the
+//! Until V1.1, `ErrorCategory` is serialized with `snake_case` names that match the
 //! JSON envelope format.
 
 use http::StatusCode;
@@ -33,7 +33,7 @@ pub type ThemisResult<T> = Result<T, ThemisError>;
 
 /// Categories of errors for classification and handling.
 ///
-/// # Note: Unification with ErrorCode
+/// # Note: Unification with `ErrorCode`
 ///
 /// This enum is being unified with `ErrorCode` from `themis-platform-types` in V1.1.
 /// See module-level documentation for the mapping.

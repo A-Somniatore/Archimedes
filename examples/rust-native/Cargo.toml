@@ -10,11 +10,16 @@ name = "example-rust-native"
 path = "src/main.rs"
 
 [dependencies]
+# Archimedes framework
+archimedes = { path = "../../crates/archimedes" }
+archimedes-server = { path = "../../crates/archimedes-server" }
+archimedes-core = { path = "../../crates/archimedes-core" }
+
+# HTTP types
+http = "1"
+
 # Async runtime
 tokio = { version = "1", features = ["full"] }
-
-# HTTP server
-axum = { version = "0.7", features = ["macros"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -30,6 +35,3 @@ chrono = { version = "0.4", features = ["serde"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-# Note: In a real deployment, you would use archimedes as a dependency:
-# archimedes = { path = "../../../crates/archimedes" }
-# For this example, we implement a standalone service using axum directly

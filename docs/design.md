@@ -28,12 +28,12 @@
 | `archimedes-tasks`      | ✅ Complete    | 41    | Background task spawner and job scheduler                                                                 |
 | `archimedes-sidecar`    | ✅ Complete    | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
 | `archimedes-ffi`        | ✅ Complete    | 44    | C ABI for cross-language FFI (Phase A13.1)                                                                |
-| `archimedes-py`         | 🔄 In Progress | 18    | Python bindings via PyO3 - Full Rust parity (Phase A13.2)                                                 |
+| `archimedes-py`         | 🔄 In Progress | 69    | Python bindings via PyO3 - Full Rust parity (Phase A13.2)                                                 |
 | `archimedes-node`       | 📋 Planned     | -     | Node.js/TypeScript bindings via napi-rs (Phase A13.3)                                                     |
 | `libarchimedes`         | 📋 Planned     | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
 | `archimedes-go`         | 📋 Planned     | -     | Go bindings via cgo (Phase A13.5)                                                                         |
 
-**Total Tests**: 1019 passing across all crates
+**Total Tests**: 1070+ passing across all crates (1019 + 51 new Python tests)
 
 ---
 

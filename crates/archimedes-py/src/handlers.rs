@@ -1,6 +1,7 @@
 //! Python handler registry for Archimedes
 
 use crate::error::{handler_error, internal_error};
+use crate::response::PyResponse;
 use crate::PyRequestContext;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -22,9 +23,10 @@ impl HandlerRegistry {
 
     /// Register a handler for an operation
     pub fn register(&self, operation_id: String, handler: PyObject) -> PyResult<()> {
-        let mut handlers = self.handlers.write().map_err(|e| {
-            internal_error(format!("Failed to acquire handler lock: {e}"))
-        })?;
+        let mut handlers = self
+            .handlers
+            .write()
+            .map_err(|e| internal_error(format!("Failed to acquire handler lock: {e}")))?;
 
         // Validate that handler is callable
         Python::with_gil(|py| {
@@ -43,10 +45,10 @@ impl HandlerRegistry {
 
     /// Get a handler for an operation
     pub fn get(&self, operation_id: &str) -> Option<PyObject> {
-        self.handlers
-            .read()
-            .ok()
-            .and_then(|h| h.get(operation_id).map(|obj| Python::with_gil(|py| obj.clone_ref(py))))
+        self.handlers.read().ok().and_then(|h| {
+            h.get(operation_id)
+                .map(|obj| Python::with_gil(|py| obj.clone_ref(py)))
+        })
     }
 
     /// Check if a handler is registered
@@ -88,7 +90,9 @@ impl HandlerRegistry {
         body: Option<serde_json::Value>,
     ) -> PyResult<serde_json::Value> {
         let handler = self.get(operation_id).ok_or_else(|| {
-            handler_error(format!("No handler registered for operation '{operation_id}'"))
+            handler_error(format!(
+                "No handler registered for operation '{operation_id}'"
+            ))
         })?;
 
         let handler_ref = handler.bind(py);
@@ -171,6 +175,18 @@ fn python_to_json(py: Python<'_>, obj: PyObject) -> PyResult<serde_json::Value> 
         return Ok(serde_json::Value::Null);
     }
 
+    // Check for PyResponse first
+    if let Ok(response) = obj_ref.extract::<PyResponse>() {
+        let mut map = serde_json::Map::new();
+        map.insert("status_code".to_string(), response.status.into());
+        if let Some(body) = response.body_json() {
+            map.insert("body".to_string(), body.clone());
+        } else {
+            map.insert("body".to_string(), serde_json::Value::Null);
+        }
+        return Ok(serde_json::Value::Object(map));
+    }
+
     // Try bool first (before int since bool is subclass of int in Python)
     if let Ok(b) = obj_ref.extract::<bool>() {
         return Ok(serde_json::Value::Bool(b));
@@ -243,11 +259,14 @@ mod tests {
             let registry = HandlerRegistry::new();
 
             // Create a Python lambda
-            let handler: PyObject = py.eval(
-                pyo3::ffi::c_str!("lambda ctx: {'status': 'ok'}"),
-                None,
-                None,
-            ).unwrap().into();
+            let handler: PyObject = py
+                .eval(
+                    pyo3::ffi::c_str!("lambda ctx: {'status': 'ok'}"),
+                    None,
+                    None,
+                )
+                .unwrap()
+                .into();
 
             registry.register("testOp".to_string(), handler).unwrap();
 
@@ -264,16 +283,14 @@ mod tests {
         Python::with_gil(|py| {
             let registry = HandlerRegistry::new();
 
-            let handler1: PyObject = py.eval(
-                pyo3::ffi::c_str!("lambda ctx: {}"),
-                None,
-                None,
-            ).unwrap().into();
-            let handler2: PyObject = py.eval(
-                pyo3::ffi::c_str!("lambda ctx: {}"),
-                None,
-                None,
-            ).unwrap().into();
+            let handler1: PyObject = py
+                .eval(pyo3::ffi::c_str!("lambda ctx: {}"), None, None)
+                .unwrap()
+                .into();
+            let handler2: PyObject = py
+                .eval(pyo3::ffi::c_str!("lambda ctx: {}"), None, None)
+                .unwrap()
+                .into();
 
             registry.register("op1".to_string(), handler1).unwrap();
             registry.register("op2".to_string(), handler2).unwrap();
@@ -303,6 +320,353 @@ mod tests {
             let back = python_to_json(py, py_obj).unwrap();
 
             assert_eq!(original, back);
+        });
+    }
+
+    #[test]
+    fn test_registry_replace_handler() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let registry = HandlerRegistry::new();
+
+            // Register first handler
+            let handler1: PyObject = py
+                .eval(pyo3::ffi::c_str!("lambda ctx: {'version': 1}"), None, None)
+                .unwrap()
+                .into();
+            registry.register("testOp".to_string(), handler1).unwrap();
+
+            // Register second handler with same operation ID
+            let handler2: PyObject = py
+                .eval(pyo3::ffi::c_str!("lambda ctx: {'version': 2}"), None, None)
+                .unwrap()
+                .into();
+            registry.register("testOp".to_string(), handler2).unwrap();
+
+            // Should still have 1 handler (replaced)
+            assert_eq!(registry.len(), 1);
+            assert!(registry.has("testOp"));
+        });
+    }
+
+    #[test]
+    fn test_registry_reject_non_callable() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let registry = HandlerRegistry::new();
+
+            // Try to register a non-callable (string)
+            let non_callable: PyObject = py
+                .eval(pyo3::ffi::c_str!("'not a function'"), None, None)
+                .unwrap()
+                .into();
+
+            let result = registry.register("testOp".to_string(), non_callable);
+            assert!(result.is_err());
+        });
+    }
+
+    #[test]
+    fn test_json_null_handling() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let null = serde_json::Value::Null;
+            let py_obj = json_to_python(py, &null).unwrap();
+            let back = python_to_json(py, py_obj).unwrap();
+            assert_eq!(back, serde_json::Value::Null);
+        });
+    }
+
+    #[test]
+    fn test_json_array_handling() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let arr = serde_json::json!([1, "two", 3.0, true, null]);
+            let py_obj = json_to_python(py, &arr).unwrap();
+            let back = python_to_json(py, py_obj).unwrap();
+
+            // Compare elements (order matters)
+            let arr_back = back.as_array().unwrap();
+            assert_eq!(arr_back.len(), 5);
+            assert_eq!(arr_back[0], 1);
+            assert_eq!(arr_back[1], "two");
+            assert_eq!(arr_back[3], true);
+            assert!(arr_back[4].is_null());
+        });
+    }
+
+    #[test]
+    fn test_json_nested_object_handling() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let nested = serde_json::json!({
+                "level1": {
+                    "level2": {
+                        "level3": {
+                            "value": "deep"
+                        }
+                    }
+                }
+            });
+
+            let py_obj = json_to_python(py, &nested).unwrap();
+            let back = python_to_json(py, py_obj).unwrap();
+
+            assert_eq!(back["level1"]["level2"]["level3"]["value"], "deep");
+        });
+    }
+
+    #[test]
+    fn test_invoke_simple_handler() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let registry = HandlerRegistry::new();
+
+            // Handler that returns a dict
+            let handler: PyObject = py
+                .eval(
+                    pyo3::ffi::c_str!("lambda ctx: {'status': 'ok', 'data': ctx.operation_id}"),
+                    None,
+                    None,
+                )
+                .unwrap()
+                .into();
+
+            registry.register("testOp".to_string(), handler).unwrap();
+
+            // Create a test context
+            let ctx = PyRequestContext::test("testOp");
+
+            // Invoke the handler
+            let result = registry.invoke(py, "testOp", ctx, None);
+            assert!(result.is_ok());
+
+            let response = result.unwrap();
+            assert_eq!(response["status"], "ok");
+            assert_eq!(response["data"], "testOp");
+        });
+    }
+
+    #[test]
+    fn test_invoke_handler_with_body() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let registry = HandlerRegistry::new();
+
+            // Handler that uses the body
+            let handler: PyObject = py
+                .eval(
+                    pyo3::ffi::c_str!(
+                        "lambda ctx, body: {'received': body.get('name', 'unknown')}"
+                    ),
+                    None,
+                    None,
+                )
+                .unwrap()
+                .into();
+
+            registry
+                .register("createUser".to_string(), handler)
+                .unwrap();
+
+            let ctx = PyRequestContext::test("createUser");
+            let body = serde_json::json!({"name": "Alice"});
+
+            let result = registry.invoke(py, "createUser", ctx, Some(body));
+            assert!(result.is_ok());
+
+            let response = result.unwrap();
+            assert_eq!(response["received"], "Alice");
+        });
+    }
+
+    #[test]
+    fn test_invoke_missing_handler() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let registry = HandlerRegistry::new();
+            let ctx = PyRequestContext::test("missingOp");
+
+            let result = registry.invoke(py, "missingOp", ctx, None);
+            assert!(result.is_err());
+        });
+    }
+
+    #[test]
+    fn test_handler_returning_list() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let registry = HandlerRegistry::new();
+
+            let handler: PyObject = py
+                .eval(
+                    pyo3::ffi::c_str!("lambda ctx: [{'id': 1}, {'id': 2}]"),
+                    None,
+                    None,
+                )
+                .unwrap()
+                .into();
+
+            registry.register("listItems".to_string(), handler).unwrap();
+
+            let ctx = PyRequestContext::test("listItems");
+            let result = registry.invoke(py, "listItems", ctx, None);
+            assert!(result.is_ok());
+
+            let response = result.unwrap();
+            let arr = response.as_array().unwrap();
+            assert_eq!(arr.len(), 2);
+            assert_eq!(arr[0]["id"], 1);
+            assert_eq!(arr[1]["id"], 2);
+        });
+    }
+
+    // =========================================================================
+    // Middleware Integration Pattern Tests
+    // =========================================================================
+    // These tests demonstrate how handlers integrate with middleware patterns
+
+    #[test]
+    fn test_handler_receives_context_with_identity() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let registry = HandlerRegistry::new();
+
+            // Handler that checks for authenticated user
+            let handler: PyObject = py.eval(
+                pyo3::ffi::c_str!("lambda ctx: {'authenticated': ctx.is_authenticated(), 'subject': ctx.subject()}"),
+                None,
+                None,
+            ).unwrap().into();
+
+            registry
+                .register("protectedOp".to_string(), handler)
+                .unwrap();
+
+            // Create context with identity (simulates middleware having set it)
+            let identity = crate::context::PyIdentity::new(
+                "user-123".to_string(),
+                None,
+                None,
+                None,
+                std::collections::HashMap::new(),
+                vec![],
+                vec![],
+            );
+
+            let ctx = PyRequestContext::new(
+                "protectedOp".to_string(),
+                "GET".to_string(),
+                "/protected".to_string(),
+                std::collections::HashMap::new(),
+                std::collections::HashMap::new(),
+                std::collections::HashMap::new(),
+                "trace".to_string(),
+                "span".to_string(),
+                Some(identity),
+            );
+
+            let result = registry.invoke(py, "protectedOp", ctx, None);
+            assert!(result.is_ok());
+
+            let response = result.unwrap();
+            assert_eq!(response["authenticated"], true);
+            assert_eq!(response["subject"], "user-123");
+        });
+    }
+
+    #[test]
+    fn test_handler_uses_path_params() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let registry = HandlerRegistry::new();
+
+            // Handler that extracts path params
+            let handler: PyObject = py
+                .eval(
+                    pyo3::ffi::c_str!("lambda ctx: {'userId': ctx.path_params.get('userId')}"),
+                    None,
+                    None,
+                )
+                .unwrap()
+                .into();
+
+            registry.register("getUser".to_string(), handler).unwrap();
+
+            // Create context with path params (simulates router having extracted them)
+            let mut path_params = std::collections::HashMap::new();
+            path_params.insert("userId".to_string(), "user-456".to_string());
+
+            let ctx = PyRequestContext::new(
+                "getUser".to_string(),
+                "GET".to_string(),
+                "/users/user-456".to_string(),
+                path_params,
+                std::collections::HashMap::new(),
+                std::collections::HashMap::new(),
+                "trace".to_string(),
+                "span".to_string(),
+                None,
+            );
+
+            let result = registry.invoke(py, "getUser", ctx, None);
+            assert!(result.is_ok());
+
+            let response = result.unwrap();
+            assert_eq!(response["userId"], "user-456");
+        });
+    }
+
+    #[test]
+    fn test_handler_uses_trace_context() {
+        pyo3::prepare_freethreaded_python();
+
+        Python::with_gil(|py| {
+            let registry = HandlerRegistry::new();
+
+            // Handler that returns trace context
+            let handler: PyObject = py
+                .eval(
+                    pyo3::ffi::c_str!(
+                        "lambda ctx: {'traceId': ctx.trace_id, 'spanId': ctx.span_id}"
+                    ),
+                    None,
+                    None,
+                )
+                .unwrap()
+                .into();
+
+            registry.register("traceOp".to_string(), handler).unwrap();
+
+            let ctx = PyRequestContext::new(
+                "traceOp".to_string(),
+                "GET".to_string(),
+                "/trace".to_string(),
+                std::collections::HashMap::new(),
+                std::collections::HashMap::new(),
+                std::collections::HashMap::new(),
+                "abc123".to_string(),
+                "def456".to_string(),
+                None,
+            );
+
+            let result = registry.invoke(py, "traceOp", ctx, None);
+            assert!(result.is_ok());
+
+            let response = result.unwrap();
+            assert_eq!(response["traceId"], "abc123");
+            assert_eq!(response["spanId"], "def456");
         });
     }
 }
