@@ -15,13 +15,12 @@ use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper_util::rt::TokioIo;
 use pyo3::prelude::*;
+use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
 use tokio::sync::watch;
 
-use crate::context::PyRequestContext;
 use crate::handlers::HandlerRegistry;
 use crate::middleware;
-use crate::response::PyResponse;
 
 /// HTTP response body type
 pub type ResponseBody = Full<Bytes>;
@@ -250,9 +249,10 @@ fn invoke_python_handler(
     } else {
         let error_msg = handler_error.unwrap_or_else(|| "Unknown error".to_string());
         eprintln!("[archimedes] Handler error: {}", error_msg);
-        error_response(
+        error_response_with_request_id(
             StatusCode::INTERNAL_SERVER_ERROR,
             &format!("Handler error: {}", error_msg),
+            Some(&mw_result.request_id),
         )
     };
 
@@ -331,19 +331,90 @@ fn ready_response() -> HttpResponse {
         .unwrap()
 }
 
-/// Error response
-fn error_response(status: StatusCode, message: &str) -> HttpResponse {
-    let body = serde_json::json!({
-        "error": {
-            "code": status.as_u16(),
-            "message": message
+/// Error category for proper classification
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ErrorCategory {
+    /// Request validation errors
+    Validation,
+    /// Authentication errors
+    Authentication,
+    /// Authorization errors
+    Authorization,
+    /// Resource not found
+    NotFound,
+    /// Internal server errors
+    Internal,
+}
+
+impl ErrorCategory {
+    /// Get the error code string for this category
+    pub fn as_code(&self) -> &'static str {
+        match self {
+            Self::Validation => "VALIDATION_ERROR",
+            Self::Authentication => "AUTHENTICATION_ERROR",
+            Self::Authorization => "AUTHORIZATION_DENIED",
+            Self::NotFound => "NOT_FOUND",
+            Self::Internal => "INTERNAL_ERROR",
         }
-    });
+    }
+}
+
+/// Error detail within an envelope
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorDetail {
+    /// Machine-readable error code
+    pub code: String,
+    /// Human-readable error message
+    pub message: String,
+    /// Error category
+    pub category: ErrorCategory,
+}
+
+/// Serializable error envelope for HTTP responses
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorEnvelope {
+    /// The error details
+    pub error: ErrorDetail,
+    /// The request ID for correlation
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+}
+
+/// Error response with proper ThemisError envelope format
+fn error_response(status: StatusCode, message: &str) -> HttpResponse {
+    error_response_with_request_id(status, message, None)
+}
+
+/// Error response with request ID for correlation
+fn error_response_with_request_id(
+    status: StatusCode,
+    message: &str,
+    request_id: Option<&str>,
+) -> HttpResponse {
+    let category = match status.as_u16() {
+        400 => ErrorCategory::Validation,
+        401 => ErrorCategory::Authentication,
+        403 => ErrorCategory::Authorization,
+        404 => ErrorCategory::NotFound,
+        _ => ErrorCategory::Internal,
+    };
+
+    let envelope = ErrorEnvelope {
+        error: ErrorDetail {
+            code: category.as_code().to_string(),
+            message: message.to_string(),
+            category,
+        },
+        request_id: request_id.map(String::from),
+    };
 
     Response::builder()
         .status(status)
         .header("Content-Type", "application/json")
-        .body(Full::new(Bytes::from(serde_json::to_vec(&body).unwrap())))
+        .body(Full::new(Bytes::from(
+            serde_json::to_vec(&envelope).unwrap(),
+        )))
         .unwrap()
 }
 
@@ -632,5 +703,69 @@ mod tests {
         let io_err = std::io::Error::new(std::io::ErrorKind::Other, "test error");
         let server_err: ServerError = io_err.into();
         assert!(matches!(server_err, ServerError::IoError(_)));
+    }
+
+    // =========================================================================
+    // Error Envelope Tests
+    // =========================================================================
+
+    #[test]
+    fn test_error_envelope_structure() {
+        let envelope = ErrorEnvelope {
+            error: ErrorDetail {
+                code: "NOT_FOUND".to_string(),
+                message: "Resource not found".to_string(),
+                category: ErrorCategory::NotFound,
+            },
+            request_id: Some("req-123".to_string()),
+        };
+
+        let json = serde_json::to_string(&envelope).unwrap();
+        assert!(json.contains("\"code\":\"NOT_FOUND\""));
+        assert!(json.contains("\"message\":\"Resource not found\""));
+        assert!(json.contains("\"category\":\"not_found\""));
+        assert!(json.contains("\"request_id\":\"req-123\""));
+    }
+
+    #[test]
+    fn test_error_envelope_without_request_id() {
+        let envelope = ErrorEnvelope {
+            error: ErrorDetail {
+                code: "INTERNAL_ERROR".to_string(),
+                message: "Something went wrong".to_string(),
+                category: ErrorCategory::Internal,
+            },
+            request_id: None,
+        };
+
+        let json = serde_json::to_string(&envelope).unwrap();
+        assert!(!json.contains("request_id"));
+        assert!(json.contains("\"code\":\"INTERNAL_ERROR\""));
+    }
+
+    #[test]
+    fn test_error_category_codes() {
+        assert_eq!(ErrorCategory::Validation.as_code(), "VALIDATION_ERROR");
+        assert_eq!(
+            ErrorCategory::Authentication.as_code(),
+            "AUTHENTICATION_ERROR"
+        );
+        assert_eq!(
+            ErrorCategory::Authorization.as_code(),
+            "AUTHORIZATION_DENIED"
+        );
+        assert_eq!(ErrorCategory::NotFound.as_code(), "NOT_FOUND");
+        assert_eq!(ErrorCategory::Internal.as_code(), "INTERNAL_ERROR");
+    }
+
+    #[test]
+    fn test_error_response_with_request_id() {
+        let response = error_response_with_request_id(
+            StatusCode::NOT_FOUND,
+            "User not found",
+            Some("req-456"),
+        );
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        // The response body should contain the request_id
     }
 }
