@@ -246,6 +246,26 @@ impl Node {
             .ok()
             .map(|i| &self.static_children[i])
     }
+
+    /// Returns the segment for this node.
+    #[must_use]
+    pub fn segment(&self) -> &str {
+        &self.segment
+    }
+
+    /// Returns the methods for this node, if any.
+    #[must_use]
+    pub fn methods(&self) -> Option<&MethodRouter> {
+        self.methods.as_ref()
+    }
+
+    /// Returns an iterator over all children (static, param, wildcard).
+    pub fn children(&self) -> impl Iterator<Item = &Node> {
+        self.static_children
+            .iter()
+            .chain(self.param_child.as_ref().map(AsRef::as_ref))
+            .chain(self.wildcard_child.as_ref().map(AsRef::as_ref))
+    }
 }
 
 #[cfg(test)]

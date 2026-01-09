@@ -2533,7 +2533,7 @@ let router = Router::new()
 | File download response | archimedes-extract    | P1       | ✅ Complete   | 13    |
 | Cookie extractor       | archimedes-extract    | P1       | ✅ Complete   | 16    |
 | Rate limiting          | archimedes-middleware | P1       | ✅ Complete   | 27    |
-| Compression middleware | archimedes-middleware | P2       | 📋 Planned    | -     |
+| Compression middleware | archimedes-middleware | P2       | ✅ Complete   | 39    |
 | Static file serving    | archimedes-server     | P1       | ✅ Complete   | 31    |
 | Sub-router nesting     | archimedes-router     | P2       | 📋 Planned    | -     |
 | Route prefixes/tags    | archimedes-router     | P2       | 📋 Planned    | -     |
