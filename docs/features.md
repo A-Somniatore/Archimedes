@@ -1,7 +1,7 @@
 # Archimedes Feature Reference
 
-> **Version**: 1.0.0
-> **Last Updated**: 2026-01-12
+> **Version**: 1.1.0
+> **Last Updated**: 2026-01-13
 > **Purpose**: Comprehensive feature checklist for testing and language binding parity
 
 This document lists all features available in Archimedes. It serves as:
@@ -17,7 +17,7 @@ This document lists all features available in Archimedes. It serves as:
 |----------|----------|------|--------|------------|-----|-----|
 | **Core** | 12 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Extractors** | 10 | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Response Builders** | 6 | ✅ | 🔄 | 🔄 | 🔄 | 🔄 |
+| **Response Builders** | 6 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Middleware** | 10 | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Real-Time** | 2 | ✅ | 🔄 | 🔄 | 🔄 | 🔄 |
 | **Background Tasks** | 2 | ✅ | 🔄 | 🔄 | 🔄 | 🔄 |

@@ -19,6 +19,7 @@
 > **🔥 UPDATE (2026-01-12)**: Phase A13.4 (C++ Bindings) COMPLETE - C++ headers with RAII, modern C++17 API.
 > **🔥 UPDATE (2026-01-12)**: Phase A13.5 (Go Bindings) COMPLETE - archimedes-go module with cgo, go-native example, 9 tests.
 > **🔥 UPDATE (2026-01-13)**: Phase A15.1 (Core Binding Features) COMPLETE - Router and Lifecycle hooks for Python, TypeScript, C++, Go bindings.
+> **🔥 UPDATE (2026-01-13)**: Phase A15.2 (Extractors & Responses) COMPLETE - Form, Cookie, Multipart, FileResponse, redirect for all bindings.
 > **🔥 UPDATE (2026-01-12)**: Phase A13 COMPLETE - All 5 language bindings done (C FFI, Python, TypeScript, C++, Go).
 > **🔥 UPDATE (2026-01-12)**: Phase A14.1 P0 COMPLETE - CORS (19 tests), TestClient (30 tests), Lifecycle hooks (11 tests).
 > **🔥 UPDATE (2026-01-12)**: Phase A14.2 COMPLETE - Multipart (14 tests), Cookies (16 tests), FileResponse (13 tests).
@@ -2631,41 +2632,51 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 - [x] Update go-native example
 - [x] Tests: 27 total (10 router + 6 lifecycle)
 
-### Phase A15.2: Extractors & Responses (Weeks 80-81)
+### Phase A15.2: Extractors & Responses (Weeks 80-81) ✅ COMPLETE
 
 > **Goal**: Form, Cookie, Multipart, FileResponse for all bindings
+> **Status**: COMPLETE (2026-01-13)
 
-#### Python Bindings
+#### Python Bindings ✅ COMPLETE
 
-- [ ] Add `Form[T]` extractor for form data
-- [ ] Add `Cookies` extractor
-- [ ] Add `Multipart` extractor for file uploads
-- [ ] Add `FileResponse` for downloads
-- [ ] Add `SetCookie` response helper
-- [ ] Add `redirect()` response helper
+- [x] Add `Form` extractor for URL-encoded form data
+- [x] Add `Cookies` extractor for parsing Cookie headers
+- [x] Add `Multipart` extractor for file uploads (MultipartField, UploadedFile)
+- [x] Add `FileResponse` for downloads with MIME type guessing
+- [x] Add `SetCookie` builder with all attributes (SameSite, Secure, HttpOnly, etc.)
+- [x] Add `redirect()`, `permanent_redirect()`, `see_other()`, `temporary_redirect()`
+- [x] Tests: 137 passing (8 new extractor tests)
 
-#### TypeScript Bindings
+#### TypeScript Bindings ✅ COMPLETE
 
-- [ ] Add `Form<T>` extractor
-- [ ] Add `Cookies` extractor
-- [ ] Add `Multipart` extractor
-- [ ] Add `FileResponse` class
-- [ ] Add `setCookie()` and `redirect()` helpers
+- [x] Add `Form` class for URL-encoded form data
+- [x] Add `Cookies` class for parsing Cookie headers
+- [x] Add `Multipart`, `MultipartField`, `UploadedFile` for file uploads
+- [x] Add `FileResponse` class with MIME type guessing
+- [x] Add `SetCookie` builder with all attributes
+- [x] Add `redirect()`, `permanentRedirect()`, `seeOther()`, `temporaryRedirect()`
+- [x] Tests: 12 new tests
 
-#### C++ Bindings
+#### C++ Bindings ✅ COMPLETE
 
-- [ ] Add `Form<T>` extractor
-- [ ] Add `Cookies` extractor
-- [ ] Add `Multipart` extractor
-- [ ] Add `FileResponse` class
-- [ ] Add cookie and redirect helpers
+- [x] Add `archimedes_form_parse/get/free` for URL-encoded form data
+- [x] Add `archimedes_cookies_parse/get/free` for Cookie header parsing
+- [x] Add `archimedes_set_cookie_*` builder functions with all attributes
+- [x] Add `archimedes_multipart_parse/get/free` for multipart form data
+- [x] Add `archimedes_file_response` for downloads with MIME detection
+- [x] Add `archimedes_redirect_*` family for 301/302/303/307 redirects
+- [x] Add `archimedes_get_header` and `archimedes_get_multipart_boundary` helpers
+- [x] Tests: 67 total (8 new extractor tests)
 
-#### Go Bindings
+#### Go Bindings ✅ COMPLETE
 
-- [ ] Add `Form[T]` extractor
-- [ ] Add `Cookies` extractor
-- [ ] Add `Multipart` extractor
-- [ ] Add `FileResponse` and redirect helpers
+- [x] Add `Form` type with `ParseForm()`, `Get()`, `GetOr()`, `Has()`
+- [x] Add `Cookies` type with `ParseCookies()`, `Get()`, `GetOr()`, `Has()`
+- [x] Add `SetCookie` builder with all attributes (Path, Domain, MaxAge, SameSite)
+- [x] Add `Multipart` with `Get()`, `GetFile()`, `GetValue()`
+- [x] Add `File()`, `Attachment()`, `Inline()` for file responses
+- [x] Add `Redirect()`, `RedirectFound/Permanent/SeeOther/Temporary()`
+- [x] Add helper functions: `guessMimeType`, `urlDecode`, `extractHeaderParam`
 
 ### Phase A15.3: Middleware (Week 82)
 
