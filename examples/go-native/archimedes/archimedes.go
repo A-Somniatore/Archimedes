@@ -6,6 +6,8 @@
 //   - Caller identity extraction (SPIFFE, JWT, API Key)
 //   - OPA/Eunomia authorization
 //   - Request/response validation against Themis contracts
+//   - Sub-routers with prefix and tag support
+//   - Lifecycle hooks for startup/shutdown
 //
 // Example usage:
 //
@@ -18,10 +20,18 @@
 //	        Contract: "contract.json",
 //	    })
 //
-//	    app.Operation("listUsers", func(ctx *archimedes.Context) error {
-//	        users, _ := db.GetUsers()
-//	        return ctx.JSON(200, map[string]any{"users": users})
+//	    // Lifecycle hooks
+//	    app.OnStartup("db_init", func() error {
+//	        return db.Connect()
 //	    })
+//	    app.OnShutdown("db_close", func() error {
+//	        return db.Close()
+//	    })
+//
+//	    // Sub-router
+//	    usersRouter := archimedes.NewRouter().Prefix("/users").Tag("users")
+//	    usersRouter.Operation("listUsers", listUsersHandler)
+//	    app.Merge(usersRouter)
 //
 //	    app.Run(":8080")
 //	}
@@ -298,10 +308,11 @@ type Handler func(ctx *Context) error
 
 // App represents an Archimedes application instance
 type App struct {
-	handle   *C.struct_archimedes_app
-	config   Config
-	handlers map[string]Handler
-	mu       sync.RWMutex
+	handle    *C.struct_archimedes_app
+	config    Config
+	handlers  map[string]Handler
+	lifecycle *Lifecycle
+	mu        sync.RWMutex
 }
 
 // Handler registry for callbacks
@@ -381,9 +392,10 @@ func New(cfg Config) (*App, error) {
 	}
 
 	app := &App{
-		handle:   handle,
-		config:   cfg,
-		handlers: make(map[string]Handler),
+		handle:    handle,
+		config:    cfg,
+		handlers:  make(map[string]Handler),
+		lifecycle: NewLifecycle(),
 	}
 
 	// Prevent GC of app while handle is alive
@@ -466,6 +478,198 @@ func (a *App) Close() {
 // Version returns the Archimedes version string
 func Version() string {
 	return C.GoString(C.archimedes_version())
+}
+
+// =============================================================================
+// Router
+// =============================================================================
+
+// Router is a sub-router for grouping operations with shared configuration
+type Router struct {
+	prefix     string
+	tags       []string
+	operations map[string]Handler
+}
+
+// NewRouter creates a new router
+func NewRouter() *Router {
+	return &Router{
+		tags:       []string{},
+		operations: make(map[string]Handler),
+	}
+}
+
+// Prefix sets the path prefix for all operations in this router
+func (r *Router) Prefix(prefix string) *Router {
+	// Normalize prefix
+	if prefix != "" && prefix[0] != '/' {
+		prefix = "/" + prefix
+	}
+	if len(prefix) > 1 && prefix[len(prefix)-1] == '/' {
+		prefix = prefix[:len(prefix)-1]
+	}
+	r.prefix = prefix
+	return r
+}
+
+// Tag adds a tag to this router for grouping
+func (r *Router) Tag(tag string) *Router {
+	// Don't add duplicates
+	for _, t := range r.tags {
+		if t == tag {
+			return r
+		}
+	}
+	r.tags = append(r.tags, tag)
+	return r
+}
+
+// Operation registers a handler for an operation on this router
+func (r *Router) Operation(operationID string, handler Handler) *Router {
+	r.operations[operationID] = handler
+	return r
+}
+
+// GetPrefix returns the current prefix
+func (r *Router) GetPrefix() string {
+	return r.prefix
+}
+
+// GetTags returns all tags
+func (r *Router) GetTags() []string {
+	return r.tags
+}
+
+// GetOperations returns all registered operations
+func (r *Router) GetOperations() map[string]Handler {
+	return r.operations
+}
+
+// Nest adds a child router under this router
+func (r *Router) Nest(child *Router) *Router {
+	// Copy operations from child with combined prefix
+	for opID, handler := range child.operations {
+		r.operations[opID] = handler
+	}
+	return r
+}
+
+// Merge copies all operations from another router
+func (r *Router) Merge(other *Router) *Router {
+	for opID, handler := range other.operations {
+		r.operations[opID] = handler
+	}
+	return r
+}
+
+// Merge merges a router's operations into this app
+func (a *App) Merge(router *Router) error {
+	for opID, handler := range router.GetOperations() {
+		if err := a.Operation(opID, handler); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Nest nests a router under a prefix in this app
+func (a *App) Nest(prefix string, router *Router) error {
+	// Set prefix on router if not already set
+	if router.GetPrefix() == "" {
+		router.Prefix(prefix)
+	}
+	return a.Merge(router)
+}
+
+// =============================================================================
+// Lifecycle Hooks
+// =============================================================================
+
+// LifecycleHook is a function that runs during startup or shutdown
+type LifecycleHook func() error
+
+// LifecycleEntry stores a hook with its name
+type LifecycleEntry struct {
+	Name string
+	Hook LifecycleHook
+}
+
+// Lifecycle manages startup and shutdown hooks
+type Lifecycle struct {
+	startupHooks  []LifecycleEntry
+	shutdownHooks []LifecycleEntry
+}
+
+// NewLifecycle creates a new lifecycle manager
+func NewLifecycle() *Lifecycle {
+	return &Lifecycle{
+		startupHooks:  []LifecycleEntry{},
+		shutdownHooks: []LifecycleEntry{},
+	}
+}
+
+// OnStartup registers a startup hook
+func (l *Lifecycle) OnStartup(name string, hook LifecycleHook) {
+	l.startupHooks = append(l.startupHooks, LifecycleEntry{Name: name, Hook: hook})
+}
+
+// OnShutdown registers a shutdown hook
+func (l *Lifecycle) OnShutdown(name string, hook LifecycleHook) {
+	l.shutdownHooks = append(l.shutdownHooks, LifecycleEntry{Name: name, Hook: hook})
+}
+
+// RunStartup runs all startup hooks in order
+func (l *Lifecycle) RunStartup() error {
+	for _, entry := range l.startupHooks {
+		if err := entry.Hook(); err != nil {
+			return fmt.Errorf("startup hook %s failed: %w", entry.Name, err)
+		}
+	}
+	return nil
+}
+
+// RunShutdown runs all shutdown hooks in reverse order (LIFO)
+func (l *Lifecycle) RunShutdown() error {
+	var lastErr error
+	for i := len(l.shutdownHooks) - 1; i >= 0; i-- {
+		entry := l.shutdownHooks[i]
+		if err := entry.Hook(); err != nil {
+			lastErr = fmt.Errorf("shutdown hook %s failed: %w", entry.Name, err)
+		}
+	}
+	return lastErr
+}
+
+// StartupCount returns the number of startup hooks
+func (l *Lifecycle) StartupCount() int {
+	return len(l.startupHooks)
+}
+
+// ShutdownCount returns the number of shutdown hooks
+func (l *Lifecycle) ShutdownCount() int {
+	return len(l.shutdownHooks)
+}
+
+// App lifecycle methods
+
+// OnStartup registers a startup hook on the app
+func (a *App) OnStartup(name string, hook LifecycleHook) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.lifecycle == nil {
+		a.lifecycle = NewLifecycle()
+	}
+	a.lifecycle.OnStartup(name, hook)
+}
+
+// OnShutdown registers a shutdown hook on the app
+func (a *App) OnShutdown(name string, hook LifecycleHook) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.lifecycle == nil {
+		a.lifecycle = NewLifecycle()
+	}
+	a.lifecycle.OnShutdown(name, hook)
 }
 
 // =============================================================================

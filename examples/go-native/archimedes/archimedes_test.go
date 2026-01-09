@@ -195,3 +195,225 @@ func TestBindEmptyBody(t *testing.T) {
 		t.Error("Bind() should error on empty body")
 	}
 }
+
+// =============================================================================
+// Router Tests
+// =============================================================================
+
+func TestRouterCreation(t *testing.T) {
+	r := NewRouter()
+	if r == nil {
+		t.Fatal("NewRouter() returned nil")
+	}
+	if r.GetPrefix() != "" {
+		t.Errorf("GetPrefix() = %v, want empty", r.GetPrefix())
+	}
+	if len(r.GetTags()) != 0 {
+		t.Errorf("GetTags() length = %v, want 0", len(r.GetTags()))
+	}
+}
+
+func TestRouterPrefix(t *testing.T) {
+	r := NewRouter().Prefix("/users")
+	if r.GetPrefix() != "/users" {
+		t.Errorf("GetPrefix() = %v, want /users", r.GetPrefix())
+	}
+
+	// Test normalization - adds leading slash
+	r2 := NewRouter().Prefix("api")
+	if r2.GetPrefix() != "/api" {
+		t.Errorf("GetPrefix() = %v, want /api", r2.GetPrefix())
+	}
+
+	// Test normalization - removes trailing slash
+	r3 := NewRouter().Prefix("/api/")
+	if r3.GetPrefix() != "/api" {
+		t.Errorf("GetPrefix() = %v, want /api", r3.GetPrefix())
+	}
+}
+
+func TestRouterTag(t *testing.T) {
+	r := NewRouter().Tag("users").Tag("api")
+
+	tags := r.GetTags()
+	if len(tags) != 2 {
+		t.Errorf("GetTags() length = %v, want 2", len(tags))
+	}
+
+	// Test duplicate prevention
+	r.Tag("users")
+	if len(r.GetTags()) != 2 {
+		t.Errorf("GetTags() after duplicate = %v, want 2", len(r.GetTags()))
+	}
+}
+
+func TestRouterChaining(t *testing.T) {
+	r := NewRouter().Prefix("/api").Tag("v1").Tag("public")
+
+	if r.GetPrefix() != "/api" {
+		t.Errorf("GetPrefix() = %v, want /api", r.GetPrefix())
+	}
+	if len(r.GetTags()) != 2 {
+		t.Errorf("GetTags() length = %v, want 2", len(r.GetTags()))
+	}
+}
+
+func TestRouterOperation(t *testing.T) {
+	handler := func(ctx *Context) error { return nil }
+
+	r := NewRouter().Operation("listUsers", handler)
+
+	ops := r.GetOperations()
+	if len(ops) != 1 {
+		t.Errorf("GetOperations() length = %v, want 1", len(ops))
+	}
+	if _, ok := ops["listUsers"]; !ok {
+		t.Error("GetOperations() missing listUsers")
+	}
+}
+
+func TestRouterMerge(t *testing.T) {
+	handler1 := func(ctx *Context) error { return nil }
+	handler2 := func(ctx *Context) error { return nil }
+
+	r1 := NewRouter().Operation("op1", handler1)
+	r2 := NewRouter().Operation("op2", handler2)
+
+	r1.Merge(r2)
+
+	ops := r1.GetOperations()
+	if len(ops) != 2 {
+		t.Errorf("GetOperations() after merge = %v, want 2", len(ops))
+	}
+}
+
+func TestRouterNest(t *testing.T) {
+	handler := func(ctx *Context) error { return nil }
+
+	child := NewRouter().Prefix("/users").Operation("listUsers", handler)
+	parent := NewRouter().Prefix("/api").Nest(child)
+
+	ops := parent.GetOperations()
+	if len(ops) != 1 {
+		t.Errorf("GetOperations() after nest = %v, want 1", len(ops))
+	}
+}
+
+// =============================================================================
+// Lifecycle Tests
+// =============================================================================
+
+func TestLifecycleCreation(t *testing.T) {
+	l := NewLifecycle()
+	if l == nil {
+		t.Fatal("NewLifecycle() returned nil")
+	}
+	if l.StartupCount() != 0 {
+		t.Errorf("StartupCount() = %v, want 0", l.StartupCount())
+	}
+	if l.ShutdownCount() != 0 {
+		t.Errorf("ShutdownCount() = %v, want 0", l.ShutdownCount())
+	}
+}
+
+func TestLifecycleStartupHook(t *testing.T) {
+	l := NewLifecycle()
+
+	called := false
+	l.OnStartup("test", func() error {
+		called = true
+		return nil
+	})
+
+	if l.StartupCount() != 1 {
+		t.Errorf("StartupCount() = %v, want 1", l.StartupCount())
+	}
+
+	err := l.RunStartup()
+	if err != nil {
+		t.Errorf("RunStartup() error = %v", err)
+	}
+	if !called {
+		t.Error("Startup hook was not called")
+	}
+}
+
+func TestLifecycleShutdownHook(t *testing.T) {
+	l := NewLifecycle()
+
+	called := false
+	l.OnShutdown("test", func() error {
+		called = true
+		return nil
+	})
+
+	if l.ShutdownCount() != 1 {
+		t.Errorf("ShutdownCount() = %v, want 1", l.ShutdownCount())
+	}
+
+	err := l.RunShutdown()
+	if err != nil {
+		t.Errorf("RunShutdown() error = %v", err)
+	}
+	if !called {
+		t.Error("Shutdown hook was not called")
+	}
+}
+
+func TestLifecycleShutdownOrder(t *testing.T) {
+	l := NewLifecycle()
+
+	order := []string{}
+	l.OnShutdown("first", func() error {
+		order = append(order, "first")
+		return nil
+	})
+	l.OnShutdown("second", func() error {
+		order = append(order, "second")
+		return nil
+	})
+	l.OnShutdown("third", func() error {
+		order = append(order, "third")
+		return nil
+	})
+
+	l.RunShutdown()
+
+	// Should be LIFO order
+	expected := []string{"third", "second", "first"}
+	if len(order) != 3 {
+		t.Fatalf("shutdown order length = %v, want 3", len(order))
+	}
+	for i, v := range expected {
+		if order[i] != v {
+			t.Errorf("shutdown order[%d] = %v, want %v", i, order[i], v)
+		}
+	}
+}
+
+func TestLifecycleStartupOrder(t *testing.T) {
+	l := NewLifecycle()
+
+	order := []string{}
+	l.OnStartup("first", func() error {
+		order = append(order, "first")
+		return nil
+	})
+	l.OnStartup("second", func() error {
+		order = append(order, "second")
+		return nil
+	})
+
+	l.RunStartup()
+
+	// Should be FIFO order
+	expected := []string{"first", "second"}
+	if len(order) != 2 {
+		t.Fatalf("startup order length = %v, want 2", len(order))
+	}
+	for i, v := range expected {
+		if order[i] != v {
+			t.Errorf("startup order[%d] = %v, want %v", i, order[i], v)
+		}
+	}
+}

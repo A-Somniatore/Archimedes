@@ -2562,8 +2562,8 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 | --------------------- | ---- | ------ | ---------- | --- | --- | ----- |
 | **Core Features**     |      |        |            |     |     |       |
 | HTTP server           | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
-| Sub-routers           | ✅   | ✅     | ✅         | ❌  | ❌  | A15.1 |
-| Lifecycle hooks       | ✅   | ✅     | ✅         | ❌  | ❌  | A15.1 |
+| Sub-routers           | ✅   | ✅     | ✅         | ✅  | ❌  | A15.1 |
+| Lifecycle hooks       | ✅   | ✅     | ✅         | ✅  | ❌  | A15.1 |
 | Health probes         | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
 | **Extractors**        |      |        |            |     |     |       |
 | JSON body             | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
@@ -2614,11 +2614,13 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 - [x] Update typescript-native example
 - [x] Tests: 120 total (19 router + 13 lifecycle)
 
-#### C++ Bindings 📋 PLANNED
+#### C++ Bindings ✅ COMPLETE
 
-- [ ] Add `Router::nest()`, `Router::prefix()`, `Router::tag()`, `Router::merge()`
-- [ ] Add lifecycle hook registration
-- [ ] Update cpp-native example
+- [x] Add `archimedes_router_new/prefix/tag/nest/merge` C API
+- [x] Add `archimedes_lifecycle_on_startup/on_shutdown` C API
+- [x] Add lifecycle run functions (`run_startup`, `run_shutdown`)
+- [x] Update cpp-native example
+- [x] Tests: 59 total (8 router + 10 lifecycle)
 
 #### Go Bindings 📋 PLANNED
 

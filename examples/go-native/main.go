@@ -2,6 +2,12 @@
 //
 // This service demonstrates using Archimedes Go bindings directly instead of
 // net/http, Gin, Chi, or other Go web frameworks.
+//
+// Features demonstrated:
+// - Contract-first API
+// - Built-in middleware
+// - Sub-routers with prefix and tag
+// - Lifecycle hooks (startup/shutdown)
 package main
 
 import (
@@ -176,6 +182,36 @@ func main() {
 	}
 	defer app.Close()
 
+	// =========================================================================
+	// Lifecycle Hooks
+	// =========================================================================
+	
+	// Startup hooks run in registration order
+	app.OnStartup("database_init", func() error {
+		log.Println("[Lifecycle] Initializing database connection...")
+		// In a real app: return db.Connect()
+		return nil
+	})
+
+	app.OnStartup("cache_warmup", func() error {
+		log.Println("[Lifecycle] Warming up cache...")
+		// In a real app: return cache.Warmup()
+		return nil
+	})
+
+	// Shutdown hooks run in reverse order (LIFO)
+	app.OnShutdown("metrics_flush", func() error {
+		log.Println("[Lifecycle] Flushing metrics...")
+		// In a real app: return metrics.Flush()
+		return nil
+	})
+
+	app.OnShutdown("database_close", func() error {
+		log.Println("[Lifecycle] Closing database connection...")
+		// In a real app: return db.Close()
+		return nil
+	})
+
 	// Register handlers
 	registerHandlers(app)
 
@@ -322,4 +358,22 @@ func registerHandlers(app *archimedes.App) {
 
 		return ctx.NoContent()
 	})
+
+	// =========================================================================
+	// Admin Router (sub-router example)
+	// =========================================================================
+	adminRouter := archimedes.NewRouter().
+		Prefix("/admin").
+		Tag("admin").
+		Tag("internal")
+
+	adminRouter.Operation("getStats", func(ctx *archimedes.Context) error {
+		users := store.List()
+		return ctx.JSON(200, map[string]any{
+			"total_users": len(users),
+		})
+	})
+
+	// Merge admin router into main app
+	app.Merge(adminRouter)
 }
