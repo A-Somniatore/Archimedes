@@ -45,11 +45,15 @@ Legend: ✅ Complete | 🔄 Partial | ❌ Not Started
 
 | Feature | Description | Rust Crate | Tests | Binding Priority |
 |---------|-------------|------------|-------|------------------|
-| **Radix Tree Router** | High-performance routing | archimedes-router | ✅ 57 | P0 |
+| **Radix Tree Router** | High-performance routing | archimedes-router | ✅ 74 | P0 |
 | **Path Parameters** | `{id}` style extraction | archimedes-router | ✅ | P0 |
 | **Wildcard Routes** | `{*path}` catch-all | archimedes-router | ✅ | P1 |
 | **Method Merging** | Multiple methods per route | archimedes-router | ✅ | P0 |
 | **Operation-based Routing** | Routes by `operationId` | archimedes-server | ✅ | P0 |
+| **Sub-Router Nesting** | `nest()` for composition | archimedes-router | ✅ 6 | P2 |
+| **Route Prefixes** | `prefix()` for path prefixes | archimedes-router | ✅ 4 | P2 |
+| **Route Merge** | `merge()` for combining routers | archimedes-router | ✅ | P2 |
+| **OpenAPI Tags** | `tag()` for route grouping | archimedes-router | ✅ 2 | P2 |
 
 ### 1.3 Request Context
 
