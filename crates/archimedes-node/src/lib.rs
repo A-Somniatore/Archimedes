@@ -61,8 +61,10 @@ mod config;
 mod context;
 mod error;
 mod handlers;
+mod lifecycle;
 mod middleware;
 mod response;
+mod router;
 mod server;
 mod telemetry;
 mod validation;
@@ -72,12 +74,17 @@ pub use config::Config;
 pub use context::{Identity, RequestContext};
 pub use error::ArchimedesError;
 pub use handlers::HandlerRegistry;
+pub use lifecycle::{
+    create_lifecycle_hook_options, create_lifecycle_result, Lifecycle, LifecycleHookOptions,
+    LifecycleResult,
+};
 pub use middleware::{
     apply_all_middleware, apply_identity, apply_request_id, apply_tracing,
     default_middleware_config, get_middleware_summary, normalize_error_response_header,
     MiddlewareConfig, MiddlewareResultJs,
 };
 pub use response::Response;
+pub use router::{create_route_info, RouteInfo, Router};
 pub use server::Server;
 pub use telemetry::{Telemetry, TelemetryConfig};
 pub use validation::{OperationResolution, Sentinel, ValidationError, ValidationResult};

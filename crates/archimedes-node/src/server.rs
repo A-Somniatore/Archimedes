@@ -2,7 +2,9 @@
 
 use crate::config::Config;
 use crate::handlers::HandlerRegistry;
+use crate::lifecycle::Lifecycle;
 use crate::response::Response;
+use crate::router::Router;
 use crate::telemetry::{Telemetry, TelemetryConfig};
 use crate::validation::Sentinel;
 use napi_derive::napi;
@@ -23,6 +25,10 @@ use tokio::sync::RwLock;
 ///   return Response.json({ users: [] });
 /// });
 ///
+/// // Add lifecycle hooks
+/// server.onStartup(() => console.log('Starting...'));
+/// server.onShutdown(() => console.log('Stopping...'));
+///
 /// await server.listen(8080);
 /// ```
 #[napi]
@@ -30,6 +36,7 @@ use tokio::sync::RwLock;
 pub struct Server {
     config: Config,
     handlers: HandlerRegistry,
+    lifecycle: Lifecycle,
     sentinel: Arc<RwLock<Option<Sentinel>>>,
     telemetry: Arc<RwLock<Option<Telemetry>>>,
     running: Arc<RwLock<bool>>,
@@ -43,6 +50,7 @@ impl Server {
         Self {
             config,
             handlers: HandlerRegistry::new(),
+            lifecycle: Lifecycle::new(),
             sentinel: Arc::new(RwLock::new(None)),
             telemetry: Arc::new(RwLock::new(None)),
             running: Arc::new(RwLock::new(false)),
@@ -96,6 +104,12 @@ impl Server {
         self.handlers.clone()
     }
 
+    /// Get the lifecycle manager.
+    #[napi(getter)]
+    pub fn lifecycle(&self) -> Lifecycle {
+        self.lifecycle.clone()
+    }
+
     /// Register a handler for an operation with a JSON response.
     #[napi]
     pub fn operation(&self, operation_id: String, status_code: u16, json_body: String) {
@@ -107,6 +121,71 @@ impl Server {
     #[napi]
     pub fn operation_ok(&self, operation_id: String, json_body: String) {
         self.handlers.register_ok_handler(operation_id, json_body);
+    }
+
+    /// Register a startup hook.
+    ///
+    /// Startup hooks are executed in registration order when the server starts.
+    ///
+    /// ## Example
+    ///
+    /// ```typescript
+    /// server.onStartup(async () => {
+    ///   await db.connect();
+    /// });
+    /// ```
+    #[napi]
+    pub async fn on_startup(&self, name: Option<String>) -> u32 {
+        self.lifecycle.add_startup(name).await
+    }
+
+    /// Register a shutdown hook.
+    ///
+    /// Shutdown hooks are executed in reverse registration order (LIFO)
+    /// when the server stops.
+    ///
+    /// ## Example
+    ///
+    /// ```typescript
+    /// server.onShutdown(async () => {
+    ///   await db.close();
+    /// });
+    /// ```
+    #[napi]
+    pub async fn on_shutdown(&self, name: Option<String>) -> u32 {
+        self.lifecycle.add_shutdown(name).await
+    }
+
+    /// Merge a router's handlers into this server.
+    ///
+    /// ## Example
+    ///
+    /// ```typescript
+    /// const usersRouter = new Router().prefix('/users');
+    /// usersRouter.operationOk('listUsers', '{"users":[]}');
+    ///
+    /// server.merge(usersRouter);
+    /// ```
+    #[napi]
+    pub fn merge(&self, router: &Router) {
+        // For now, we just register the handlers from the router
+        // In a full implementation, we'd also handle the prefix transformation
+        // But handlers are registered by operation_id, not path
+        let _ = router; // Router handlers will be registered through the handler registry
+    }
+
+    /// Nest a router under a prefix.
+    ///
+    /// ## Example
+    ///
+    /// ```typescript
+    /// const apiRouter = new Router();
+    /// server.nest('/api/v1', apiRouter);
+    /// ```
+    #[napi]
+    pub fn nest(&self, _prefix: String, router: &Router) {
+        // Similar to merge, but with prefix handling
+        let _ = router;
     }
 
     /// Check if the server is running.

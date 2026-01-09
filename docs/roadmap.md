@@ -1,8 +1,8 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.9.0
+> **Version**: 3.10.0
 > **Created**: 2026-01-04
-> **Last Updated**: 2026-01-12
+> **Last Updated**: 2026-01-08
 > **Target Completion**: Week 84 (extended for binding parity)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
@@ -27,6 +27,7 @@
 > **📋 NEW (2026-01-12)**: Created `docs/features.md` - Comprehensive feature reference for testing and binding parity.
 > **📋 NEW (2026-01-12)**: Created `examples/feature-showcase/` - Reference implementation for all binding authors.
 > **📋 NEW (2026-01-12)**: Phase A15 (Binding Parity) PLANNED - Ensure all bindings have same features as Rust.
+> **🔥 UPDATE (2026-01-08)**: Phase A15.1 Python STARTED - Router and Lifecycle hooks added (123 tests, +10 new).
 
 ---
 
@@ -2561,8 +2562,8 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 | --------------------- | ---- | ------ | ---------- | --- | --- | ----- |
 | **Core Features**     |      |        |            |     |     |       |
 | HTTP server           | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
-| Sub-routers           | ✅   | ❌     | ❌         | ❌  | ❌  | A15.1 |
-| Lifecycle hooks       | ✅   | ❌     | ❌         | ❌  | ❌  | A15.1 |
+| Sub-routers           | ✅   | ✅     | ❌         | ❌  | ❌  | A15.1 |
+| Lifecycle hooks       | ✅   | ✅     | ❌         | ❌  | ❌  | A15.1 |
 | Health probes         | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
 | **Extractors**        |      |        |            |     |     |       |
 | JSON body             | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
@@ -2595,27 +2596,29 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 ### Phase A15.1: Core Binding Features (Week 79)
 
 > **Goal**: Sub-routers and lifecycle hooks for all bindings
+> **Status**: 🔄 IN PROGRESS - Python complete
 
-#### Python Bindings
+#### Python Bindings ✅ COMPLETE
 
-- [ ] Add `Router.nest()`, `Router.prefix()`, `Router.tag()`, `Router.merge()`
-- [ ] Add `@app.on_startup`, `@app.on_shutdown` decorators
-- [ ] Add lifecycle hook registration in `ArchimedesApp`
-- [ ] Update python-native example
+- [x] Add `Router.nest()`, `Router.prefix()`, `Router.tag()`, `Router.merge()`
+- [x] Add `@app.on_startup`, `@app.on_shutdown` decorators
+- [x] Add lifecycle hook registration in `ArchimedesApp`
+- [x] Update python-native example
+- [x] Tests: 123 total (7 router + 4 lifecycle)
 
-#### TypeScript Bindings
+#### TypeScript Bindings 📋 PLANNED
 
 - [ ] Add `Router.nest()`, `Router.prefix()`, `Router.tag()`, `Router.merge()`
 - [ ] Add `onStartup()`, `onShutdown()` lifecycle methods
 - [ ] Update typescript-native example
 
-#### C++ Bindings
+#### C++ Bindings 📋 PLANNED
 
 - [ ] Add `Router::nest()`, `Router::prefix()`, `Router::tag()`, `Router::merge()`
 - [ ] Add lifecycle hook registration
 - [ ] Update cpp-native example
 
-#### Go Bindings
+#### Go Bindings 📋 PLANNED
 
 - [ ] Add `Router.Nest()`, `Router.Prefix()`, `Router.Tag()`, `Router.Merge()`
 - [ ] Add `OnStartup()`, `OnShutdown()` lifecycle methods

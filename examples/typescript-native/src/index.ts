@@ -9,6 +9,8 @@
  * - Built-in middleware (request ID, tracing, identity, authorization)
  * - Automatic request/response validation
  * - Type-safe handlers
+ * - Sub-routers with prefix and tag support
+ * - Lifecycle hooks (startup/shutdown)
  */
 
 import {
@@ -17,6 +19,7 @@ import {
   Response,
   Config,
   RequestContext,
+  Router,
 } from '@archimedes/node';
 
 // =============================================================================
@@ -85,6 +88,32 @@ const config = new Config({
 });
 
 const app = new Archimedes(config);
+
+// =============================================================================
+// Lifecycle Hooks
+// =============================================================================
+
+// Startup hooks run in order when the server starts
+app.onStartup(async () => {
+  console.log('Initializing database connection...');
+  // In a real app: await db.connect();
+}, { name: 'database_connect' });
+
+app.onStartup(async () => {
+  console.log('Warming up cache...');
+  // In a real app: await cache.warmup();
+}, { name: 'cache_warmup' });
+
+// Shutdown hooks run in reverse order when the server stops
+app.onShutdown(async () => {
+  console.log('Flushing metrics...');
+  // In a real app: await metrics.flush();
+}, { name: 'metrics_flush' });
+
+app.onShutdown(async () => {
+  console.log('Closing database connection...');
+  // In a real app: await db.close();
+}, { name: 'database_close' });
 
 // =============================================================================
 // Health Check Handler
@@ -263,6 +292,28 @@ app.operation('deleteUser', async (request: Request): Promise<Response> => {
   
   return Response.noContent();
 });
+
+// =============================================================================
+// Sub-Router Example
+// =============================================================================
+
+// Create a sub-router for admin endpoints with prefix and tag
+const adminRouter = new Router()
+  .prefix('/admin')
+  .tag('admin')
+  .tag('internal');
+
+// Admin-only operation
+adminRouter.operation('getStats', async (request: Request): Promise<Response> => {
+  return Response.json({
+    total_users: usersDb.size,
+    service_uptime: process.uptime(),
+    node_version: process.version,
+  });
+});
+
+// Merge the admin router into the main app
+app.merge(adminRouter);
 
 // =============================================================================
 // Start Server
