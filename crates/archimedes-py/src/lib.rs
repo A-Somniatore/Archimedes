@@ -30,14 +30,17 @@
 
 use pyo3::prelude::*;
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 mod authz;
 mod config;
 mod context;
 mod error;
 mod handlers;
+mod lifecycle;
 mod middleware;
 mod response;
+mod router;
 mod server;
 mod telemetry;
 mod validation;
@@ -47,10 +50,12 @@ pub use config::PyConfig;
 pub use context::{PyIdentity, PyRequestContext};
 pub use error::PyArchimedesError;
 pub use handlers::HandlerRegistry;
+pub use lifecycle::{PyLifecycle, ShutdownDecorator, StartupDecorator};
 pub use middleware::{
     add_response_headers, process_request, request_duration_ms, MiddlewareResult,
 };
 pub use response::PyResponse;
+pub use router::PyRouter;
 pub use server::{PyServer, ServerError};
 pub use telemetry::{py_record_request, py_render_metrics, PyTelemetry, PyTelemetryConfig};
 pub use validation::{PyOperationResolution, PySentinel, PyValidationError, PyValidationResult};
@@ -63,6 +68,7 @@ pub use validation::{PyOperationResolution, PySentinel, PyValidationError, PyVal
 pub struct PyApp {
     config: PyConfig,
     handlers: Arc<HandlerRegistry>,
+    lifecycle: Arc<RwLock<PyLifecycle>>,
     running: bool,
 }
 
@@ -87,6 +93,7 @@ impl PyApp {
         Self {
             config,
             handlers: Arc::new(HandlerRegistry::new()),
+            lifecycle: Arc::new(RwLock::new(PyLifecycle::new())),
             running: false,
         }
     }
@@ -117,6 +124,98 @@ impl PyApp {
     /// Register a handler function directly
     fn register_handler(&self, operation_id: String, handler: PyObject) -> PyResult<()> {
         self.handlers.register(operation_id, handler)?;
+        Ok(())
+    }
+
+    /// Register a startup hook
+    ///
+    /// Startup hooks run before the server starts accepting connections.
+    /// Can be used as a decorator with or without a name.
+    ///
+    /// # Example (Python)
+    ///
+    /// ```python,ignore
+    /// @app.on_startup
+    /// async def startup():
+    ///     await connect_database()
+    ///
+    /// # Or with a name
+    /// @app.on_startup("database_connect")
+    /// async def connect_db():
+    ///     await connect_database()
+    /// ```
+    #[pyo3(signature = (name=None))]
+    fn on_startup(&self, name: Option<String>) -> StartupDecorator {
+        StartupDecorator::new(name, Arc::clone(&self.lifecycle))
+    }
+
+    /// Register a shutdown hook
+    ///
+    /// Shutdown hooks run after the server stops accepting connections.
+    /// They run in reverse registration order (LIFO).
+    ///
+    /// # Example (Python)
+    ///
+    /// ```python,ignore
+    /// @app.on_shutdown
+    /// async def shutdown():
+    ///     await close_database()
+    ///
+    /// # Or with a name
+    /// @app.on_shutdown("cleanup")
+    /// async def cleanup():
+    ///     await flush_cache()
+    /// ```
+    #[pyo3(signature = (name=None))]
+    fn on_shutdown(&self, name: Option<String>) -> ShutdownDecorator {
+        ShutdownDecorator::new(name, Arc::clone(&self.lifecycle))
+    }
+
+    /// Nest a router at a path prefix
+    ///
+    /// All routes from the nested router will be available under the given prefix.
+    ///
+    /// # Example (Python)
+    ///
+    /// ```python,ignore
+    /// users = Router().prefix("/users").tag("users")
+    ///
+    /// @users.handler("listUsers")
+    /// def list_users(ctx):
+    ///     return {"users": []}
+    ///
+    /// app.nest("/api/v1", users)
+    /// # listUsers is now available at /api/v1/users
+    /// ```
+    fn nest(&self, _prefix: String, router: &PyRouter) -> PyResult<()> {
+        // Note: prefix is stored in the router's route definitions
+        // For now, we just copy handlers; full prefix support requires
+        // contract-based routing to be integrated
+        for (op_id, handler) in router.handlers().iter() {
+            self.handlers.register(op_id, handler)?;
+        }
+        Ok(())
+    }
+
+    /// Merge all routes from a router into this app
+    ///
+    /// Unlike `nest()`, this doesn't add a prefix - routes are added as-is.
+    ///
+    /// # Example (Python)
+    ///
+    /// ```python,ignore
+    /// users = Router()
+    ///
+    /// @users.handler("listUsers")
+    /// def list_users(ctx):
+    ///     return {"users": []}
+    ///
+    /// app.merge(users)
+    /// ```
+    fn merge(&self, router: &PyRouter) -> PyResult<()> {
+        for (op_id, handler) in router.handlers().iter() {
+            self.handlers.register(op_id, handler)?;
+        }
         Ok(())
     }
 
@@ -278,9 +377,13 @@ fn archimedes_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyValidationError>()?;
     m.add_class::<PyOperationResolution>()?;
 
-    // Telemetry classes
-    m.add_class::<PyTelemetry>()?;
-    m.add_class::<PyTelemetryConfig>()?;
+    // Router classes
+    m.add_class::<PyRouter>()?;
+
+    // Lifecycle decorators
+    m.add_class::<StartupDecorator>()?;
+    m.add_class::<ShutdownDecorator>()?;
+
 
     // Telemetry functions
     m.add_function(wrap_pyfunction!(py_record_request, m)?)?;

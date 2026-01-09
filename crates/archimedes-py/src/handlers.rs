@@ -79,6 +79,24 @@ impl HandlerRegistry {
         self.len() == 0
     }
 
+    /// Iterate over all handlers
+    ///
+    /// Returns a vector of (operation_id, handler) tuples.
+    /// This is used for merging routers.
+    pub fn iter(&self) -> Vec<(String, PyObject)> {
+        self.handlers
+            .read()
+            .ok()
+            .map(|h| {
+                Python::with_gil(|py| {
+                    h.iter()
+                        .map(|(k, v)| (k.clone(), v.clone_ref(py)))
+                        .collect()
+                })
+            })
+            .unwrap_or_default()
+    }
+
     /// Invoke a handler
     ///
     /// This calls the Python handler with the request context and optional body.

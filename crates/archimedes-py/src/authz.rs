@@ -27,8 +27,6 @@
 //!     # ... handler logic
 //! ```
 
-use std::collections::HashMap;
-
 use archimedes_authz::{Authorizer, EvaluatorConfig};
 use pyo3::prelude::*;
 use themis_platform_types::identity::{ApiKeyIdentity, SpiffeIdentity, UserIdentity};

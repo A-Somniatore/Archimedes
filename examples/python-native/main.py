@@ -6,6 +6,13 @@ bindings (PyO3), replacing the need for FastAPI + sidecar pattern.
 
 All middleware (validation, authorization, telemetry) is handled automatically
 by Archimedes - the developer only writes business logic.
+
+Features demonstrated:
+- Handler registration with decorators
+- Sub-routers with Router.prefix() and Router.tag()
+- Lifecycle hooks with @app.on_startup and @app.on_shutdown
+- Request context and path parameters
+- Response helpers (ok, created, not_found, etc.)
 """
 
 import uuid
@@ -13,7 +20,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 # Import from archimedes native bindings
-from archimedes import App, Config, Response, RequestContext
+from archimedes import App, Config, Response, RequestContext, Router
 
 
 # =============================================================================
@@ -45,6 +52,59 @@ users_db: dict[str, dict] = {
 #   config = Config(contract_path="../contract.json", listen_port=8002)
 config = Config.from_file("archimedes.yaml")
 app = App(config)
+
+
+# =============================================================================
+# Lifecycle Hooks (NEW in Phase A15.1)
+# =============================================================================
+
+
+@app.on_startup("database_connect")
+async def connect_database():
+    """Initialize database connection on startup.
+    
+    Startup hooks run before the server accepts connections.
+    They run in registration order.
+    """
+    print("[startup] Connecting to database...")
+    # In a real app: await db.connect()
+    print("[startup] Database connected!")
+
+
+@app.on_startup("cache_warmup")
+async def warmup_cache():
+    """Warm up caches on startup."""
+    print("[startup] Warming up caches...")
+    # In a real app: await cache.warmup()
+    print("[startup] Caches warmed!")
+
+
+@app.on_shutdown("database_disconnect")
+async def disconnect_database():
+    """Close database connection on shutdown.
+    
+    Shutdown hooks run after server stops accepting connections.
+    They run in reverse order (LIFO).
+    """
+    print("[shutdown] Disconnecting from database...")
+    # In a real app: await db.close()
+    print("[shutdown] Database disconnected!")
+
+
+@app.on_shutdown("flush_metrics")
+async def flush_metrics():
+    """Flush metrics before shutdown."""
+    print("[shutdown] Flushing metrics...")
+    # In a real app: await metrics.flush()
+    print("[shutdown] Metrics flushed!")
+
+
+# =============================================================================
+# Sub-Router Example (NEW in Phase A15.1)
+# =============================================================================
+
+# Create a users router with prefix and tags
+users_router = Router().prefix("/users").tag("users").tag("api")
 
 
 # =============================================================================
@@ -163,6 +223,10 @@ def delete_user(ctx: RequestContext) -> Response:
 # =============================================================================
 
 if __name__ == "__main__":
+    # Demonstrate router composition (NEW in Phase A15.1)
+    # The users_router handlers are merged into the app
+    app.merge(users_router)
+    
     # Run the Archimedes server
     # All middleware is automatically applied:
     # - Request ID generation
@@ -171,6 +235,10 @@ if __name__ == "__main__":
     # - Authorization (OPA)
     # - Request/response validation
     # - Telemetry emission
+    #
+    # Lifecycle hooks will run:
+    # - on_startup hooks run before server accepts connections
+    # - on_shutdown hooks run after server stops
     print(f"Starting Archimedes Python server...")
     print(f"Registered operations: {app.operation_ids()}")
     print(f"Config: {config}")
