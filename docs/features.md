@@ -146,7 +146,7 @@ All extractors implement the `FromRequest` trait and can be used as handler para
 |------------|-------------|------------|-------|------------------|
 | **CORS** | Cross-Origin Resource Sharing | archimedes-middleware | ✅ 19 | P0 |
 | **Rate Limiting** | Per-IP/user/key limits | archimedes-middleware | ✅ 27 | P1 |
-| **Compression** | gzip/brotli (planned) | archimedes-middleware | 📋 | P2 |
+| **Compression** | gzip/brotli/deflate support | archimedes-middleware | ✅ 39 | P2 |
 
 ---
 

@@ -22,7 +22,8 @@
 > **🔥 UPDATE (2026-01-12)**: Phase A14.1 P0 COMPLETE - CORS (19 tests), TestClient (30 tests), Lifecycle hooks (11 tests).
 > **🔥 UPDATE (2026-01-12)**: Phase A14.2 COMPLETE - Multipart (14 tests), Cookies (16 tests), FileResponse (13 tests).
 > **🔥 UPDATE (2026-01-12)**: Phase A14.3 P1 COMPLETE - Rate limiting (27 tests), Static files (31 tests). Only compression P2 remaining.
-> **📋 NEW (2026-01-12)**: Created `docs/features.md` - Comprehensive feature reference for testing and language binding parity.
+> **� UPDATE (2026-01-12)**: Phase A14.3 COMPLETE - Compression middleware (39 tests) with gzip/brotli/deflate support.
+> **�📋 NEW (2026-01-12)**: Created `docs/features.md` - Comprehensive feature reference for testing and language binding parity.
 
 ---
 
@@ -2247,7 +2248,7 @@ Flask            | 3,000     | 15.0     | 80.0     | 200 MB
 ## Phase A14: Framework Parity (Weeks 71-78) 🔄 IN PROGRESS
 
 > **Goal**: Achieve feature parity with FastAPI and Axum to enable seamless migrations
-> **Status**: ✅ P0 COMPLETE, ✅ A14.2 File Handling COMPLETE, ✅ A14.3 P1 COMPLETE - Only P2 items remaining
+> **Status**: ✅ P0 COMPLETE, ✅ A14.2 File Handling COMPLETE, ✅ A14.3 COMPLETE - Only P2 router enhancements remaining
 > **Rationale**: Services already written in FastAPI/Axum/Express need a migration path
 
 ### Why Framework Parity?
@@ -2262,13 +2263,11 @@ Archimedes needs these features to replace existing services:
 | File uploads            | ✅               | ✅ Complete (14)     | **YES - P1** ✅    |
 | File downloads          | ✅               | ✅ Complete (13)     | **YES - P1** ✅    |
 | Cookies                 | ✅               | ✅ Complete (16)     | **YES - P1** ✅    |
-| Rate limiting           | ✅               | ❌ Missing           | **YES - P1**       |
-| Cookie extraction       | ✅               | ❌ Missing           | P1                 |
-| File download response  | ✅               | ❌ Missing           | P1                 |
-| Static file serving     | ✅               | ❌ Missing           | P1                 |
+| Rate limiting           | ✅               | ✅ Complete (27)     | **YES - P1** ✅    |
+| Static file serving     | ✅               | ✅ Complete (31)     | P1 ✅              |
+| Compression middleware  | ✅               | ✅ Complete (39)     | P2 ✅              |
 | Sub-router nesting      | ✅               | ❌ Missing           | P2                 |
 | Route prefixes          | ✅               | ❌ Missing           | P2                 |
-| Compression middleware  | ✅               | ❌ Missing           | P2                 |
 | Streaming responses     | ✅               | ⚠️ SSE only          | P2                 |
 | Response header helpers | ✅               | ❌ Missing           | P2                 |
 
@@ -2415,10 +2414,10 @@ async fn get_session(cookies: Cookies) -> Result<Response, ThemisError> {
 }
 ```
 
-### Phase A14.3: Security & Performance (Weeks 76-77) ✅ P1 COMPLETE
+### Phase A14.3: Security & Performance (Weeks 76-77) ✅ COMPLETE
 
 > **Goal**: Production security requirements
-> **Status**: ✅ Rate limiting complete (27 tests), ✅ Static files complete (31 tests), compression P2 pending
+> **Status**: ✅ Rate limiting (27 tests), ✅ Static files (31 tests), ✅ Compression (39 tests)
 
 #### Rate Limiting Middleware
 
@@ -2438,20 +2437,24 @@ let rate_limit = RateLimitMiddleware::builder()
     .build();
 ```
 
-#### Compression Middleware
+#### Compression Middleware ✅ COMPLETE (39 tests)
 
-- [ ] Create `CompressionMiddleware` with gzip/brotli support
-- [ ] Respect `Accept-Encoding` header
-- [ ] Configurable compression level
-- [ ] Skip compression for small responses
-- [ ] Skip compression for already-compressed content types
+- [x] Create `CompressionMiddleware` with gzip/brotli support
+- [x] Respect `Accept-Encoding` header with quality values
+- [x] Configurable compression level (Fast/Default/Best/Custom)
+- [x] Skip compression for small responses (configurable min_size)
+- [x] Skip compression for already-compressed content types
+- [x] Support deflate compression
+- [x] Content-type filtering for compressible types
+- [x] Builder pattern for configuration
 
 ```rust
-// Target API
-let compression = CompressionConfig::builder()
+// Implemented API
+let compression = CompressionMiddleware::builder()
     .algorithms([Algorithm::Gzip, Algorithm::Brotli])
     .min_size(1024)  // Don't compress < 1KB
     .level(CompressionLevel::Default)
+    .exclude_type("image/jpeg")
     .build();
 ```
 
@@ -2561,7 +2564,7 @@ let router = Router::new()
 | **Middleware**           | ✅          | ✅ Tower  | ✅ Fixed    | Contract-enforced order |
 | **CORS**                 | ✅          | ✅        | ✅          | Phase A14.1 COMPLETE    |
 | **Rate limiting**        | External    | External  | ✅          | Phase A14.3 COMPLETE    |
-| **Compression**          | ✅          | ✅        | ❌          | Phase A14.3             |
+| **Compression**          | ✅          | ✅        | ✅          | Phase A14.3 COMPLETE    |
 | **Static files**         | ✅          | ✅        | ✅          | Phase A14.3 COMPLETE    |
 | **WebSocket**            | ✅          | ✅        | ✅          | Full support            |
 | **SSE**                  | External    | External  | ✅          | Built-in                |
@@ -2596,7 +2599,7 @@ let router = Router::new()
 | **Middleware**           | ✅ WSGI     | ✅ Middleware | Manual   | ✅ Fixed    | Contract-enforced order    |
 | **CORS**                 | ✅ Flask-CORS | ✅ Built-in | Manual   | ✅          | Phase A14.1 COMPLETE       |
 | **Rate limiting**        | ✅ Flask-Limiter | ❌ External | ❌    | ✅          | Phase A14.3 COMPLETE       |
-| **Compression**          | ❌ External | ✅ Built-in | Manual    | ❌          | Phase A14.3                |
+| **Compression**          | ❌ External | ✅ Built-in | Manual    | ✅          | Phase A14.3 COMPLETE       |
 | **Static files**         | ✅ Built-in | ✅ Built-in | Manual    | ✅          | Phase A14.3 COMPLETE       |
 | **Templates (Jinja2)**   | ✅ Built-in | ✅ Jinja2  | ❌          | ❌          | Not planned (API-only)     |
 | **WebSocket**            | ❌ Flask-SocketIO | ✅ Built-in | ✅ | ✅          | Full support               |
@@ -2692,7 +2695,7 @@ let router = Router::new()
 | **Middleware**           | ✅           | ✅ Fairings  | ✅ Filters   | ✅ Tower    | ✅ Fixed    |
 | **CORS**                 | ✅           | ❌ External  | ✅           | ✅          | ✅ A14.1  |
 | **Rate limiting**        | External     | External     | External     | External    | ✅ A14.3  |
-| **Compression**          | ✅           | ✅           | ✅           | ✅          | ❌ A14.3    |
+| **Compression**          | ✅           | ✅           | ✅           | ✅          | ✅ A14.3  |
 | **Static files**         | ✅           | ✅           | ✅           | ✅          | ✅ A14.3  |
 | **WebSocket**            | ✅           | ❌           | ✅           | ✅          | ✅          |
 | **SSE**                  | ✅           | ❌           | ✅           | External    | ✅          |
@@ -2758,7 +2761,7 @@ let router = Router::new()
 | **Middleware**           | ✅           | ✅ Excellent | ✅           | ✅           | ✅ Fixed    |
 | **CORS**                 | ✅ cors      | ✅ cors      | ✅           | ✅           | ✅ A14.1  |
 | **Rate limiting**        | External     | External     | External     | ✅ Limiter   | ✅ A14.3  |
-| **Compression**          | ✅           | ✅           | ✅           | ✅           | ❌ A14.3    |
+| **Compression**          | ✅           | ✅           | ✅           | ✅           | ✅ A14.3  |
 | **Static files**         | ✅           | ✅           | ✅           | ✅           | ✅ A14.3  |
 | **WebSocket**            | ❌ External  | ❌ External  | ✅           | ✅           | ✅          |
 | **SSE**                  | External     | External     | External     | External     | ✅          |
@@ -3018,7 +3021,7 @@ let router = Router::new()
 | **Flask-like** | Familiar API | Similar |
 | **Mustache** | Template engine | ❌ (API-only) |
 | **JSON** | Built-in JSON | ✅ Serde |
-| **Compression** | Built-in | ❌ A14.3 |
+| **Compression** | Built-in | ✅ A14.3 |
 | **Blueprints** | Route organization | ❌ A14.4 |
 | **Multi-threaded** | Thread pool | ✅ Tokio workers |
 
