@@ -17,13 +17,16 @@
 //! 5. [`validation`] - Request validation
 //! 6. [`rate_limit`] - Rate limiting (optional)
 //!
-//! ## Post-Handler Stages (7-9)
+//! ## Post-Handler Stages (7-10)
 //!
-//! 7. [`validation`] - Response validation (via `ResponseValidationMiddleware`)
-//! 8. [`telemetry`] - Emit metrics and logs
-//! 9. [`error_normalization`] - Error envelope conversion
+//! 7. [`compression`] - Response compression (optional, gzip/brotli)
+//! 8. [`validation`] - Response validation (via `ResponseValidationMiddleware`)
+//! 9. [`telemetry`] - Emit metrics and logs
+//! 10. [`error_normalization`] - Error envelope conversion
 
 pub mod authorization;
+#[cfg(feature = "compression")]
+pub mod compression;
 pub mod cors;
 pub mod error_normalization;
 pub mod identity;
@@ -36,6 +39,11 @@ pub mod validation;
 // Re-export main types
 pub use authorization::{
     AuthorizationMiddleware, AuthorizationResult, PolicyDecision, PolicyEvaluator, RbacBuilder,
+};
+#[cfg(feature = "compression")]
+pub use compression::{
+    Algorithm, CompressionBuilder, CompressionConfig, CompressionError, CompressionLevel,
+    CompressionMiddleware,
 };
 pub use cors::{AllowedOrigins, CorsBuilder, CorsConfig, CorsMiddleware};
 pub use error_normalization::{ErrorNormalizationMiddleware, NormalizedError};

@@ -78,3 +78,10 @@ pub use stages::{
     ErrorNormalizationMiddleware, IdentityMiddleware, RequestIdMiddleware,
     ResponseValidationMiddleware, TelemetryMiddleware, TracingMiddleware, ValidationMiddleware,
 };
+
+// Compression middleware (requires `compression` feature)
+#[cfg(feature = "compression")]
+pub use stages::{
+    Algorithm, CompressionBuilder, CompressionConfig, CompressionError, CompressionLevel,
+    CompressionMiddleware,
+};
