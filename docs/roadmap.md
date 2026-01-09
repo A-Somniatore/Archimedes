@@ -1,6 +1,6 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.10.0
+> **Version**: 3.11.0
 > **Created**: 2026-01-04
 > **Last Updated**: 2026-01-08
 > **Target Completion**: Week 84 (extended for binding parity)
@@ -18,6 +18,7 @@
 > **🔥 UPDATE (2026-01-12)**: Phase A13.3 (TypeScript/Node.js Bindings) COMPLETE - archimedes-node crate with napi-rs, 95 tests passing.
 > **🔥 UPDATE (2026-01-12)**: Phase A13.4 (C++ Bindings) COMPLETE - C++ headers with RAII, modern C++17 API.
 > **🔥 UPDATE (2026-01-12)**: Phase A13.5 (Go Bindings) COMPLETE - archimedes-go module with cgo, go-native example, 9 tests.
+> **🔥 UPDATE (2026-01-13)**: Phase A15.1 (Core Binding Features) COMPLETE - Router and Lifecycle hooks for Python, TypeScript, C++, Go bindings.
 > **🔥 UPDATE (2026-01-12)**: Phase A13 COMPLETE - All 5 language bindings done (C FFI, Python, TypeScript, C++, Go).
 > **🔥 UPDATE (2026-01-12)**: Phase A14.1 P0 COMPLETE - CORS (19 tests), TestClient (30 tests), Lifecycle hooks (11 tests).
 > **🔥 UPDATE (2026-01-12)**: Phase A14.2 COMPLETE - Multipart (14 tests), Cookies (16 tests), FileResponse (13 tests).
@@ -2562,8 +2563,8 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 | --------------------- | ---- | ------ | ---------- | --- | --- | ----- |
 | **Core Features**     |      |        |            |     |     |       |
 | HTTP server           | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
-| Sub-routers           | ✅   | ✅     | ✅         | ✅  | ❌  | A15.1 |
-| Lifecycle hooks       | ✅   | ✅     | ✅         | ✅  | ❌  | A15.1 |
+| Sub-routers           | ✅   | ✅     | ✅         | ✅  | ✅  | A15.1 |
+| Lifecycle hooks       | ✅   | ✅     | ✅         | ✅  | ✅  | A15.1 |
 | Health probes         | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
 | **Extractors**        |      |        |            |     |     |       |
 | JSON body             | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
@@ -2596,7 +2597,7 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 ### Phase A15.1: Core Binding Features (Week 79)
 
 > **Goal**: Sub-routers and lifecycle hooks for all bindings
-> **Status**: 🔄 IN PROGRESS - Python and TypeScript complete
+> **Status**: ✅ COMPLETE - All bindings have Router and Lifecycle support
 
 #### Python Bindings ✅ COMPLETE
 
@@ -2622,11 +2623,13 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 - [x] Update cpp-native example
 - [x] Tests: 59 total (8 router + 10 lifecycle)
 
-#### Go Bindings 📋 PLANNED
+#### Go Bindings ✅ COMPLETE
 
-- [ ] Add `Router.Nest()`, `Router.Prefix()`, `Router.Tag()`, `Router.Merge()`
-- [ ] Add `OnStartup()`, `OnShutdown()` lifecycle methods
-- [ ] Update go-native example
+- [x] Add `Router.Prefix()`, `Router.Tag()`, `Router.Nest()`, `Router.Merge()`
+- [x] Add `Lifecycle` type with `OnStartup/OnShutdown` hooks
+- [x] Add `App.OnStartup()`, `App.OnShutdown()`, `App.Merge()`, `App.Nest()` methods
+- [x] Update go-native example
+- [x] Tests: 27 total (10 router + 6 lifecycle)
 
 ### Phase A15.2: Extractors & Responses (Weeks 80-81)
 
