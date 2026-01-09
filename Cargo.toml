@@ -22,7 +22,7 @@ members = [
     "crates/archimedes-node",
     "crates/archimedes-test",
 ]
-exclude = ["examples/rust-native"]
+exclude = ["examples/rust-native", "examples/feature-showcase"]
 
 [workspace.package]
 version = "0.1.0"

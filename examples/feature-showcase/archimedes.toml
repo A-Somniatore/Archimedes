@@ -1,0 +1,103 @@
+# Archimedes Feature Showcase Configuration
+# ==========================================
+# This file demonstrates all configuration options available in Archimedes.
+
+[server]
+# Listen address for HTTP server
+listen_addr = "127.0.0.1:8080"
+# Service name for telemetry
+service_name = "feature-showcase"
+# Enable HTTP/2 support
+http2 = true
+# Request body size limit (10MB)
+body_limit = 10485760
+# Request timeout in seconds
+request_timeout = 30
+
+[database]
+# Database connection URL
+url = "postgres://user:pass@localhost:5432/showcase"
+# Maximum number of connections in the pool
+max_connections = 10
+# Minimum number of connections to keep open
+min_connections = 1
+# Connection timeout in seconds
+connect_timeout = 5
+# Idle connection timeout in seconds
+idle_timeout = 300
+
+[cors]
+# Allowed origins (use ["*"] for any)
+allowed_origins = ["http://localhost:3000", "https://example.com"]
+# Allowed HTTP methods
+allowed_methods = ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+# Allowed headers
+allowed_headers = ["Content-Type", "Authorization", "X-Request-ID"]
+# Headers to expose to clients
+expose_headers = ["X-RateLimit-Limit", "X-RateLimit-Remaining"]
+# Allow credentials (cookies, auth headers)
+allow_credentials = true
+# Preflight cache duration in seconds
+max_age = 3600
+
+[rate_limit]
+# Enable rate limiting
+enabled = true
+# Requests allowed per window
+requests_per_window = 100
+# Window duration in seconds
+window_seconds = 60
+# Key extraction method: "ip", "header:X-API-Key", "user"
+key_by = "ip"
+
+[compression]
+# Enable response compression
+enabled = true
+# Enable gzip compression
+gzip = true
+# Enable brotli compression
+brotli = true
+# Minimum response size to compress (bytes)
+min_size = 1024
+# Content types to exclude from compression
+exclude = ["image/png", "image/jpeg", "application/zip"]
+
+[static_files]
+# Path prefix for static files
+prefix = "/static"
+# Directory to serve files from
+directory = "static"
+# Enable directory listing
+list_directories = false
+# Cache-Control max-age in seconds
+cache_max_age = 86400
+
+[logging]
+# Log level: trace, debug, info, warn, error
+level = "info"
+# Output format: text, json
+format = "text"
+# Include source location in logs
+include_location = false
+
+[telemetry]
+# Enable OpenTelemetry tracing
+enabled = true
+# OTLP endpoint for exporting traces
+otlp_endpoint = "http://localhost:4317"
+# Sampling ratio (0.0 to 1.0)
+sampling_ratio = 1.0
+
+[authz]
+# Enable OPA authorization
+enabled = true
+# Path to OPA policy bundle
+policy_path = "policies"
+# Default decision if policy not found
+default_decision = "deny"
+
+[tasks]
+# Maximum concurrent background tasks
+max_concurrent = 10
+# Default task timeout in seconds
+default_timeout = 300

@@ -1,9 +1,9 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.8.0
+> **Version**: 3.9.0
 > **Created**: 2026-01-04
 > **Last Updated**: 2026-01-12
-> **Target Completion**: Week 78 (extended for framework parity features)
+> **Target Completion**: Week 84 (extended for binding parity)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
@@ -23,7 +23,10 @@
 > **🔥 UPDATE (2026-01-12)**: Phase A14.2 COMPLETE - Multipart (14 tests), Cookies (16 tests), FileResponse (13 tests).
 > **🔥 UPDATE (2026-01-12)**: Phase A14.3 COMPLETE - Rate limiting (27 tests), Static files (31 tests), Compression (39 tests).
 > **🔥 UPDATE (2026-01-12)**: Phase A14.4 COMPLETE - Router: nest(), prefix(), merge(), tag() (22 new tests, 74 total).
+> **🔥 UPDATE (2026-01-12)**: Phase A14 COMPLETE - Framework parity achieved! 1,300+ tests passing.
 > **📋 NEW (2026-01-12)**: Created `docs/features.md` - Comprehensive feature reference for testing and binding parity.
+> **📋 NEW (2026-01-12)**: Created `examples/feature-showcase/` - Reference implementation for all binding authors.
+> **📋 NEW (2026-01-12)**: Phase A15 (Binding Parity) PLANNED - Ensure all bindings have same features as Rust.
 
 ---
 
@@ -2541,6 +2544,200 @@ let router = Router::new()
 | Route prefixes/tags    | archimedes-router     | P2       | ✅ Complete   | 6     |
 | Router merge           | archimedes-router     | P2       | ✅ Complete   | 1     |
 | Streaming responses    | archimedes-extract    | P2       | 📋 Planned    | -     |
+
+---
+
+## Phase A15: Binding Feature Parity (Weeks 79-84) 📋 PLANNED
+
+> **Goal**: Ensure all language bindings have feature parity with Rust
+> **Status**: 📋 PLANNED
+> **Rationale**: All language bindings should expose the same capabilities as Rust
+
+### Why Binding Parity?
+
+With Phase A14 complete, Rust has many features that our bindings don't expose yet:
+
+| Feature               | Rust | Python | TypeScript | C++ | Go  | Phase |
+| --------------------- | ---- | ------ | ---------- | --- | --- | ----- |
+| **Core Features**     |      |        |            |     |     |       |
+| HTTP server           | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
+| Sub-routers           | ✅   | ❌     | ❌         | ❌  | ❌  | A15.1 |
+| Lifecycle hooks       | ✅   | ❌     | ❌         | ❌  | ❌  | A15.1 |
+| Health probes         | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
+| **Extractors**        |      |        |            |     |     |       |
+| JSON body             | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
+| Path parameters       | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
+| Query parameters      | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
+| Headers               | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
+| Form data             | ✅   | ❌     | ❌         | ❌  | ❌  | A15.2 |
+| Cookies               | ✅   | ❌     | ❌         | ❌  | ❌  | A15.2 |
+| Multipart uploads     | ✅   | ❌     | ❌         | ❌  | ❌  | A15.2 |
+| **Responses**         |      |        |            |     |     |       |
+| JSON                  | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
+| Text/HTML             | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
+| Redirect              | ✅   | ❌     | ❌         | ❌  | ❌  | A15.2 |
+| File download         | ✅   | ❌     | ❌         | ❌  | ❌  | A15.2 |
+| Set-Cookie            | ✅   | ❌     | ❌         | ❌  | ❌  | A15.2 |
+| **Middleware**        |      |        |            |     |     |       |
+| CORS                  | ✅   | ❌     | ❌         | ❌  | ❌  | A15.3 |
+| Rate limiting         | ✅   | ❌     | ❌         | ❌  | ❌  | A15.3 |
+| Compression           | ✅   | ❌     | ❌         | ❌  | ❌  | A15.3 |
+| **Real-time**         |      |        |            |     |     |       |
+| WebSocket             | ✅   | ❌     | ❌         | ❌  | ❌  | A15.4 |
+| SSE                   | ✅   | ❌     | ❌         | ❌  | ❌  | A15.4 |
+| **Tasks**             |      |        |            |     |     |       |
+| Task spawning         | ✅   | ❌     | ❌         | ❌  | ❌  | A15.5 |
+| Job scheduler         | ✅   | ❌     | ❌         | ❌  | ❌  | A15.5 |
+| **Testing**           |      |        |            |     |     |       |
+| TestClient            | ✅   | ❌     | ❌         | ❌  | ❌  | A15.6 |
+| **Static files**      | ✅   | ❌     | ❌         | ❌  | ❌  | A15.3 |
+
+### Phase A15.1: Core Binding Features (Week 79)
+
+> **Goal**: Sub-routers and lifecycle hooks for all bindings
+
+#### Python Bindings
+
+- [ ] Add `Router.nest()`, `Router.prefix()`, `Router.tag()`, `Router.merge()`
+- [ ] Add `@app.on_startup`, `@app.on_shutdown` decorators
+- [ ] Add lifecycle hook registration in `ArchimedesApp`
+- [ ] Update python-native example
+
+#### TypeScript Bindings
+
+- [ ] Add `Router.nest()`, `Router.prefix()`, `Router.tag()`, `Router.merge()`
+- [ ] Add `onStartup()`, `onShutdown()` lifecycle methods
+- [ ] Update typescript-native example
+
+#### C++ Bindings
+
+- [ ] Add `Router::nest()`, `Router::prefix()`, `Router::tag()`, `Router::merge()`
+- [ ] Add lifecycle hook registration
+- [ ] Update cpp-native example
+
+#### Go Bindings
+
+- [ ] Add `Router.Nest()`, `Router.Prefix()`, `Router.Tag()`, `Router.Merge()`
+- [ ] Add `OnStartup()`, `OnShutdown()` lifecycle methods
+- [ ] Update go-native example
+
+### Phase A15.2: Extractors & Responses (Weeks 80-81)
+
+> **Goal**: Form, Cookie, Multipart, FileResponse for all bindings
+
+#### Python Bindings
+
+- [ ] Add `Form[T]` extractor for form data
+- [ ] Add `Cookies` extractor
+- [ ] Add `Multipart` extractor for file uploads
+- [ ] Add `FileResponse` for downloads
+- [ ] Add `SetCookie` response helper
+- [ ] Add `redirect()` response helper
+
+#### TypeScript Bindings
+
+- [ ] Add `Form<T>` extractor
+- [ ] Add `Cookies` extractor
+- [ ] Add `Multipart` extractor
+- [ ] Add `FileResponse` class
+- [ ] Add `setCookie()` and `redirect()` helpers
+
+#### C++ Bindings
+
+- [ ] Add `Form<T>` extractor
+- [ ] Add `Cookies` extractor
+- [ ] Add `Multipart` extractor
+- [ ] Add `FileResponse` class
+- [ ] Add cookie and redirect helpers
+
+#### Go Bindings
+
+- [ ] Add `Form[T]` extractor
+- [ ] Add `Cookies` extractor
+- [ ] Add `Multipart` extractor
+- [ ] Add `FileResponse` and redirect helpers
+
+### Phase A15.3: Middleware (Week 82)
+
+> **Goal**: CORS, rate limiting, compression, static files for all bindings
+
+#### All Bindings
+
+- [ ] Expose `CorsMiddleware` with configuration
+- [ ] Expose `RateLimitMiddleware` with configuration
+- [ ] Expose `CompressionMiddleware` with configuration
+- [ ] Expose `StaticFiles` middleware for serving directories
+
+### Phase A15.4: Real-time (Week 83)
+
+> **Goal**: WebSocket and SSE for all bindings
+
+#### Python Bindings
+
+- [ ] Add `@websocket` decorator
+- [ ] Add `WebSocket` class with send/recv
+- [ ] Add SSE support with `sse_response()`
+
+#### TypeScript Bindings
+
+- [ ] Add `ws()` route handler
+- [ ] Add `WebSocket` class
+- [ ] Add SSE support
+
+#### C++ / Go Bindings
+
+- [ ] Add WebSocket handling
+- [ ] Add SSE stream support
+
+### Phase A15.5: Background Tasks (Week 84)
+
+> **Goal**: Task spawning and job scheduler for all bindings
+
+#### All Bindings
+
+- [ ] Add `TaskSpawner` for fire-and-forget tasks
+- [ ] Add `JobScheduler` with cron expressions
+- [ ] Add task cancellation support
+
+### Phase A15.6: Test Client (Week 84)
+
+> **Goal**: TestClient for integration testing in all bindings
+
+#### All Bindings
+
+- [ ] Add `TestClient` for making requests without starting server
+- [ ] Add assertion helpers for status, headers, body
+- [ ] Add multipart and cookie support in test client
+
+### A15 Reference Implementation
+
+> The `examples/feature-showcase` directory contains a comprehensive Rust example
+> that demonstrates ALL features. Use this as the reference when implementing
+> binding features. Each binding example should implement the same functionality.
+
+See: `examples/feature-showcase/README.md`
+
+### A15 Deliverables
+
+| Feature           | Python | TypeScript | C++ | Go  | Priority | Phase |
+| ----------------- | ------ | ---------- | --- | --- | -------- | ----- |
+| Sub-routers       | 📋     | 📋         | 📋  | 📋  | P1       | A15.1 |
+| Lifecycle hooks   | 📋     | 📋         | 📋  | 📋  | P1       | A15.1 |
+| Form extractor    | 📋     | 📋         | 📋  | 📋  | P1       | A15.2 |
+| Cookie extractor  | 📋     | 📋         | 📋  | 📋  | P1       | A15.2 |
+| Multipart         | 📋     | 📋         | 📋  | 📋  | P1       | A15.2 |
+| FileResponse      | 📋     | 📋         | 📋  | 📋  | P1       | A15.2 |
+| SetCookie         | 📋     | 📋         | 📋  | 📋  | P1       | A15.2 |
+| Redirect          | 📋     | 📋         | 📋  | 📋  | P2       | A15.2 |
+| CORS middleware   | 📋     | 📋         | 📋  | 📋  | P1       | A15.3 |
+| Rate limiting     | 📋     | 📋         | 📋  | 📋  | P1       | A15.3 |
+| Compression       | 📋     | 📋         | 📋  | 📋  | P2       | A15.3 |
+| Static files      | 📋     | 📋         | 📋  | 📋  | P2       | A15.3 |
+| WebSocket         | 📋     | 📋         | 📋  | 📋  | P1       | A15.4 |
+| SSE               | 📋     | 📋         | 📋  | 📋  | P2       | A15.4 |
+| Task spawner      | 📋     | 📋         | 📋  | 📋  | P2       | A15.5 |
+| Job scheduler     | 📋     | 📋         | 📋  | 📋  | P2       | A15.5 |
+| TestClient        | 📋     | 📋         | 📋  | 📋  | P1       | A15.6 |
 
 ---
 
