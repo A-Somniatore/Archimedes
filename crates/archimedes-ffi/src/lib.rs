@@ -69,6 +69,7 @@
 mod app;
 mod config;
 mod error;
+mod extractors;
 mod handler;
 mod lifecycle;
 mod request;
@@ -97,6 +98,19 @@ pub use router::{
     archimedes_router_new, archimedes_router_operation_count, archimedes_router_prefix,
     archimedes_router_register, archimedes_router_tag, archimedes_router_tag_count,
     ArchimedesRouter,
+};
+pub use extractors::{
+    archimedes_cookies_free, archimedes_cookies_get, archimedes_cookies_parse,
+    archimedes_file_response, archimedes_form_free, archimedes_form_get, archimedes_form_parse,
+    archimedes_get_header, archimedes_get_multipart_boundary, archimedes_multipart_free,
+    archimedes_multipart_get, archimedes_multipart_parse, archimedes_redirect,
+    archimedes_redirect_found, archimedes_redirect_permanent, archimedes_redirect_see_other,
+    archimedes_redirect_temporary, archimedes_set_cookie_build, archimedes_set_cookie_domain,
+    archimedes_set_cookie_expires, archimedes_set_cookie_free, archimedes_set_cookie_http_only,
+    archimedes_set_cookie_max_age, archimedes_set_cookie_new, archimedes_set_cookie_path,
+    archimedes_set_cookie_same_site, archimedes_set_cookie_secure, ArchimedesCookies,
+    ArchimedesForm, ArchimedesMultipart, ArchimedesMultipartField, ArchimedesSameSite,
+    ArchimedesSetCookie,
 };
 pub use types::{
     ArchimedesAsyncCallback, ArchimedesError, ArchimedesHandlerFn, ArchimedesRequestContext,
