@@ -146,6 +146,58 @@ impl Response {
         }
     }
 
+    /// Create a redirect response (302 Found).
+    #[napi(factory)]
+    pub fn redirect(location: String) -> Self {
+        let mut headers = HashMap::new();
+        headers.insert("location".to_string(), location);
+        Self {
+            status_code: 302,
+            headers,
+            body: None,
+            content_type: "text/plain".to_string(),
+        }
+    }
+
+    /// Create a permanent redirect response (301 Moved Permanently).
+    #[napi(factory)]
+    pub fn permanent_redirect(location: String) -> Self {
+        let mut headers = HashMap::new();
+        headers.insert("location".to_string(), location);
+        Self {
+            status_code: 301,
+            headers,
+            body: None,
+            content_type: "text/plain".to_string(),
+        }
+    }
+
+    /// Create a See Other redirect (303) - typically used after POST.
+    #[napi(factory)]
+    pub fn see_other(location: String) -> Self {
+        let mut headers = HashMap::new();
+        headers.insert("location".to_string(), location);
+        Self {
+            status_code: 303,
+            headers,
+            body: None,
+            content_type: "text/plain".to_string(),
+        }
+    }
+
+    /// Create a temporary redirect (307) - preserves HTTP method.
+    #[napi(factory)]
+    pub fn temporary_redirect(location: String) -> Self {
+        let mut headers = HashMap::new();
+        headers.insert("location".to_string(), location);
+        Self {
+            status_code: 307,
+            headers,
+            body: None,
+            content_type: "text/plain".to_string(),
+        }
+    }
+
     /// Create a JSON response with the given body.
     #[napi]
     pub fn json(&self, body: serde_json::Value) -> Response {

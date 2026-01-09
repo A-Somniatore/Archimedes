@@ -60,6 +60,7 @@ mod authz;
 mod config;
 mod context;
 mod error;
+mod extractors;
 mod handlers;
 mod lifecycle;
 mod middleware;
@@ -73,6 +74,9 @@ pub use authz::{Authorizer, AuthzInput, PolicyDecision};
 pub use config::Config;
 pub use context::{Identity, RequestContext};
 pub use error::ArchimedesError;
+pub use extractors::{
+    Cookies, FileResponse, Form, Multipart, MultipartField, SameSite, SetCookie, UploadedFile,
+};
 pub use handlers::HandlerRegistry;
 pub use lifecycle::{
     create_lifecycle_hook_options, create_lifecycle_result, Lifecycle, LifecycleHookOptions,
