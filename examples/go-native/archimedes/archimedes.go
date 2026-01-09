@@ -582,6 +582,676 @@ func (a *App) Nest(prefix string, router *Router) error {
 }
 
 // =============================================================================
+// Form Data Extractor
+// =============================================================================
+
+// Form parses URL-encoded form data from the request body
+type Form map[string]string
+
+// ParseForm parses the request body as URL-encoded form data
+func (c *Context) ParseForm() (Form, error) {
+	if len(c.body) == 0 {
+		return Form{}, nil
+	}
+
+	form := make(Form)
+	pairs := string(c.body)
+
+	for _, pair := range splitString(pairs, '&') {
+		if pair == "" {
+			continue
+		}
+		kv := splitString(pair, '=')
+		if len(kv) >= 1 {
+			key := urlDecode(kv[0])
+			value := ""
+			if len(kv) >= 2 {
+				value = urlDecode(kv[1])
+			}
+			form[key] = value
+		}
+	}
+
+	return form, nil
+}
+
+// Get returns a form field value by name
+func (f Form) Get(name string) string {
+	return f[name]
+}
+
+// GetOr returns a form field value or a default if not present
+func (f Form) GetOr(name, defaultValue string) string {
+	if val, ok := f[name]; ok {
+		return val
+	}
+	return defaultValue
+}
+
+// Has returns true if the form has a field with the given name
+func (f Form) Has(name string) bool {
+	_, ok := f[name]
+	return ok
+}
+
+// =============================================================================
+// Cookie Extractor
+// =============================================================================
+
+// Cookies parses cookies from the Cookie header
+type Cookies map[string]string
+
+// ParseCookies parses the Cookie header into a map
+func (c *Context) ParseCookies() Cookies {
+	cookies := make(Cookies)
+	cookieHeader := c.Headers["Cookie"]
+	if cookieHeader == "" {
+		cookieHeader = c.Headers["cookie"]
+	}
+	if cookieHeader == "" {
+		return cookies
+	}
+
+	for _, part := range splitString(cookieHeader, ';') {
+		part = trimSpace(part)
+		if part == "" {
+			continue
+		}
+		kv := splitString(part, '=')
+		if len(kv) >= 2 {
+			cookies[trimSpace(kv[0])] = trimSpace(kv[1])
+		}
+	}
+
+	return cookies
+}
+
+// Get returns a cookie value by name
+func (c Cookies) Get(name string) string {
+	return c[name]
+}
+
+// GetOr returns a cookie value or a default if not present
+func (c Cookies) GetOr(name, defaultValue string) string {
+	if val, ok := c[name]; ok {
+		return val
+	}
+	return defaultValue
+}
+
+// Has returns true if the cookie exists
+func (c Cookies) Has(name string) bool {
+	_, ok := c[name]
+	return ok
+}
+
+// =============================================================================
+// Set-Cookie Builder
+// =============================================================================
+
+// SameSite represents the SameSite cookie attribute
+type SameSite string
+
+const (
+	SameSiteNone   SameSite = "None"
+	SameSiteLax    SameSite = "Lax"
+	SameSiteStrict SameSite = "Strict"
+)
+
+// SetCookie builds Set-Cookie header values
+type SetCookie struct {
+	name     string
+	value    string
+	path     string
+	domain   string
+	expires  string
+	maxAge   int
+	secure   bool
+	httpOnly bool
+	sameSite SameSite
+	hasMaxAge bool
+}
+
+// NewSetCookie creates a new Set-Cookie builder
+func NewSetCookie(name, value string) *SetCookie {
+	return &SetCookie{
+		name:     name,
+		value:    value,
+		sameSite: SameSiteLax,
+	}
+}
+
+// Path sets the Path attribute
+func (s *SetCookie) Path(path string) *SetCookie {
+	s.path = path
+	return s
+}
+
+// Domain sets the Domain attribute
+func (s *SetCookie) Domain(domain string) *SetCookie {
+	s.domain = domain
+	return s
+}
+
+// Expires sets the Expires attribute (RFC 7231 format)
+func (s *SetCookie) Expires(expires string) *SetCookie {
+	s.expires = expires
+	return s
+}
+
+// MaxAge sets the Max-Age attribute in seconds
+func (s *SetCookie) MaxAge(seconds int) *SetCookie {
+	s.maxAge = seconds
+	s.hasMaxAge = true
+	return s
+}
+
+// Secure sets the Secure attribute
+func (s *SetCookie) Secure(secure bool) *SetCookie {
+	s.secure = secure
+	return s
+}
+
+// HttpOnly sets the HttpOnly attribute
+func (s *SetCookie) HttpOnly(httpOnly bool) *SetCookie {
+	s.httpOnly = httpOnly
+	return s
+}
+
+// SetSameSite sets the SameSite attribute
+func (s *SetCookie) SetSameSite(sameSite SameSite) *SetCookie {
+	s.sameSite = sameSite
+	return s
+}
+
+// Build returns the Set-Cookie header value
+func (s *SetCookie) Build() string {
+	result := s.name + "=" + s.value
+
+	if s.path != "" {
+		result += "; Path=" + s.path
+	}
+	if s.domain != "" {
+		result += "; Domain=" + s.domain
+	}
+	if s.expires != "" {
+		result += "; Expires=" + s.expires
+	}
+	if s.hasMaxAge {
+		result += fmt.Sprintf("; Max-Age=%d", s.maxAge)
+	}
+	if s.secure {
+		result += "; Secure"
+	}
+	if s.httpOnly {
+		result += "; HttpOnly"
+	}
+	result += "; SameSite=" + string(s.sameSite)
+
+	return result
+}
+
+// SetCookie sets a Set-Cookie response header
+func (c *Context) SetCookie(cookie *SetCookie) {
+	c.SetHeader("Set-Cookie", cookie.Build())
+}
+
+// =============================================================================
+// Multipart Form Data
+// =============================================================================
+
+// MultipartField represents a field in multipart form data
+type MultipartField struct {
+	Name        string
+	Value       string
+	Filename    string
+	ContentType string
+	Data        []byte
+	IsFile      bool
+}
+
+// Multipart represents parsed multipart form data
+type Multipart struct {
+	Fields []MultipartField
+}
+
+// ParseMultipart parses multipart/form-data from the request body
+func (c *Context) ParseMultipart() (*Multipart, error) {
+	contentType := c.Headers["Content-Type"]
+	if contentType == "" {
+		contentType = c.Headers["content-type"]
+	}
+
+	if contentType == "" {
+		return nil, errors.New("missing Content-Type header")
+	}
+
+	// Extract boundary
+	boundary := ""
+	for _, part := range splitString(contentType, ';') {
+		part = trimSpace(part)
+		if hasPrefix(part, "boundary=") {
+			boundary = part[9:]
+			// Remove quotes if present
+			if len(boundary) >= 2 && boundary[0] == '"' && boundary[len(boundary)-1] == '"' {
+				boundary = boundary[1 : len(boundary)-1]
+			}
+			break
+		}
+	}
+
+	if boundary == "" {
+		return nil, errors.New("missing multipart boundary")
+	}
+
+	multipart := &Multipart{Fields: []MultipartField{}}
+	delimiter := "--" + boundary
+	bodyStr := string(c.body)
+
+	parts := splitString(bodyStr, '\n')
+	inPart := false
+	var currentField *MultipartField
+	var contentBuffer string
+	inHeaders := false
+
+	for _, line := range parts {
+		line = trimSuffix(line, "\r")
+
+		if hasPrefix(line, delimiter) {
+			// End previous part if any
+			if currentField != nil && inPart {
+				// Trim trailing CRLF from content
+				content := trimSuffix(contentBuffer, "\r\n")
+				content = trimSuffix(content, "\n")
+				if currentField.IsFile {
+					currentField.Data = []byte(content)
+				} else {
+					currentField.Value = content
+				}
+				multipart.Fields = append(multipart.Fields, *currentField)
+			}
+
+			if hasSuffix(line, "--") {
+				// End of multipart
+				break
+			}
+
+			// Start new part
+			currentField = &MultipartField{}
+			contentBuffer = ""
+			inPart = true
+			inHeaders = true
+			continue
+		}
+
+		if inPart {
+			if inHeaders {
+				if line == "" {
+					// End of headers, start of content
+					inHeaders = false
+					continue
+				}
+
+				// Parse headers
+				lowerLine := toLower(line)
+				if hasPrefix(lowerLine, "content-disposition:") {
+					// Parse name and filename
+					if name := extractHeaderParam(line, "name"); name != "" {
+						currentField.Name = name
+					}
+					if filename := extractHeaderParam(line, "filename"); filename != "" {
+						currentField.Filename = filename
+						currentField.IsFile = true
+					}
+				} else if hasPrefix(lowerLine, "content-type:") {
+					currentField.ContentType = trimSpace(line[13:])
+				}
+			} else {
+				// Content
+				if contentBuffer != "" {
+					contentBuffer += "\n"
+				}
+				contentBuffer += line
+			}
+		}
+	}
+
+	return multipart, nil
+}
+
+// Get returns a field by name
+func (m *Multipart) Get(name string) *MultipartField {
+	for i := range m.Fields {
+		if m.Fields[i].Name == name {
+			return &m.Fields[i]
+		}
+	}
+	return nil
+}
+
+// GetFile returns a file field by name
+func (m *Multipart) GetFile(name string) *MultipartField {
+	for i := range m.Fields {
+		if m.Fields[i].Name == name && m.Fields[i].IsFile {
+			return &m.Fields[i]
+		}
+	}
+	return nil
+}
+
+// GetValue returns a text field value by name
+func (m *Multipart) GetValue(name string) string {
+	field := m.Get(name)
+	if field != nil && !field.IsFile {
+		return field.Value
+	}
+	return ""
+}
+
+// =============================================================================
+// File Response
+// =============================================================================
+
+// File sends a file as a response with appropriate headers
+func (c *Context) File(filename string, data []byte, inline bool) error {
+	c.responseStatus = 200
+	c.responseBody = data
+	c.contentType = guessMimeType(filename)
+
+	disposition := "attachment"
+	if inline {
+		disposition = "inline"
+	}
+	c.SetHeader("Content-Disposition", fmt.Sprintf(`%s; filename="%s"`, disposition, filename))
+
+	return nil
+}
+
+// Attachment sends a file as a download
+func (c *Context) Attachment(filename string, data []byte) error {
+	return c.File(filename, data, false)
+}
+
+// Inline sends a file for inline display (e.g., in browser)
+func (c *Context) Inline(filename string, data []byte) error {
+	return c.File(filename, data, true)
+}
+
+// =============================================================================
+// Redirect Responses
+// =============================================================================
+
+// Redirect sends a redirect response with the given status code
+func (c *Context) Redirect(status int, location string) error {
+	c.responseStatus = status
+	c.responseBody = nil
+	c.SetHeader("Location", location)
+	return nil
+}
+
+// RedirectFound sends a 302 Found redirect
+func (c *Context) RedirectFound(location string) error {
+	return c.Redirect(302, location)
+}
+
+// RedirectPermanent sends a 301 Moved Permanently redirect
+func (c *Context) RedirectPermanent(location string) error {
+	return c.Redirect(301, location)
+}
+
+// RedirectSeeOther sends a 303 See Other redirect
+func (c *Context) RedirectSeeOther(location string) error {
+	return c.Redirect(303, location)
+}
+
+// RedirectTemporary sends a 307 Temporary Redirect
+func (c *Context) RedirectTemporary(location string) error {
+	return c.Redirect(307, location)
+}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+// splitString splits a string by a separator (avoids importing strings)
+func splitString(s string, sep byte) []string {
+	var result []string
+	start := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == sep {
+			result = append(result, s[start:i])
+			start = i + 1
+		}
+	}
+	result = append(result, s[start:])
+	return result
+}
+
+// trimSpace trims leading and trailing whitespace
+func trimSpace(s string) string {
+	start := 0
+	end := len(s)
+	for start < end && (s[start] == ' ' || s[start] == '\t' || s[start] == '\r' || s[start] == '\n') {
+		start++
+	}
+	for end > start && (s[end-1] == ' ' || s[end-1] == '\t' || s[end-1] == '\r' || s[end-1] == '\n') {
+		end--
+	}
+	return s[start:end]
+}
+
+// trimSuffix removes a suffix from a string
+func trimSuffix(s, suffix string) string {
+	if len(s) >= len(suffix) && s[len(s)-len(suffix):] == suffix {
+		return s[:len(s)-len(suffix)]
+	}
+	return s
+}
+
+// hasPrefix checks if string has prefix
+func hasPrefix(s, prefix string) bool {
+	return len(s) >= len(prefix) && s[:len(prefix)] == prefix
+}
+
+// hasSuffix checks if string has suffix
+func hasSuffix(s, suffix string) bool {
+	return len(s) >= len(suffix) && s[len(s)-len(suffix):] == suffix
+}
+
+// toLower converts to lowercase
+func toLower(s string) string {
+	result := make([]byte, len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c >= 'A' && c <= 'Z' {
+			c += 'a' - 'A'
+		}
+		result[i] = c
+	}
+	return string(result)
+}
+
+// extractHeaderParam extracts a parameter from a header line
+func extractHeaderParam(line, param string) string {
+	search := param + `="`
+	idx := -1
+	lineLower := toLower(line)
+	searchLower := toLower(search)
+
+	for i := 0; i <= len(lineLower)-len(searchLower); i++ {
+		if lineLower[i:i+len(searchLower)] == searchLower {
+			idx = i
+			break
+		}
+	}
+
+	if idx >= 0 {
+		rest := line[idx+len(search):]
+		for i := 0; i < len(rest); i++ {
+			if rest[i] == '"' {
+				return rest[:i]
+			}
+		}
+	}
+
+	// Try without quotes
+	search = param + "="
+	searchLower = toLower(search)
+	for i := 0; i <= len(lineLower)-len(searchLower); i++ {
+		if lineLower[i:i+len(searchLower)] == searchLower {
+			idx = i
+			break
+		}
+	}
+
+	if idx >= 0 {
+		rest := line[idx+len(search):]
+		end := len(rest)
+		for i := 0; i < len(rest); i++ {
+			if rest[i] == ';' || rest[i] == ' ' {
+				end = i
+				break
+			}
+		}
+		return trimSpace(rest[:end])
+	}
+
+	return ""
+}
+
+// urlDecode decodes a URL-encoded string
+func urlDecode(s string) string {
+	result := make([]byte, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c == '+' {
+			result = append(result, ' ')
+		} else if c == '%' && i+2 < len(s) {
+			h1 := hexValue(s[i+1])
+			h2 := hexValue(s[i+2])
+			if h1 >= 0 && h2 >= 0 {
+				result = append(result, byte(h1<<4|h2))
+				i += 2
+			} else {
+				result = append(result, c)
+			}
+		} else {
+			result = append(result, c)
+		}
+	}
+	return string(result)
+}
+
+// hexValue returns the value of a hex digit, or -1 if invalid
+func hexValue(c byte) int {
+	switch {
+	case c >= '0' && c <= '9':
+		return int(c - '0')
+	case c >= 'a' && c <= 'f':
+		return int(c - 'a' + 10)
+	case c >= 'A' && c <= 'F':
+		return int(c - 'A' + 10)
+	default:
+		return -1
+	}
+}
+
+// guessMimeType guesses MIME type from filename extension
+func guessMimeType(filename string) string {
+	ext := ""
+	for i := len(filename) - 1; i >= 0; i-- {
+		if filename[i] == '.' {
+			ext = toLower(filename[i+1:])
+			break
+		}
+	}
+
+	switch ext {
+	// Text
+	case "html", "htm":
+		return "text/html"
+	case "css":
+		return "text/css"
+	case "js", "mjs":
+		return "text/javascript"
+	case "json":
+		return "application/json"
+	case "xml":
+		return "application/xml"
+	case "txt":
+		return "text/plain"
+	case "csv":
+		return "text/csv"
+	case "md":
+		return "text/markdown"
+	case "yaml", "yml":
+		return "application/yaml"
+
+	// Images
+	case "png":
+		return "image/png"
+	case "jpg", "jpeg":
+		return "image/jpeg"
+	case "gif":
+		return "image/gif"
+	case "svg":
+		return "image/svg+xml"
+	case "webp":
+		return "image/webp"
+	case "ico":
+		return "image/x-icon"
+	case "bmp":
+		return "image/bmp"
+
+	// Audio/Video
+	case "mp3":
+		return "audio/mpeg"
+	case "wav":
+		return "audio/wav"
+	case "mp4":
+		return "video/mp4"
+	case "webm":
+		return "video/webm"
+
+	// Documents
+	case "pdf":
+		return "application/pdf"
+	case "doc":
+		return "application/msword"
+	case "docx":
+		return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+	case "xls":
+		return "application/vnd.ms-excel"
+	case "xlsx":
+		return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+	// Archives
+	case "zip":
+		return "application/zip"
+	case "tar":
+		return "application/x-tar"
+	case "gz", "gzip":
+		return "application/gzip"
+
+	// Fonts
+	case "woff":
+		return "font/woff"
+	case "woff2":
+		return "font/woff2"
+	case "ttf":
+		return "font/ttf"
+	case "otf":
+		return "font/otf"
+
+	// Other
+	case "wasm":
+		return "application/wasm"
+	default:
+		return "application/octet-stream"
+	}
+}
+
+// =============================================================================
 // Lifecycle Hooks
 // =============================================================================
 
