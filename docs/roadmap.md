@@ -2562,8 +2562,8 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 | --------------------- | ---- | ------ | ---------- | --- | --- | ----- |
 | **Core Features**     |      |        |            |     |     |       |
 | HTTP server           | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
-| Sub-routers           | ✅   | ✅     | ❌         | ❌  | ❌  | A15.1 |
-| Lifecycle hooks       | ✅   | ✅     | ❌         | ❌  | ❌  | A15.1 |
+| Sub-routers           | ✅   | ✅     | ✅         | ❌  | ❌  | A15.1 |
+| Lifecycle hooks       | ✅   | ✅     | ✅         | ❌  | ❌  | A15.1 |
 | Health probes         | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
 | **Extractors**        |      |        |            |     |     |       |
 | JSON body             | ✅   | ✅     | ✅         | ✅  | ✅  | A13   |
@@ -2596,7 +2596,7 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 ### Phase A15.1: Core Binding Features (Week 79)
 
 > **Goal**: Sub-routers and lifecycle hooks for all bindings
-> **Status**: 🔄 IN PROGRESS - Python complete
+> **Status**: 🔄 IN PROGRESS - Python and TypeScript complete
 
 #### Python Bindings ✅ COMPLETE
 
@@ -2606,11 +2606,13 @@ With Phase A14 complete, Rust has many features that our bindings don't expose y
 - [x] Update python-native example
 - [x] Tests: 123 total (7 router + 4 lifecycle)
 
-#### TypeScript Bindings 📋 PLANNED
+#### TypeScript Bindings ✅ COMPLETE
 
-- [ ] Add `Router.nest()`, `Router.prefix()`, `Router.tag()`, `Router.merge()`
-- [ ] Add `onStartup()`, `onShutdown()` lifecycle methods
-- [ ] Update typescript-native example
+- [x] Add `Router.nest()`, `Router.prefix()`, `Router.tag()`, `Router.merge()`
+- [x] Add `onStartup()`, `onShutdown()` lifecycle methods
+- [x] Add `Lifecycle` class with startup/shutdown hook management
+- [x] Update typescript-native example
+- [x] Tests: 120 total (19 router + 13 lifecycle)
 
 #### C++ Bindings 📋 PLANNED
 

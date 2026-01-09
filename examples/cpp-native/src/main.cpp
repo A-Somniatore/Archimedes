@@ -3,6 +3,12 @@
  *
  * This example demonstrates using Archimedes C++ bindings directly
  * (no sidecar required).
+ *
+ * Features demonstrated:
+ * - Contract-first API
+ * - Built-in middleware
+ * - Sub-routers with prefix and tag
+ * - Lifecycle hooks (startup/shutdown)
  */
 
 #include <archimedes/archimedes.hpp>
@@ -180,6 +186,32 @@ int main(int argc, char* argv[]) {
         App app{config};
 
         // =====================================================================
+        // Lifecycle Hooks
+        // =====================================================================
+        
+        // Startup hooks run in registration order
+        app.on_startup("database_init", [&db]() {
+            std::cout << "[Lifecycle] Initializing database connection...\n";
+            // In a real app: db.connect();
+        });
+
+        app.on_startup("cache_warmup", []() {
+            std::cout << "[Lifecycle] Warming up cache...\n";
+            // In a real app: cache.warmup();
+        });
+
+        // Shutdown hooks run in reverse order (LIFO)
+        app.on_shutdown("metrics_flush", []() {
+            std::cout << "[Lifecycle] Flushing metrics...\n";
+            // In a real app: metrics.flush();
+        });
+
+        app.on_shutdown("database_close", []() {
+            std::cout << "[Lifecycle] Closing database connection...\n";
+            // In a real app: db.disconnect();
+        });
+
+        // =====================================================================
         // Health Check
         // =====================================================================
         app.operation("healthCheck", [](const Request& req) {
@@ -277,6 +309,24 @@ int main(int argc, char* argv[]) {
 
             return response::no_content();
         });
+
+        // =====================================================================
+        // Admin Router (sub-router example)
+        // =====================================================================
+        auto admin_router = Router{}
+            .prefix("/admin")
+            .tag("admin")
+            .tag("internal");
+
+        admin_router.operation("getStats", [&db](const Request& req) {
+            auto users = db.list();
+            std::ostringstream ss;
+            ss << R"({"total_users":)" << users.size() << "}";
+            return Response::json_raw(ss.str());
+        });
+
+        // Merge admin router into main app
+        app.merge(admin_router);
 
         // =====================================================================
         // Start Server

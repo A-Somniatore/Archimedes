@@ -70,8 +70,10 @@ mod app;
 mod config;
 mod error;
 mod handler;
+mod lifecycle;
 mod request;
 mod response;
+mod router;
 mod runtime;
 mod types;
 
@@ -82,6 +84,20 @@ pub use app::{
 };
 pub use config::ArchimedesConfig;
 pub use error::FfiError;
+pub use lifecycle::{
+    archimedes_lifecycle_clear, archimedes_lifecycle_free, archimedes_lifecycle_has_shutdown,
+    archimedes_lifecycle_has_startup, archimedes_lifecycle_new, archimedes_lifecycle_on_shutdown,
+    archimedes_lifecycle_on_startup, archimedes_lifecycle_run_shutdown,
+    archimedes_lifecycle_run_startup, archimedes_lifecycle_shutdown_count,
+    archimedes_lifecycle_startup_count, ArchimedesLifecycle, ArchimedesLifecycleHook,
+};
+pub use router::{
+    archimedes_router_count, archimedes_router_free, archimedes_router_get_prefix,
+    archimedes_router_merge, archimedes_router_nest, archimedes_router_nested_count,
+    archimedes_router_new, archimedes_router_operation_count, archimedes_router_prefix,
+    archimedes_router_register, archimedes_router_tag, archimedes_router_tag_count,
+    ArchimedesRouter,
+};
 pub use types::{
     ArchimedesAsyncCallback, ArchimedesError, ArchimedesHandlerFn, ArchimedesRequestContext,
     ArchimedesResponseData,
