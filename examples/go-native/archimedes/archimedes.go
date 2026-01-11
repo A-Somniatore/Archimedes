@@ -59,6 +59,7 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
+	"strings"
 	"sync"
 	"unsafe"
 )
@@ -1440,3 +1441,820 @@ func go_handler_callback(
 
 	return response
 }
+
+// =============================================================================
+// CORS Configuration
+// =============================================================================
+
+// CorsConfig configures CORS (Cross-Origin Resource Sharing) middleware.
+type CorsConfig struct {
+	allowedOrigins   map[string]bool
+	allowAnyOrigin   bool
+	allowedMethods   map[string]bool
+	allowedHeaders   map[string]bool
+	exposedHeaders   map[string]bool
+	allowCredentials bool
+	maxAgeSeconds    uint32
+}
+
+// NewCorsConfig creates a new CORS configuration with sensible defaults.
+func NewCorsConfig() *CorsConfig {
+	return &CorsConfig{
+		allowedOrigins:   make(map[string]bool),
+		allowAnyOrigin:   false,
+		allowedMethods:   map[string]bool{"GET": true, "HEAD": true, "POST": true, "PUT": true, "DELETE": true, "PATCH": true},
+		allowedHeaders:   map[string]bool{"content-type": true, "authorization": true, "x-request-id": true},
+		exposedHeaders:   make(map[string]bool),
+		allowCredentials: false,
+		maxAgeSeconds:    3600,
+	}
+}
+
+// AllowAnyOrigin allows requests from any origin.
+func (c *CorsConfig) AllowAnyOrigin() *CorsConfig {
+	c.allowAnyOrigin = true
+	return c
+}
+
+// AllowOrigin adds an allowed origin.
+func (c *CorsConfig) AllowOrigin(origin string) *CorsConfig {
+	c.allowedOrigins[origin] = true
+	return c
+}
+
+// AllowOrigins adds multiple allowed origins.
+func (c *CorsConfig) AllowOrigins(origins []string) *CorsConfig {
+	for _, o := range origins {
+		c.allowedOrigins[o] = true
+	}
+	return c
+}
+
+// AllowMethod adds an allowed HTTP method.
+func (c *CorsConfig) AllowMethod(method string) *CorsConfig {
+	c.allowedMethods[method] = true
+	return c
+}
+
+// AllowMethods sets the allowed HTTP methods.
+func (c *CorsConfig) AllowMethods(methods []string) *CorsConfig {
+	c.allowedMethods = make(map[string]bool)
+	for _, m := range methods {
+		c.allowedMethods[m] = true
+	}
+	return c
+}
+
+// AllowHeader adds an allowed request header.
+func (c *CorsConfig) AllowHeader(header string) *CorsConfig {
+	c.allowedHeaders[header] = true
+	return c
+}
+
+// AllowHeaders sets the allowed request headers.
+func (c *CorsConfig) AllowHeaders(headers []string) *CorsConfig {
+	c.allowedHeaders = make(map[string]bool)
+	for _, h := range headers {
+		c.allowedHeaders[h] = true
+	}
+	return c
+}
+
+// ExposeHeader adds a header to expose to the browser.
+func (c *CorsConfig) ExposeHeader(header string) *CorsConfig {
+	c.exposedHeaders[header] = true
+	return c
+}
+
+// AllowCredentials sets whether credentials are allowed.
+func (c *CorsConfig) AllowCredentials(allow bool) *CorsConfig {
+	c.allowCredentials = allow
+	return c
+}
+
+// MaxAge sets the max age for preflight cache (in seconds).
+func (c *CorsConfig) MaxAge(seconds uint32) *CorsConfig {
+	c.maxAgeSeconds = seconds
+	return c
+}
+
+// IsOriginAllowed checks if an origin is allowed.
+func (c *CorsConfig) IsOriginAllowed(origin string) bool {
+	return c.allowAnyOrigin || c.allowedOrigins[origin]
+}
+
+// IsMethodAllowed checks if a method is allowed.
+func (c *CorsConfig) IsMethodAllowed(method string) bool {
+	return c.allowedMethods[method]
+}
+
+// IsHeaderAllowed checks if a header is allowed.
+func (c *CorsConfig) IsHeaderAllowed(header string) bool {
+	return c.allowedHeaders[header]
+}
+
+// GetMaxAge returns the max age in seconds.
+func (c *CorsConfig) GetMaxAge() uint32 {
+	return c.maxAgeSeconds
+}
+
+// GetAllowCredentials returns whether credentials are allowed.
+func (c *CorsConfig) GetAllowCredentials() bool {
+	return c.allowCredentials
+}
+
+// =============================================================================
+// Rate Limit Configuration
+// =============================================================================
+
+// RateLimitConfig configures rate limiting middleware.
+type RateLimitConfig struct {
+	requestsPerSecond float64
+	burstSize         uint32
+	keyExtractor      string
+	exemptPaths       map[string]bool
+	enabled           bool
+}
+
+// NewRateLimitConfig creates a new rate limit configuration with sensible defaults.
+func NewRateLimitConfig() *RateLimitConfig {
+	return &RateLimitConfig{
+		requestsPerSecond: 100.0,
+		burstSize:         10,
+		keyExtractor:      "ip",
+		exemptPaths:       map[string]bool{"/health": true, "/ready": true},
+		enabled:           true,
+	}
+}
+
+// RequestsPerSecond sets the requests per second limit.
+func (c *RateLimitConfig) RequestsPerSecond(rps float64) *RateLimitConfig {
+	c.requestsPerSecond = rps
+	return c
+}
+
+// BurstSize sets the burst size (max tokens in bucket).
+func (c *RateLimitConfig) BurstSize(size uint32) *RateLimitConfig {
+	c.burstSize = size
+	return c
+}
+
+// KeyExtractor sets the key extractor type ('ip', 'user', 'api_key', 'header:X-Custom').
+func (c *RateLimitConfig) KeyExtractor(extractor string) *RateLimitConfig {
+	c.keyExtractor = extractor
+	return c
+}
+
+// ExemptPath adds a path to exempt from rate limiting.
+func (c *RateLimitConfig) ExemptPath(path string) *RateLimitConfig {
+	c.exemptPaths[path] = true
+	return c
+}
+
+// ExemptPaths adds multiple paths to exempt from rate limiting.
+func (c *RateLimitConfig) ExemptPaths(paths []string) *RateLimitConfig {
+	for _, p := range paths {
+		c.exemptPaths[p] = true
+	}
+	return c
+}
+
+// Enabled enables or disables rate limiting.
+func (c *RateLimitConfig) Enabled(enabled bool) *RateLimitConfig {
+	c.enabled = enabled
+	return c
+}
+
+// IsPathExempt checks if a path is exempt from rate limiting.
+func (c *RateLimitConfig) IsPathExempt(path string) bool {
+	return c.exemptPaths[path]
+}
+
+// GetRequestsPerSecond returns the requests per second limit.
+func (c *RateLimitConfig) GetRequestsPerSecond() float64 {
+	return c.requestsPerSecond
+}
+
+// GetBurstSize returns the burst size.
+func (c *RateLimitConfig) GetBurstSize() uint32 {
+	return c.burstSize
+}
+
+// GetKeyExtractor returns the key extractor type.
+func (c *RateLimitConfig) GetKeyExtractor() string {
+	return c.keyExtractor
+}
+
+// IsEnabled returns whether rate limiting is enabled.
+func (c *RateLimitConfig) IsEnabled() bool {
+	return c.enabled
+}
+
+// =============================================================================
+// Compression Configuration
+// =============================================================================
+
+// CompressionAlgorithm represents a compression algorithm.
+type CompressionAlgorithm int
+
+const (
+	CompressionGzip CompressionAlgorithm = iota
+	CompressionBrotli
+	CompressionDeflate
+	CompressionZstd
+)
+
+// CompressionConfig configures compression middleware.
+type CompressionConfig struct {
+	enableGzip      bool
+	enableBrotli    bool
+	enableDeflate   bool
+	enableZstd      bool
+	minSizeBytes    uint32
+	compressionLevel uint32
+	contentTypes    map[string]bool
+}
+
+// NewCompressionConfig creates a new compression configuration with sensible defaults.
+func NewCompressionConfig() *CompressionConfig {
+	return &CompressionConfig{
+		enableGzip:      true,
+		enableBrotli:    true,
+		enableDeflate:   false,
+		enableZstd:      false,
+		minSizeBytes:    860,
+		compressionLevel: 4,
+		contentTypes: map[string]bool{
+			"text/html":              true,
+			"text/css":               true,
+			"text/plain":             true,
+			"text/xml":               true,
+			"text/javascript":        true,
+			"application/javascript": true,
+			"application/json":       true,
+			"application/xml":        true,
+			"image/svg+xml":          true,
+		},
+	}
+}
+
+// EnableGzip enables or disables gzip compression.
+func (c *CompressionConfig) EnableGzip(enable bool) *CompressionConfig {
+	c.enableGzip = enable
+	return c
+}
+
+// EnableBrotli enables or disables Brotli compression.
+func (c *CompressionConfig) EnableBrotli(enable bool) *CompressionConfig {
+	c.enableBrotli = enable
+	return c
+}
+
+// EnableDeflate enables or disables deflate compression.
+func (c *CompressionConfig) EnableDeflate(enable bool) *CompressionConfig {
+	c.enableDeflate = enable
+	return c
+}
+
+// EnableZstd enables or disables Zstandard compression.
+func (c *CompressionConfig) EnableZstd(enable bool) *CompressionConfig {
+	c.enableZstd = enable
+	return c
+}
+
+// MinSize sets the minimum response size to compress (in bytes).
+func (c *CompressionConfig) MinSize(bytes uint32) *CompressionConfig {
+	c.minSizeBytes = bytes
+	return c
+}
+
+// Level sets the compression level (1-9, higher = better compression but slower).
+func (c *CompressionConfig) Level(level uint32) *CompressionConfig {
+	if level < 1 {
+		level = 1
+	}
+	if level > 9 {
+		level = 9
+	}
+	c.compressionLevel = level
+	return c
+}
+
+// AddContentType adds a content type to compress.
+func (c *CompressionConfig) AddContentType(contentType string) *CompressionConfig {
+	c.contentTypes[contentType] = true
+	return c
+}
+
+// ContentTypes sets the content types to compress.
+func (c *CompressionConfig) ContentTypes(types []string) *CompressionConfig {
+	c.contentTypes = make(map[string]bool)
+	for _, t := range types {
+		c.contentTypes[t] = true
+	}
+	return c
+}
+
+// IsGzipEnabled returns whether gzip is enabled.
+func (c *CompressionConfig) IsGzipEnabled() bool {
+	return c.enableGzip
+}
+
+// IsBrotliEnabled returns whether Brotli is enabled.
+func (c *CompressionConfig) IsBrotliEnabled() bool {
+	return c.enableBrotli
+}
+
+// IsDeflateEnabled returns whether deflate is enabled.
+func (c *CompressionConfig) IsDeflateEnabled() bool {
+	return c.enableDeflate
+}
+
+// IsZstdEnabled returns whether Zstandard is enabled.
+func (c *CompressionConfig) IsZstdEnabled() bool {
+	return c.enableZstd
+}
+
+// GetMinSize returns the minimum size threshold.
+func (c *CompressionConfig) GetMinSize() uint32 {
+	return c.minSizeBytes
+}
+
+// GetLevel returns the compression level.
+func (c *CompressionConfig) GetLevel() uint32 {
+	return c.compressionLevel
+}
+
+// ShouldCompress checks if a content type should be compressed.
+func (c *CompressionConfig) ShouldCompress(contentType string) bool {
+	// Check exact match
+	if c.contentTypes[contentType] {
+		return true
+	}
+	// Check prefix match (e.g., "text/html; charset=utf-8")
+	for ct := range c.contentTypes {
+		if len(contentType) > len(ct) && contentType[:len(ct)+1] == ct+";" {
+			return true
+		}
+	}
+	return false
+}
+
+// GetEnabledAlgorithms returns enabled algorithms as strings.
+func (c *CompressionConfig) GetEnabledAlgorithms() []string {
+	var algos []string
+	if c.enableBrotli {
+		algos = append(algos, "br")
+	}
+	if c.enableGzip {
+		algos = append(algos, "gzip")
+	}
+	if c.enableDeflate {
+		algos = append(algos, "deflate")
+	}
+	if c.enableZstd {
+		algos = append(algos, "zstd")
+	}
+	return algos
+}
+
+// =============================================================================
+// Static Files Configuration
+// =============================================================================
+
+// StaticFilesConfig configures static file serving middleware.
+type StaticFilesConfig struct {
+	directory            string
+	prefix               string
+	indexFile            string
+	cacheMaxAgeSeconds   uint32
+	enablePrecompressed  bool
+	fallbackFile         string
+}
+
+// NewStaticFilesConfig creates a new static files configuration with sensible defaults.
+func NewStaticFilesConfig() *StaticFilesConfig {
+	return &StaticFilesConfig{
+		directory:            "./static",
+		prefix:               "/static",
+		indexFile:            "index.html",
+		cacheMaxAgeSeconds:   86400,
+		enablePrecompressed:  true,
+		fallbackFile:         "",
+	}
+}
+
+// Directory sets the directory to serve files from.
+func (c *StaticFilesConfig) Directory(dir string) *StaticFilesConfig {
+	c.directory = dir
+	return c
+}
+
+// Prefix sets the URL prefix for static files.
+func (c *StaticFilesConfig) Prefix(prefix string) *StaticFilesConfig {
+	if prefix != "" && prefix[0] != '/' {
+		prefix = "/" + prefix
+	}
+	c.prefix = prefix
+	return c
+}
+
+// Index sets the index file name.
+func (c *StaticFilesConfig) Index(file string) *StaticFilesConfig {
+	c.indexFile = file
+	return c
+}
+
+// CacheMaxAge sets the cache max age in seconds.
+func (c *StaticFilesConfig) CacheMaxAge(seconds uint32) *StaticFilesConfig {
+	c.cacheMaxAgeSeconds = seconds
+	return c
+}
+
+// Precompressed enables or disables serving precompressed files (.gz, .br).
+func (c *StaticFilesConfig) Precompressed(enable bool) *StaticFilesConfig {
+	c.enablePrecompressed = enable
+	return c
+}
+
+// Fallback sets a fallback file for SPA routing.
+func (c *StaticFilesConfig) Fallback(file string) *StaticFilesConfig {
+	c.fallbackFile = file
+	return c
+}
+
+// GetDirectory returns the directory path.
+func (c *StaticFilesConfig) GetDirectory() string {
+	return c.directory
+}
+
+// GetPrefix returns the URL prefix.
+func (c *StaticFilesConfig) GetPrefix() string {
+	return c.prefix
+}
+
+// GetIndex returns the index file name.
+func (c *StaticFilesConfig) GetIndex() string {
+	return c.indexFile
+}
+
+// GetCacheMaxAge returns the cache max age in seconds.
+func (c *StaticFilesConfig) GetCacheMaxAge() uint32 {
+	return c.cacheMaxAgeSeconds
+}
+
+// IsPrecompressedEnabled returns whether precompressed files are enabled.
+func (c *StaticFilesConfig) IsPrecompressedEnabled() bool {
+	return c.enablePrecompressed
+}
+
+// GetFallback returns the fallback file if set.
+func (c *StaticFilesConfig) GetFallback() string {
+	return c.fallbackFile
+}
+
+// ResolvePath resolves a request path to a file path.
+// Returns empty string if the path doesn't match the prefix or is invalid.
+func (c *StaticFilesConfig) ResolvePath(requestPath string) string {
+	if len(requestPath) < len(c.prefix) || requestPath[:len(c.prefix)] != c.prefix {
+		return ""
+	}
+
+	relative := requestPath[len(c.prefix):]
+	for len(relative) > 0 && relative[0] == '/' {
+		relative = relative[1:]
+	}
+
+	// Prevent directory traversal
+	if len(relative) >= 2 {
+		for i := 0; i < len(relative)-1; i++ {
+			if relative[i] == '.' && relative[i+1] == '.' {
+				return ""
+			}
+		}
+	}
+
+	if relative == "" {
+		return c.directory + "/" + c.indexFile
+	}
+	return c.directory + "/" + relative
+}
+
+// =============================================================================
+// TestClient (Phase A15.6)
+// =============================================================================
+
+// TestClient provides an HTTP client for testing Archimedes handlers.
+// It simulates HTTP requests without starting a real server.
+//
+// Example usage:
+//
+//	client := archimedes.NewTestClient(app)
+//	defer client.Close()
+//
+//	resp := client.Get("/users/123")
+//	resp.AssertStatus(200).
+//	    AssertContentType("application/json").
+//	    AssertBodyContains("john")
+type TestClient struct {
+	app            *App
+	defaultHeaders map[string]string
+}
+
+// NewTestClient creates a test client for the given app.
+func NewTestClient(app *App) *TestClient {
+	return &TestClient{
+		app:            app,
+		defaultHeaders: make(map[string]string),
+	}
+}
+
+// WithHeader adds a default header to all requests.
+func (c *TestClient) WithHeader(name, value string) *TestClient {
+	c.defaultHeaders[name] = value
+	return c
+}
+
+// WithBearerToken sets the Authorization header to use a bearer token.
+func (c *TestClient) WithBearerToken(token string) *TestClient {
+	c.defaultHeaders["Authorization"] = "Bearer " + token
+	return c
+}
+
+// Get performs a GET request.
+func (c *TestClient) Get(path string) *TestResponse {
+	return c.request("GET", path, nil)
+}
+
+// Post performs a POST request with a body.
+func (c *TestClient) Post(path string, body []byte) *TestResponse {
+	return c.request("POST", path, body)
+}
+
+// PostJSON performs a POST request with a JSON body.
+func (c *TestClient) PostJSON(path string, data interface{}) *TestResponse {
+	body, err := json.Marshal(data)
+	if err != nil {
+		return &TestResponse{
+			statusCode: 0,
+			headers:    make(map[string]string),
+			body:       []byte{},
+			err:        fmt.Errorf("failed to marshal JSON: %w", err),
+		}
+	}
+	c.defaultHeaders["Content-Type"] = "application/json"
+	resp := c.request("POST", path, body)
+	delete(c.defaultHeaders, "Content-Type")
+	return resp
+}
+
+// Put performs a PUT request with a body.
+func (c *TestClient) Put(path string, body []byte) *TestResponse {
+	return c.request("PUT", path, body)
+}
+
+// PutJSON performs a PUT request with a JSON body.
+func (c *TestClient) PutJSON(path string, data interface{}) *TestResponse {
+	body, err := json.Marshal(data)
+	if err != nil {
+		return &TestResponse{
+			statusCode: 0,
+			headers:    make(map[string]string),
+			body:       []byte{},
+			err:        fmt.Errorf("failed to marshal JSON: %w", err),
+		}
+	}
+	c.defaultHeaders["Content-Type"] = "application/json"
+	resp := c.request("PUT", path, body)
+	delete(c.defaultHeaders, "Content-Type")
+	return resp
+}
+
+// Patch performs a PATCH request with a body.
+func (c *TestClient) Patch(path string, body []byte) *TestResponse {
+	return c.request("PATCH", path, body)
+}
+
+// PatchJSON performs a PATCH request with a JSON body.
+func (c *TestClient) PatchJSON(path string, data interface{}) *TestResponse {
+	body, err := json.Marshal(data)
+	if err != nil {
+		return &TestResponse{
+			statusCode: 0,
+			headers:    make(map[string]string),
+			body:       []byte{},
+			err:        fmt.Errorf("failed to marshal JSON: %w", err),
+		}
+	}
+	c.defaultHeaders["Content-Type"] = "application/json"
+	resp := c.request("PATCH", path, body)
+	delete(c.defaultHeaders, "Content-Type")
+	return resp
+}
+
+// Delete performs a DELETE request.
+func (c *TestClient) Delete(path string) *TestResponse {
+	return c.request("DELETE", path, nil)
+}
+
+// Options performs an OPTIONS request.
+func (c *TestClient) Options(path string) *TestResponse {
+	return c.request("OPTIONS", path, nil)
+}
+
+// Head performs a HEAD request.
+func (c *TestClient) Head(path string) *TestResponse {
+	return c.request("HEAD", path, nil)
+}
+
+// request performs an HTTP request (mock implementation).
+// TODO: Integrate with actual FFI test_client when available
+func (c *TestClient) request(method, path string, body []byte) *TestResponse {
+	// This is a mock implementation until the FFI TestClient is integrated.
+	// For now, we return a placeholder response.
+	// In a real implementation, this would call the FFI functions:
+	// C.archimedes_test_client_request(...)
+	return &TestResponse{
+		statusCode: 200,
+		headers:    make(map[string]string),
+		body:       []byte(`{"status":"mock_response"}`),
+	}
+}
+
+// Close releases resources associated with the test client.
+func (c *TestClient) Close() {
+	c.defaultHeaders = nil
+}
+
+// TestResponse represents an HTTP response from TestClient.
+type TestResponse struct {
+	statusCode int
+	headers    map[string]string
+	body       []byte
+	err        error
+}
+
+// StatusCode returns the HTTP status code.
+func (r *TestResponse) StatusCode() int {
+	return r.statusCode
+}
+
+// Headers returns all response headers.
+func (r *TestResponse) Headers() map[string]string {
+	return r.headers
+}
+
+// Header returns a specific header value (case-insensitive).
+func (r *TestResponse) Header(name string) string {
+	// Try exact match first
+	if val, ok := r.headers[name]; ok {
+		return val
+	}
+	// Try case-insensitive match
+	lower := strings.ToLower(name)
+	for k, v := range r.headers {
+		if strings.ToLower(k) == lower {
+			return v
+		}
+	}
+	return ""
+}
+
+// Body returns the raw response body.
+func (r *TestResponse) Body() []byte {
+	return r.body
+}
+
+// Text returns the response body as a string.
+func (r *TestResponse) Text() string {
+	return string(r.body)
+}
+
+// JSON unmarshals the response body into the given value.
+func (r *TestResponse) JSON(v interface{}) error {
+	return json.Unmarshal(r.body, v)
+}
+
+// IsSuccess returns true if status is 2xx.
+func (r *TestResponse) IsSuccess() bool {
+	return r.statusCode >= 200 && r.statusCode < 300
+}
+
+// IsClientError returns true if status is 4xx.
+func (r *TestResponse) IsClientError() bool {
+	return r.statusCode >= 400 && r.statusCode < 500
+}
+
+// IsServerError returns true if status is 5xx.
+func (r *TestResponse) IsServerError() bool {
+	return r.statusCode >= 500 && r.statusCode < 600
+}
+
+// Error returns any error that occurred during the request.
+func (r *TestResponse) Error() error {
+	return r.err
+}
+
+// AssertStatus asserts the response has the expected status code.
+// Returns the response for chaining.
+func (r *TestResponse) AssertStatus(expected int) *TestResponse {
+	if r.statusCode != expected {
+		panic(fmt.Sprintf("expected status %d, got %d", expected, r.statusCode))
+	}
+	return r
+}
+
+// AssertSuccess asserts the response has a 2xx status code.
+// Returns the response for chaining.
+func (r *TestResponse) AssertSuccess() *TestResponse {
+	if !r.IsSuccess() {
+		panic(fmt.Sprintf("expected success status (2xx), got %d", r.statusCode))
+	}
+	return r
+}
+
+// AssertHeader asserts a header has the expected value.
+// Returns the response for chaining.
+func (r *TestResponse) AssertHeader(name, expected string) *TestResponse {
+	actual := r.Header(name)
+	if actual != expected {
+		panic(fmt.Sprintf("expected header %q to be %q, got %q", name, expected, actual))
+	}
+	return r
+}
+
+// AssertContentType asserts the Content-Type header matches.
+// Returns the response for chaining.
+func (r *TestResponse) AssertContentType(expected string) *TestResponse {
+	return r.AssertHeader("Content-Type", expected)
+}
+
+// AssertBodyContains asserts the body contains the expected substring.
+// Returns the response for chaining.
+func (r *TestResponse) AssertBodyContains(expected string) *TestResponse {
+	if !strings.Contains(string(r.body), expected) {
+		panic(fmt.Sprintf("expected body to contain %q, got %q", expected, string(r.body)))
+	}
+	return r
+}
+
+// AssertBodyEquals asserts the body exactly matches the expected string.
+// Returns the response for chaining.
+func (r *TestResponse) AssertBodyEquals(expected string) *TestResponse {
+	if string(r.body) != expected {
+		panic(fmt.Sprintf("expected body %q, got %q", expected, string(r.body)))
+	}
+	return r
+}
+
+// AssertJSON asserts the body matches the expected JSON value.
+// Returns the response for chaining.
+func (r *TestResponse) AssertJSON(expected interface{}) *TestResponse {
+	expectedJSON, err := json.Marshal(expected)
+	if err != nil {
+		panic(fmt.Sprintf("failed to marshal expected JSON: %v", err))
+	}
+	// Compare as normalized JSON
+	var expectedVal, actualVal interface{}
+	if err := json.Unmarshal(expectedJSON, &expectedVal); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal expected JSON: %v", err))
+	}
+	if err := json.Unmarshal(r.body, &actualVal); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal actual JSON: %v", err))
+	}
+	if !jsonEqual(expectedVal, actualVal) {
+		panic(fmt.Sprintf("expected JSON %s, got %s", string(expectedJSON), string(r.body)))
+	}
+	return r
+}
+
+// jsonEqual recursively compares two JSON values.
+func jsonEqual(a, b interface{}) bool {
+	switch aVal := a.(type) {
+	case map[string]interface{}:
+		bVal, ok := b.(map[string]interface{})
+		if !ok || len(aVal) != len(bVal) {
+			return false
+		}
+		for k, v := range aVal {
+			if !jsonEqual(v, bVal[k]) {
+				return false
+			}
+		}
+		return true
+	case []interface{}:
+		bVal, ok := b.([]interface{})
+		if !ok || len(aVal) != len(bVal) {
+			return false
+		}
+		for i, v := range aVal {
+			if !jsonEqual(v, bVal[i]) {
+				return false
+			}
+		}
+		return true
+	default:
+		return a == b
+	}
+}
+
