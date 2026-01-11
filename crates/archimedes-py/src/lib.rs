@@ -36,28 +36,39 @@ mod authz;
 mod config;
 mod context;
 mod error;
+mod extractors;
 mod handlers;
 mod lifecycle;
 mod middleware;
+mod middleware_config;
 mod response;
 mod router;
 mod server;
 mod telemetry;
+mod test_client;
 mod validation;
 
 pub use authz::{PyAuthorizer, PyPolicyDecision};
 pub use config::PyConfig;
 pub use context::{PyIdentity, PyRequestContext};
 pub use error::PyArchimedesError;
+pub use extractors::{
+    PyCookies, PyForm, PyMultipart, PyMultipartField, PySameSite, PySetCookie, PyUploadedFile,
+};
 pub use handlers::HandlerRegistry;
 pub use lifecycle::{PyLifecycle, ShutdownDecorator, StartupDecorator};
 pub use middleware::{
     add_response_headers, process_request, request_duration_ms, MiddlewareResult,
 };
-pub use response::PyResponse;
+pub use middleware_config::{
+    PyCompressionAlgorithm, PyCompressionConfig, PyCorsConfig, PyRateLimitConfig,
+    PyStaticFilesConfig,
+};
+pub use response::{PyFileResponse, PyResponse};
 pub use router::PyRouter;
 pub use server::{PyServer, ServerError};
 pub use telemetry::{py_record_request, py_render_metrics, PyTelemetry, PyTelemetryConfig};
+pub use test_client::{PyTestClient, PyTestResponse};
 pub use validation::{PyOperationResolution, PySentinel, PyValidationError, PyValidationResult};
 
 /// Archimedes application instance
@@ -366,6 +377,23 @@ fn archimedes_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyRequestContext>()?;
     m.add_class::<PyIdentity>()?;
     m.add_class::<PyResponse>()?;
+    m.add_class::<PyFileResponse>()?;
+
+    // Extractors
+    m.add_class::<PyForm>()?;
+    m.add_class::<PyCookies>()?;
+    m.add_class::<PySetCookie>()?;
+    m.add_class::<PySameSite>()?;
+    m.add_class::<PyMultipart>()?;
+    m.add_class::<PyMultipartField>()?;
+    m.add_class::<PyUploadedFile>()?;
+
+    // Middleware configuration classes
+    m.add_class::<PyCorsConfig>()?;
+    m.add_class::<PyRateLimitConfig>()?;
+    m.add_class::<PyCompressionConfig>()?;
+    m.add_class::<PyCompressionAlgorithm>()?;
+    m.add_class::<PyStaticFilesConfig>()?;
 
     // Authorization classes
     m.add_class::<PyAuthorizer>()?;
@@ -379,6 +407,10 @@ fn archimedes_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // Router classes
     m.add_class::<PyRouter>()?;
+
+    // Test utilities
+    m.add_class::<PyTestClient>()?;
+    m.add_class::<PyTestResponse>()?;
 
     // Lifecycle decorators
     m.add_class::<StartupDecorator>()?;

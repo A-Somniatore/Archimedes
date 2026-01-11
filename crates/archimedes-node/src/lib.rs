@@ -64,10 +64,12 @@ mod extractors;
 mod handlers;
 mod lifecycle;
 mod middleware;
+mod middleware_config;
 mod response;
 mod router;
 mod server;
 mod telemetry;
+mod test_client;
 mod validation;
 
 pub use authz::{Authorizer, AuthzInput, PolicyDecision};
@@ -87,10 +89,14 @@ pub use middleware::{
     default_middleware_config, get_middleware_summary, normalize_error_response_header,
     MiddlewareConfig, MiddlewareResultJs,
 };
+pub use middleware_config::{
+    CompressionAlgorithm, CompressionConfig, CorsConfig, RateLimitConfig, StaticFilesConfig,
+};
 pub use response::Response;
 pub use router::{create_route_info, RouteInfo, Router};
 pub use server::Server;
 pub use telemetry::{Telemetry, TelemetryConfig};
+pub use test_client::{TestClient, TestResponse};
 pub use validation::{OperationResolution, Sentinel, ValidationError, ValidationResult};
 
 /// Package version

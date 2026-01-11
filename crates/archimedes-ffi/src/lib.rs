@@ -72,10 +72,12 @@ mod error;
 mod extractors;
 mod handler;
 mod lifecycle;
+mod middleware_config;
 mod request;
 mod response;
 mod router;
 mod runtime;
+mod test_client;
 mod types;
 
 // Public re-exports for FFI consumers
@@ -91,6 +93,35 @@ pub use lifecycle::{
     archimedes_lifecycle_on_startup, archimedes_lifecycle_run_shutdown,
     archimedes_lifecycle_run_startup, archimedes_lifecycle_shutdown_count,
     archimedes_lifecycle_startup_count, ArchimedesLifecycle, ArchimedesLifecycleHook,
+};
+pub use middleware_config::{
+    archimedes_compression_config_add_content_type, archimedes_compression_config_brotli,
+    archimedes_compression_config_deflate, archimedes_compression_config_free,
+    archimedes_compression_config_get_level, archimedes_compression_config_get_min_size,
+    archimedes_compression_config_gzip, archimedes_compression_config_is_brotli,
+    archimedes_compression_config_is_gzip, archimedes_compression_config_level,
+    archimedes_compression_config_min_size, archimedes_compression_config_new,
+    archimedes_compression_config_should_compress, archimedes_compression_config_zstd,
+    archimedes_cors_config_allow_any_origin, archimedes_cors_config_allow_credentials,
+    archimedes_cors_config_allow_header, archimedes_cors_config_allow_method,
+    archimedes_cors_config_allow_origin, archimedes_cors_config_expose_header,
+    archimedes_cors_config_free, archimedes_cors_config_get_allow_credentials,
+    archimedes_cors_config_get_max_age, archimedes_cors_config_is_method_allowed,
+    archimedes_cors_config_is_origin_allowed, archimedes_cors_config_max_age,
+    archimedes_cors_config_new, archimedes_rate_limit_config_burst,
+    archimedes_rate_limit_config_enabled, archimedes_rate_limit_config_exempt_path,
+    archimedes_rate_limit_config_free, archimedes_rate_limit_config_get_burst,
+    archimedes_rate_limit_config_get_rps, archimedes_rate_limit_config_is_enabled,
+    archimedes_rate_limit_config_is_exempt, archimedes_rate_limit_config_key_extractor,
+    archimedes_rate_limit_config_new, archimedes_rate_limit_config_rps,
+    archimedes_static_files_config_cache_max_age, archimedes_static_files_config_directory,
+    archimedes_static_files_config_fallback, archimedes_static_files_config_free,
+    archimedes_static_files_config_get_cache_max_age, archimedes_static_files_config_index,
+    archimedes_static_files_config_is_precompressed, archimedes_static_files_config_new,
+    archimedes_static_files_config_precompressed, archimedes_static_files_config_prefix,
+    archimedes_static_files_config_resolve_path, ArchimedesCompressionAlgorithm,
+    ArchimedesCompressionConfig, ArchimedesCorsConfig, ArchimedesRateLimitConfig,
+    ArchimedesStaticFilesConfig,
 };
 pub use router::{
     archimedes_router_count, archimedes_router_free, archimedes_router_get_prefix,
@@ -111,6 +142,19 @@ pub use extractors::{
     archimedes_set_cookie_same_site, archimedes_set_cookie_secure, ArchimedesCookies,
     ArchimedesForm, ArchimedesMultipart, ArchimedesMultipartField, ArchimedesSameSite,
     ArchimedesSetCookie,
+};
+pub use test_client::{
+    archimedes_string_free, archimedes_test_client_delete, archimedes_test_client_free,
+    archimedes_test_client_get, archimedes_test_client_new, archimedes_test_client_patch,
+    archimedes_test_client_post, archimedes_test_client_put, archimedes_test_client_request,
+    archimedes_test_client_with_bearer_token, archimedes_test_client_with_header,
+    archimedes_test_response_assert_body_contains, archimedes_test_response_assert_header,
+    archimedes_test_response_assert_status, archimedes_test_response_assert_success,
+    archimedes_test_response_body, archimedes_test_response_free,
+    archimedes_test_response_get_header, archimedes_test_response_is_client_error,
+    archimedes_test_response_is_server_error, archimedes_test_response_is_success,
+    archimedes_test_response_status_code, archimedes_test_response_text, ArchimedesTestClient,
+    ArchimedesTestResponse,
 };
 pub use types::{
     ArchimedesAsyncCallback, ArchimedesError, ArchimedesHandlerFn, ArchimedesRequestContext,
