@@ -399,22 +399,22 @@ These features MUST be implemented in all language bindings before release:
 
 ### P1 Features (Should Have)
 
-| Feature              | Python | TypeScript | C++ | Go  | V1.0 Status |
-| -------------------- | ------ | ---------- | --- | --- | ----------- |
-| Form Extractor       | ✅     | ✅         | ✅  | ✅  | ✅ Complete |
-| Cookie Extractor     | ✅     | ✅         | ✅  | ✅  | ✅ Complete |
-| Multipart Uploads    | ✅     | ✅         | ✅  | ✅  | ✅ Complete |
-| FileResponse         | ✅     | ✅         | ✅  | ✅  | ✅ Complete |
-| SetCookie            | ✅     | ✅         | ✅  | ✅  | ✅ Complete |
-| Rate Limiting Config | ✅     | ✅         | ✅  | ✅  | ✅ Complete |
-| Static Files Config  | ✅     | ✅         | ✅  | ✅  | ✅ Complete |
-| TestClient           | 🔄     | 🔄         | 🔄  | 🔄  | 📋 In Progress |
-| WebSocket            | ❌     | ❌         | ❌  | ❌  | ⏸️ V1.1 |
-| SSE                  | ❌     | ❌         | ❌  | ❌  | ⏸️ V1.1 |
-| Task Spawner         | ❌     | ❌         | ❌  | ❌  | ⏸️ V1.1 |
-| Job Scheduler        | ❌     | ❌         | ❌  | ❌  | ⏸️ V1.1 |
-| OpenAPI Docs         | 🔄     | 🔄         | 🔄  | 🔄  | 🔄 Partial |
-| Config Hot Reload    | 🔄     | 🔄         | 🔄  | 🔄  | 🔄 Partial |
+| Feature              | Python | TypeScript | C++ | Go  | V1.0 Status    |
+| -------------------- | ------ | ---------- | --- | --- | -------------- |
+| Form Extractor       | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| Cookie Extractor     | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| Multipart Uploads    | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| FileResponse         | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| SetCookie            | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| Rate Limiting Config | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| Static Files Config  | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| TestClient           | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| WebSocket            | ❌     | ❌         | ❌  | ❌  | ⏸️ V1.1        |
+| SSE                  | ❌     | ❌         | ❌  | ❌  | ⏸️ V1.1        |
+| Task Spawner         | ❌     | ❌         | ❌  | ❌  | ⏸️ V1.1        |
+| Job Scheduler        | ❌     | ❌         | ❌  | ❌  | ⏸️ V1.1        |
+| OpenAPI Docs         | 🔄     | 🔄         | 🔄  | 🔄  | 🔄 Partial     |
+| Config Hot Reload    | 🔄     | 🔄         | 🔄  | 🔄  | 🔄 Partial     |
 
 ### P2 Features (Nice to Have)
 

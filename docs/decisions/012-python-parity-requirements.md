@@ -33,29 +33,29 @@ The question is: What level of feature parity should Python bindings have with R
 
 Every Python binding MUST support these features before the language is considered "complete":
 
-| Category        | Feature                    | Required |
-| --------------- | -------------------------- | -------- |
-| **Server**      | HTTP/1.1 server            | ✅       |
-| **Server**      | Graceful shutdown          | ✅       |
-| **Server**      | Health/ready endpoints     | ✅       |
-| **Handlers**    | Handler registration       | ✅       |
-| **Handlers**    | Request context            | ✅       |
-| **Handlers**    | Response builder           | ✅       |
-| **Middleware**  | Request ID generation      | ✅       |
-| **Middleware**  | Trace context propagation  | ✅       |
-| **Middleware**  | Identity extraction        | ✅       |
-| **Middleware**  | Authorization (OPA)        | ✅       |
-| **Middleware**  | Request validation         | ✅       |
-| **Middleware**  | Response validation        | ✅       |
-| **Middleware**  | Error normalization        | ✅       |
-| **Middleware**  | Telemetry collection       | ✅       |
-| **Routing**     | Contract-based routing     | ✅       |
-| **Routing**     | Path parameter extraction  | ✅       |
-| **Routing**     | Query parameter parsing    | ✅       |
-| **Config**      | YAML/JSON/TOML loading     | ✅       |
-| **Config**      | Environment overrides      | ✅       |
-| **Testing**     | Test utilities             | ✅       |
-| **Performance** | ≥2x faster than FastAPI    | ✅       |
+| Category        | Feature                   | Required |
+| --------------- | ------------------------- | -------- |
+| **Server**      | HTTP/1.1 server           | ✅       |
+| **Server**      | Graceful shutdown         | ✅       |
+| **Server**      | Health/ready endpoints    | ✅       |
+| **Handlers**    | Handler registration      | ✅       |
+| **Handlers**    | Request context           | ✅       |
+| **Handlers**    | Response builder          | ✅       |
+| **Middleware**  | Request ID generation     | ✅       |
+| **Middleware**  | Trace context propagation | ✅       |
+| **Middleware**  | Identity extraction       | ✅       |
+| **Middleware**  | Authorization (OPA)       | ✅       |
+| **Middleware**  | Request validation        | ✅       |
+| **Middleware**  | Response validation       | ✅       |
+| **Middleware**  | Error normalization       | ✅       |
+| **Middleware**  | Telemetry collection      | ✅       |
+| **Routing**     | Contract-based routing    | ✅       |
+| **Routing**     | Path parameter extraction | ✅       |
+| **Routing**     | Query parameter parsing   | ✅       |
+| **Config**      | YAML/JSON/TOML loading    | ✅       |
+| **Config**      | Environment overrides     | ✅       |
+| **Testing**     | Test utilities            | ✅       |
+| **Performance** | ≥2x faster than FastAPI   | ✅       |
 
 ### Implementation Strategy
 

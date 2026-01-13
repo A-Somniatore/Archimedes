@@ -9,30 +9,30 @@
 
 ## Implementation Status
 
-| Crate                   | Status         | Tests | Description                                                                                               |
-| ----------------------- | -------------- | ----- | --------------------------------------------------------------------------------------------------------- |
-| `archimedes`            | ✅ Complete    | -     | Main facade crate (re-exports all crates)                                                                 |
-| `archimedes-core`       | ✅ Complete    | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
-| `archimedes-server`     | ✅ Complete    | 101   | HTTP server, routing, handler registry, graceful shutdown, lifecycle hooks                                |
-| `archimedes-middleware` | ✅ Complete    | 123   | All 8 middleware stages + pipeline + CORS middleware                                                      |
-| `archimedes-telemetry`  | ✅ Complete    | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
-| `archimedes-config`     | ✅ Complete    | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
-| `archimedes-router`     | ✅ Complete    | 57    | High-performance radix tree router with method merging                                                    |
-| `archimedes-extract`    | ✅ Complete    | 109   | Request extractors, response builders, DI injection                                                       |
-| `archimedes-macros`     | ✅ Complete    | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
-| `archimedes-sentinel`   | ✅ Complete    | 38    | Themis contract integration                                                                               |
-| `archimedes-authz`      | ✅ Complete    | 26    | Eunomia/OPA integration                                                                                   |
-| `archimedes-docs`       | ✅ Complete    | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
-| `archimedes-ws`         | ✅ Complete    | 52    | WebSocket support with connection management                                                              |
-| `archimedes-sse`        | ✅ Complete    | 38    | Server-Sent Events with backpressure handling                                                             |
-| `archimedes-tasks`      | ✅ Complete    | 41    | Background task spawner and job scheduler                                                                 |
-| `archimedes-sidecar`    | ✅ Complete    | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
-| `archimedes-ffi`        | ✅ Complete    | 44    | C ABI for cross-language FFI (Phase A13.1)                                                                |
-| `archimedes-py`         | ✅ Complete    | 111   | Python bindings via PyO3 - Full Rust parity (Phase A13.2)                                                 |
-| `archimedes-node`       | ✅ Complete    | 95    | Node.js/TypeScript bindings via napi-rs (Phase A13.3)                                                     |
-| `include/archimedes/`   | ✅ Complete    | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
-| `examples/go-native/`   | ✅ Complete    | 9     | Go bindings via cgo (Phase A13.5)                                                                         |
-| `archimedes-test`       | ✅ Complete    | 30    | In-memory HTTP testing (TestClient, TestRequest, TestResponse)                                            |
+| Crate                   | Status      | Tests | Description                                                                                               |
+| ----------------------- | ----------- | ----- | --------------------------------------------------------------------------------------------------------- |
+| `archimedes`            | ✅ Complete | -     | Main facade crate (re-exports all crates)                                                                 |
+| `archimedes-core`       | ✅ Complete | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
+| `archimedes-server`     | ✅ Complete | 101   | HTTP server, routing, handler registry, graceful shutdown, lifecycle hooks                                |
+| `archimedes-middleware` | ✅ Complete | 123   | All 8 middleware stages + pipeline + CORS middleware                                                      |
+| `archimedes-telemetry`  | ✅ Complete | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
+| `archimedes-config`     | ✅ Complete | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
+| `archimedes-router`     | ✅ Complete | 57    | High-performance radix tree router with method merging                                                    |
+| `archimedes-extract`    | ✅ Complete | 109   | Request extractors, response builders, DI injection                                                       |
+| `archimedes-macros`     | ✅ Complete | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
+| `archimedes-sentinel`   | ✅ Complete | 38    | Themis contract integration                                                                               |
+| `archimedes-authz`      | ✅ Complete | 26    | Eunomia/OPA integration                                                                                   |
+| `archimedes-docs`       | ✅ Complete | 29    | OpenAPI generation, Swagger UI, ReDoc                                                                     |
+| `archimedes-ws`         | ✅ Complete | 52    | WebSocket support with connection management                                                              |
+| `archimedes-sse`        | ✅ Complete | 38    | Server-Sent Events with backpressure handling                                                             |
+| `archimedes-tasks`      | ✅ Complete | 41    | Background task spawner and job scheduler                                                                 |
+| `archimedes-sidecar`    | ✅ Complete | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
+| `archimedes-ffi`        | ✅ Complete | 44    | C ABI for cross-language FFI (Phase A13.1)                                                                |
+| `archimedes-py`         | ✅ Complete | 111   | Python bindings via PyO3 - Full Rust parity (Phase A13.2)                                                 |
+| `archimedes-node`       | ✅ Complete | 95    | Node.js/TypeScript bindings via napi-rs (Phase A13.3)                                                     |
+| `include/archimedes/`   | ✅ Complete | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
+| `examples/go-native/`   | ✅ Complete | 9     | Go bindings via cgo (Phase A13.5)                                                                         |
+| `archimedes-test`       | ✅ Complete | 30    | In-memory HTTP testing (TestClient, TestRequest, TestResponse)                                            |
 
 **Total Tests**: 1160+ passing across all Rust crates + 259 binding tests
 
@@ -81,13 +81,13 @@ Archimedes provides **native bindings** for Python, TypeScript, C++, and Go (in 
 
 ### Phase Ordering (CRITICAL)
 
-| Phase | Language   | Package               | Goal                       | Status         |
-| ----- | ---------- | --------------------- | -------------------------- | -------------- |
-| A13.1 | C (FFI)    | libarchimedes.so      | Stable C ABI               | ✅ Complete    |
-| A13.2 | Python     | archimedes (PyPI)     | **FULL Rust parity** first | ✅ Complete    |
-| A13.3 | TypeScript | @archimedes/node      | Native Node.js bindings    | ✅ Complete    |
-| A13.4 | C++        | libarchimedes (vcpkg) | Modern C++17+ headers      | ✅ Complete    |
-| A13.5 | Go         | archimedes-go         | Go module with cgo         | ✅ Complete    |
+| Phase | Language   | Package               | Goal                       | Status      |
+| ----- | ---------- | --------------------- | -------------------------- | ----------- |
+| A13.1 | C (FFI)    | libarchimedes.so      | Stable C ABI               | ✅ Complete |
+| A13.2 | Python     | archimedes (PyPI)     | **FULL Rust parity** first | ✅ Complete |
+| A13.3 | TypeScript | @archimedes/node      | Native Node.js bindings    | ✅ Complete |
+| A13.4 | C++        | libarchimedes (vcpkg) | Modern C++17+ headers      | ✅ Complete |
+| A13.5 | Go         | archimedes-go         | Go module with cgo         | ✅ Complete |
 
 ### Why This Order?
 
@@ -221,13 +221,13 @@ app.run(8080);
 
 ### Frameworks Being Replaced
 
-| Language   | Current (Being Replaced)         | Future (Archimedes)    |
-| ---------- | -------------------------------- | ---------------------- |
-| Rust       | Axum, Actix-web, Rocket          | archimedes (native)    |
-| Python     | FastAPI, Flask, Sanic, Django    | archimedes (PyPI)      |
-| Go         | Gin, Chi, Echo, net/http         | archimedes-go (module) |
-| TypeScript | Express, Fastify, NestJS, Koa    | @archimedes/node (npm) |
-| C++        | Boost.Beast, cpp-httplib, Crow   | libarchimedes          |
+| Language   | Current (Being Replaced)       | Future (Archimedes)    |
+| ---------- | ------------------------------ | ---------------------- |
+| Rust       | Axum, Actix-web, Rocket        | archimedes (native)    |
+| Python     | FastAPI, Flask, Sanic, Django  | archimedes (PyPI)      |
+| Go         | Gin, Chi, Echo, net/http       | archimedes-go (module) |
+| TypeScript | Express, Fastify, NestJS, Koa  | @archimedes/node (npm) |
+| C++        | Boost.Beast, cpp-httplib, Crow | libarchimedes          |
 
 ---
 
@@ -255,20 +255,20 @@ app.run(8080);
 
 ### Extended Comparison: Flask, Sanic, Boost.Beast
 
-| Feature               | Flask       | Sanic        | Boost.Beast | Archimedes  |
-| --------------------- | ----------- | ------------ | ----------- | ----------- |
-| **Async support**     | ⚠️ Limited  | ✅ Native    | ✅ Asio     | ✅ Tokio    |
-| **Performance**       | Slow        | Fast         | Very Fast   | Very Fast   |
-| **Blueprints**        | ✅          | ✅           | ❌          | ❌ → A14.4  |
-| **Background tasks**  | ❌ Celery   | ✅ add_task  | ❌          | ✅ Superior |
-| **Scheduled jobs**    | ❌ Celery   | ❌ External  | ❌          | ✅ Built-in |
-| **Lifecycle hooks**   | ✅          | ✅           | ❌          | ❌ → A14.1  |
-| **Sessions**          | ✅ Built-in | ✅ External  | ❌          | ❌          |
-| **Templates**         | ✅ Jinja2   | ✅ Jinja2    | ❌          | ❌          |
-| **Test client**       | ✅          | ✅           | ❌          | ❌ → A14.1  |
-| **Hot reload**        | ✅          | ✅           | ❌          | ⚠️ Planned  |
-| **Contract validation** | ❌        | ❌           | ❌          | ✅ Unique   |
-| **OPA authorization** | ❌          | ❌           | ❌          | ✅ Unique   |
+| Feature                 | Flask       | Sanic       | Boost.Beast | Archimedes  |
+| ----------------------- | ----------- | ----------- | ----------- | ----------- |
+| **Async support**       | ⚠️ Limited  | ✅ Native   | ✅ Asio     | ✅ Tokio    |
+| **Performance**         | Slow        | Fast        | Very Fast   | Very Fast   |
+| **Blueprints**          | ✅          | ✅          | ❌          | ❌ → A14.4  |
+| **Background tasks**    | ❌ Celery   | ✅ add_task | ❌          | ✅ Superior |
+| **Scheduled jobs**      | ❌ Celery   | ❌ External | ❌          | ✅ Built-in |
+| **Lifecycle hooks**     | ✅          | ✅          | ❌          | ❌ → A14.1  |
+| **Sessions**            | ✅ Built-in | ✅ External | ❌          | ❌          |
+| **Templates**           | ✅ Jinja2   | ✅ Jinja2   | ❌          | ❌          |
+| **Test client**         | ✅          | ✅          | ❌          | ❌ → A14.1  |
+| **Hot reload**          | ✅          | ✅          | ❌          | ⚠️ Planned  |
+| **Contract validation** | ❌          | ❌          | ❌          | ✅ Unique   |
+| **OPA authorization**   | ❌          | ❌          | ❌          | ✅ Unique   |
 
 ### Archimedes Advantages Over FastAPI/Axum/Flask/Sanic
 
