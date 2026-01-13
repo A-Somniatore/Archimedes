@@ -1,5 +1,6 @@
-# Build artifacts
-target/
+# Build artifacts (match anywhere in repo)
+**/target/
+**/build/
 
 # IDE
 .idea/
@@ -32,4 +33,23 @@ doc/
 # Backup files
 *.bak
 *.orig
-.venv
+
+# Python
+**/.venv/
+**/venv/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Node.js
+**/node_modules/
+**/dist/
+*.tsbuildinfo
+
+# C++ build artifacts
+**/CMakeFiles/
+**/CMakeCache.txt
+**/*.o
+**/*.a
+**/*.so
+**/*.dylib
