@@ -12,24 +12,25 @@ use std::collections::HashMap;
 /// The test client allows you to test your Archimedes application without
 /// starting a real HTTP server or binding to a port.
 ///
-/// Example:
-///     ```python
-///     from archimedes import ArchimedesApp, TestClient
+/// # Example
 ///
-///     app = ArchimedesApp()
+/// ```ignore
+/// from archimedes import ArchimedesApp, TestClient
 ///
-///     @app.operation("getUser")
-///     async def get_user(request):
-///         return {"id": "123", "name": "Alice"}
+/// app = ArchimedesApp()
 ///
-///     # Create test client
-///     client = TestClient(app)
+/// @app.operation("getUser")
+/// async def get_user(request):
+///     return {"id": "123", "name": "Alice"}
 ///
-///     # Make a request
-///     response = client.get("/users/123")
-///     response.assert_status(200)
-///     response.assert_json({"id": "123", "name": "Alice"})
-///     ```
+/// # Create test client
+/// client = TestClient(app)
+///
+/// # Make a request
+/// response = client.get("/users/123")
+/// response.assert_status(200)
+/// response.assert_json({"id": "123", "name": "Alice"})
+/// ```
 #[pyclass(name = "TestClient")]
 #[derive(Clone)]
 pub struct PyTestClient {
@@ -269,18 +270,19 @@ impl PyTestClient {
 ///
 /// Provides methods to inspect the response and assert expected values.
 ///
-/// Example:
-///     ```python
-///     response = client.get("/users/123")
+/// # Example
 ///
-///     # Check status
-///     assert response.status_code == 200
+/// ```ignore
+/// response = client.get("/users/123")
 ///
-///     # Use assertion helpers
-///     response.assert_status(200)
-///     response.assert_json({"id": "123"})
-///     response.assert_header("Content-Type", "application/json")
-///     ```
+/// # Check status
+/// assert response.status_code == 200
+///
+/// # Use assertion helpers
+/// response.assert_status(200)
+/// response.assert_json({"id": "123"})
+/// response.assert_header("Content-Type", "application/json")
+/// ```
 #[pyclass(name = "TestResponse")]
 #[derive(Clone)]
 pub struct PyTestResponse {

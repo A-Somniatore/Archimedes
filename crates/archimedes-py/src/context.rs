@@ -9,15 +9,16 @@ use std::collections::HashMap;
 /// This provides access to request metadata, path parameters,
 /// query parameters, headers, and identity information.
 ///
-/// Example:
-///     ```python
-///     @app.handler("getUser")
-///     def get_user(ctx):
-///         user_id = ctx.path_params["userId"]
-///         auth_header = ctx.headers.get("authorization")
-///         trace_id = ctx.trace_id
-///         return {"id": user_id}
-///     ```
+/// # Example
+///
+/// ```ignore
+/// @app.handler("getUser")
+/// def get_user(ctx):
+///     user_id = ctx.path_params["userId"]
+///     auth_header = ctx.headers.get("authorization")
+///     trace_id = ctx.trace_id
+///     return {"id": user_id}
+/// ```
 #[pyclass(name = "RequestContext")]
 #[derive(Clone, Debug)]
 pub struct PyRequestContext {

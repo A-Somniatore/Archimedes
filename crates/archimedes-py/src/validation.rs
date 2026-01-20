@@ -12,7 +12,7 @@
 //!
 //! ## Example
 //!
-//! ```python
+//! ```text
 //! from archimedes import PySentinel, PyValidationResult
 //!
 //! # Create sentinel with contract artifact
@@ -242,7 +242,7 @@ impl PySentinel {
     ///
     /// # Example
     ///
-    /// ```python
+    /// ```ignore
     /// sentinel = Sentinel.from_file("contract.artifact.json")
     /// ```
     #[staticmethod]

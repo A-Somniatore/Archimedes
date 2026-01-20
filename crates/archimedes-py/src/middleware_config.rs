@@ -8,7 +8,7 @@
 //!
 //! ## Example
 //!
-//! ```python
+//! ```text
 //! from archimedes import App, CorsConfig, RateLimitConfig
 //!
 //! # Configure CORS
