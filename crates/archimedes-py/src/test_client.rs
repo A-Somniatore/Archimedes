@@ -450,12 +450,8 @@ impl PyTestResponse {
     ///
     /// Raises:
     ///     AssertionError: If header doesn't exist or doesn't match
-    fn assert_header(
-        slf: PyRef<'_, Self>,
-        name: &str,
-        expected: &str,
-    ) -> PyResult<PyRef<'_, Self>> {
-        let actual = slf.get_header(name).ok_or_else(|| {
+    fn assert_header(&self, name: &str, expected: &str) -> PyResult<()> {
+        let actual = self.get_header(name).ok_or_else(|| {
             pyo3::exceptions::PyAssertionError::new_err(format!("Header '{}' not found", name))
         })?;
         if actual != expected {
@@ -464,7 +460,7 @@ impl PyTestResponse {
                 name, expected, actual
             )));
         }
-        Ok(slf)
+        Ok(())
     }
 
     /// Asserts that the Content-Type header starts with the expected value.
@@ -477,8 +473,8 @@ impl PyTestResponse {
     ///
     /// Raises:
     ///     AssertionError: If Content-Type doesn't match
-    fn assert_content_type(slf: PyRef<'_, Self>, expected: &str) -> PyResult<PyRef<'_, Self>> {
-        let actual = slf.content_type().ok_or_else(|| {
+    fn assert_content_type(&self, expected: &str) -> PyResult<()> {
+        let actual = self.content_type().ok_or_else(|| {
             pyo3::exceptions::PyAssertionError::new_err("Content-Type header not found")
         })?;
         if !actual.starts_with(expected) {
@@ -487,7 +483,7 @@ impl PyTestResponse {
                 expected, actual
             )));
         }
-        Ok(slf)
+        Ok(())
     }
 
     /// Asserts that the body contains the expected substring.
@@ -500,15 +496,15 @@ impl PyTestResponse {
     ///
     /// Raises:
     ///     AssertionError: If body doesn't contain substring
-    fn assert_body_contains(slf: PyRef<'_, Self>, expected: &str) -> PyResult<PyRef<'_, Self>> {
-        let body = slf.text()?;
+    fn assert_body_contains(&self, expected: &str) -> PyResult<()> {
+        let body = self.text()?;
         if !body.contains(expected) {
             return Err(pyo3::exceptions::PyAssertionError::new_err(format!(
                 "Body should contain '{}', got: {}",
                 expected, body
             )));
         }
-        Ok(slf)
+        Ok(())
     }
 
     /// Asserts that the body equals the expected string.
@@ -521,15 +517,15 @@ impl PyTestResponse {
     ///
     /// Raises:
     ///     AssertionError: If body doesn't match
-    fn assert_body_eq(slf: PyRef<'_, Self>, expected: &str) -> PyResult<PyRef<'_, Self>> {
-        let body = slf.text()?;
+    fn assert_body_eq(&self, expected: &str) -> PyResult<()> {
+        let body = self.text()?;
         if body != expected {
             return Err(pyo3::exceptions::PyAssertionError::new_err(format!(
                 "Body mismatch: expected '{}', got '{}'",
                 expected, body
             )));
         }
-        Ok(slf)
+        Ok(())
     }
 
     /// Asserts that the JSON body matches the expected value.
@@ -543,11 +539,11 @@ impl PyTestResponse {
     /// Raises:
     ///     AssertionError: If JSON doesn't match
     fn assert_json<'py>(
-        slf: PyRef<'py, Self>,
+        &self,
         py: Python<'py>,
         expected: &Bound<'py, PyAny>,
-    ) -> PyResult<PyRef<'py, Self>> {
-        let actual = slf.json(py)?;
+    ) -> PyResult<()> {
+        let actual = self.json(py)?;
 
         // Compare using Python's == operator
         let eq = actual.eq(expected)?;
@@ -561,7 +557,7 @@ impl PyTestResponse {
                 expected_str, actual_str
             )));
         }
-        Ok(slf)
+        Ok(())
     }
 
     /// Asserts that a JSON field exists and equals the expected value.
@@ -576,12 +572,12 @@ impl PyTestResponse {
     /// Raises:
     ///     AssertionError: If field doesn't exist or doesn't match
     fn assert_json_field<'py>(
-        slf: PyRef<'py, Self>,
+        &self,
         py: Python<'py>,
         path: &str,
         expected: &Bound<'py, PyAny>,
-    ) -> PyResult<PyRef<'py, Self>> {
-        let json = slf.json(py)?;
+    ) -> PyResult<()> {
+        let json = self.json(py)?;
 
         // Navigate the path
         let mut current = json;
@@ -617,12 +613,12 @@ impl PyTestResponse {
             let dumps = json_module.getattr("dumps")?;
             let actual_str: String = dumps
                 .call1((&current,))
-                .unwrap_or_else(|_| current.str().unwrap())
+                .unwrap_or_else(|_| current.str().unwrap().into_any())
                 .extract()
                 .unwrap_or_else(|_| format!("{:?}", current));
             let expected_str: String = dumps
                 .call1((expected,))
-                .unwrap_or_else(|_| expected.str().unwrap())
+                .unwrap_or_else(|_| expected.str().unwrap().into_any())
                 .extract()
                 .unwrap_or_else(|_| format!("{:?}", expected));
             return Err(pyo3::exceptions::PyAssertionError::new_err(format!(
@@ -630,7 +626,7 @@ impl PyTestResponse {
                 path, expected_str, actual_str
             )));
         }
-        Ok(slf)
+        Ok(())
     }
 
     fn __repr__(&self) -> String {
