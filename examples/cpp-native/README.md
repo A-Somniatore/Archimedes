@@ -73,14 +73,14 @@ docker-compose up cpp-native
 
 ## API Endpoints
 
-| Endpoint | Method | Operation ID | Description |
-|----------|--------|--------------|-------------|
-| `/health` | GET | `healthCheck` | Health check |
-| `/users` | GET | `listUsers` | List all users |
-| `/users/{userId}` | GET | `getUser` | Get user by ID |
-| `/users` | POST | `createUser` | Create a new user |
-| `/users/{userId}` | PUT | `updateUser` | Update a user |
-| `/users/{userId}` | DELETE | `deleteUser` | Delete a user |
+| Endpoint          | Method | Operation ID  | Description       |
+| ----------------- | ------ | ------------- | ----------------- |
+| `/health`         | GET    | `healthCheck` | Health check      |
+| `/users`          | GET    | `listUsers`   | List all users    |
+| `/users/{userId}` | GET    | `getUser`     | Get user by ID    |
+| `/users`          | POST   | `createUser`  | Create a new user |
+| `/users/{userId}` | PUT    | `updateUser`  | Update a user     |
+| `/users/{userId}` | DELETE | `deleteUser`  | Delete a user     |
 
 ## Code Structure
 
@@ -158,11 +158,11 @@ ctest --output-on-failure
 
 Native bindings provide minimal overhead:
 
-| Metric | Value |
-|--------|-------|
-| FFI overhead | <100ns per call |
-| Memory per connection | <10KB |
-| Requests/sec | >100k (single core) |
+| Metric                | Value               |
+| --------------------- | ------------------- |
+| FFI overhead          | <100ns per call     |
+| Memory per connection | <10KB               |
+| Requests/sec          | >100k (single core) |
 
 ## License
 

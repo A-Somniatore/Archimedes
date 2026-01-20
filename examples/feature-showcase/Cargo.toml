@@ -14,7 +14,9 @@ path = "src/main.rs"
 archimedes = { path = "../../crates/archimedes" }
 archimedes-core = { path = "../../crates/archimedes-core" }
 archimedes-server = { path = "../../crates/archimedes-server" }
-archimedes-middleware = { path = "../../crates/archimedes-middleware", features = ["compression"] }
+archimedes-middleware = { path = "../../crates/archimedes-middleware", features = [
+    "compression",
+] }
 archimedes-router = { path = "../../crates/archimedes-router" }
 archimedes-extract = { path = "../../crates/archimedes-extract" }
 archimedes-config = { path = "../../crates/archimedes-config" }

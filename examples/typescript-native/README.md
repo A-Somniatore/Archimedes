@@ -12,6 +12,7 @@ This example demonstrates using Archimedes native bindings (`@archimedes/node`) 
 ## Prerequisites
 
 1. Build the Archimedes Node bindings:
+
    ```bash
    cd ../../crates/archimedes-node
    npm run build
@@ -25,11 +26,13 @@ This example demonstrates using Archimedes native bindings (`@archimedes/node`) 
 ## Running
 
 ### Development
+
 ```bash
 npm run dev
 ```
 
 ### Production
+
 ```bash
 npm run build
 npm start
@@ -37,33 +40,37 @@ npm start
 
 ## API Endpoints
 
-| Method | Path           | Operation    | Description       |
-|--------|----------------|--------------|-------------------|
-| GET    | /health        | healthCheck  | Health check      |
-| GET    | /users         | listUsers    | List all users    |
-| GET    | /users/:userId | getUser      | Get user by ID    |
-| POST   | /users         | createUser   | Create new user   |
-| PUT    | /users/:userId | updateUser   | Update user       |
-| DELETE | /users/:userId | deleteUser   | Delete user       |
+| Method | Path           | Operation   | Description     |
+| ------ | -------------- | ----------- | --------------- |
+| GET    | /health        | healthCheck | Health check    |
+| GET    | /users         | listUsers   | List all users  |
+| GET    | /users/:userId | getUser     | Get user by ID  |
+| POST   | /users         | createUser  | Create new user |
+| PUT    | /users/:userId | updateUser  | Update user     |
+| DELETE | /users/:userId | deleteUser  | Delete user     |
 
 ## Example Requests
 
 ### Health Check
+
 ```bash
 curl http://localhost:8004/health
 ```
 
 ### List Users
+
 ```bash
 curl http://localhost:8004/users
 ```
 
 ### Get User
+
 ```bash
 curl http://localhost:8004/users/1
 ```
 
 ### Create User
+
 ```bash
 curl -X POST http://localhost:8004/users \
   -H "Content-Type: application/json" \
@@ -71,6 +78,7 @@ curl -X POST http://localhost:8004/users \
 ```
 
 ### Update User
+
 ```bash
 curl -X PUT http://localhost:8004/users/1 \
   -H "Content-Type: application/json" \
@@ -78,6 +86,7 @@ curl -X PUT http://localhost:8004/users/1 \
 ```
 
 ### Delete User
+
 ```bash
 curl -X DELETE http://localhost:8004/users/1
 ```
@@ -85,17 +94,18 @@ curl -X DELETE http://localhost:8004/users/1
 ## Comparison: Express vs Archimedes Native
 
 ### Express (sidecar pattern)
+
 ```typescript
-import express from 'express';
+import express from "express";
 
 const app = express();
 
 // No validation - must implement manually
-app.get('/users/:userId', (req, res) => {
+app.get("/users/:userId", (req, res) => {
   // Parse sidecar headers manually
-  const requestId = req.headers['x-request-id'];
-  const caller = JSON.parse(req.headers['x-caller-identity'] || '{}');
-  
+  const requestId = req.headers["x-request-id"];
+  const caller = JSON.parse(req.headers["x-caller-identity"] || "{}");
+
   // Business logic
   const user = getUser(req.params.userId);
   res.json(user);
@@ -105,13 +115,14 @@ app.listen(3000);
 ```
 
 ### Archimedes Native
-```typescript
-import { Archimedes, Request, Response } from '@archimedes/node';
 
-const app = new Archimedes({ contractPath: 'contract.json' });
+```typescript
+import { Archimedes, Request, Response } from "@archimedes/node";
+
+const app = new Archimedes({ contractPath: "contract.json" });
 
 // Validation automatic from contract
-app.operation('getUser', async (req: Request): Promise<Response> => {
+app.operation("getUser", async (req: Request): Promise<Response> => {
   // request.requestId, request.caller already available
   // request body already validated against contract schema
   const user = getUser(req.pathParams.userId);

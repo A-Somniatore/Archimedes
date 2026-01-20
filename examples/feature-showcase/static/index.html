@@ -1,305 +1,319 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Archimedes Feature Showcase</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 2rem;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        header {
-            text-align: center;
-            color: white;
-            margin-bottom: 3rem;
-        }
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-        }
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-        .feature-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
-        }
-        .feature-card h3 {
-            color: #667eea;
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .feature-card ul {
-            list-style: none;
-            margin-top: 1rem;
-        }
-        .feature-card li {
-            padding: 0.25rem 0;
-            color: #666;
-        }
-        .feature-card li::before {
-            content: "✓ ";
-            color: #28a745;
-        }
-        .endpoints {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-top: 2rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        }
-        .endpoints h2 {
-            color: #333;
-            margin-bottom: 1rem;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-        }
-        .method {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            min-width: 60px;
-            text-align: center;
-        }
-        .method-get { background: #d4edda; color: #155724; }
-        .method-post { background: #cce5ff; color: #004085; }
-        .method-put { background: #fff3cd; color: #856404; }
-        .method-delete { background: #f8d7da; color: #721c24; }
-        .footer {
-            text-align: center;
-            color: white;
-            margin-top: 3rem;
-            opacity: 0.8;
-        }
-        a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        code {
-            background: #f8f9fa;
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-            font-size: 0.9em;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 2rem;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      header {
+        text-align: center;
+        color: white;
+        margin-bottom: 3rem;
+      }
+      h1 {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+      }
+      .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+      }
+      .feature-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+      }
+      .feature-card h3 {
+        color: #667eea;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .feature-card ul {
+        list-style: none;
+        margin-top: 1rem;
+      }
+      .feature-card li {
+        padding: 0.25rem 0;
+        color: #666;
+      }
+      .feature-card li::before {
+        content: "✓ ";
+        color: #28a745;
+      }
+      .endpoints {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      }
+      .endpoints h2 {
+        color: #333;
+        margin-bottom: 1rem;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+      th {
+        background: #f8f9fa;
+        font-weight: 600;
+      }
+      .method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        min-width: 60px;
+        text-align: center;
+      }
+      .method-get {
+        background: #d4edda;
+        color: #155724;
+      }
+      .method-post {
+        background: #cce5ff;
+        color: #004085;
+      }
+      .method-put {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .method-delete {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .footer {
+        text-align: center;
+        color: white;
+        margin-top: 3rem;
+        opacity: 0.8;
+      }
+      a {
+        color: #667eea;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      code {
+        background: #f8f9fa;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: "SF Mono", Monaco, "Courier New", monospace;
+        font-size: 0.9em;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>⚙️ Archimedes</h1>
-            <p class="subtitle">Feature Showcase - Reference Implementation</p>
-        </header>
+      <header>
+        <h1>⚙️ Archimedes</h1>
+        <p class="subtitle">Feature Showcase - Reference Implementation</p>
+      </header>
 
-        <div class="features">
-            <div class="feature-card">
-                <h3>🔌 Core Features</h3>
-                <p>Foundation for building robust HTTP APIs</p>
-                <ul>
-                    <li>HTTP/1.1 and HTTP/2 support</li>
-                    <li>Sub-router composition</li>
-                    <li>Lifecycle hooks</li>
-                    <li>Health/readiness probes</li>
-                    <li>Static file serving</li>
-                </ul>
-            </div>
-
-            <div class="feature-card">
-                <h3>📥 Extractors</h3>
-                <p>Type-safe request data extraction</p>
-                <ul>
-                    <li>JSON body parsing</li>
-                    <li>Form data (URL-encoded)</li>
-                    <li>Path parameters</li>
-                    <li>Query parameters</li>
-                    <li>Headers & Cookies</li>
-                    <li>Multipart file upload</li>
-                </ul>
-            </div>
-
-            <div class="feature-card">
-                <h3>📤 Responses</h3>
-                <p>Flexible response types</p>
-                <ul>
-                    <li>JSON responses</li>
-                    <li>HTML templates</li>
-                    <li>File downloads</li>
-                    <li>Set-Cookie headers</li>
-                    <li>Redirects</li>
-                    <li>Streaming responses</li>
-                </ul>
-            </div>
-
-            <div class="feature-card">
-                <h3>🛡️ Middleware</h3>
-                <p>Request/response processing pipeline</p>
-                <ul>
-                    <li>CORS handling</li>
-                    <li>Rate limiting</li>
-                    <li>Response compression</li>
-                    <li>Request logging</li>
-                    <li>Request timeout</li>
-                </ul>
-            </div>
-
-            <div class="feature-card">
-                <h3>⚡ Real-time</h3>
-                <p>Bidirectional communication</p>
-                <ul>
-                    <li>WebSocket connections</li>
-                    <li>Server-Sent Events</li>
-                    <li>Broadcast channels</li>
-                    <li>Keep-alive handling</li>
-                </ul>
-            </div>
-
-            <div class="feature-card">
-                <h3>⏰ Background Tasks</h3>
-                <p>Async task management</p>
-                <ul>
-                    <li>Fire-and-forget tasks</li>
-                    <li>Scheduled jobs (cron)</li>
-                    <li>Task cancellation</li>
-                    <li>Retry with backoff</li>
-                </ul>
-            </div>
+      <div class="features">
+        <div class="feature-card">
+          <h3>🔌 Core Features</h3>
+          <p>Foundation for building robust HTTP APIs</p>
+          <ul>
+            <li>HTTP/1.1 and HTTP/2 support</li>
+            <li>Sub-router composition</li>
+            <li>Lifecycle hooks</li>
+            <li>Health/readiness probes</li>
+            <li>Static file serving</li>
+          </ul>
         </div>
 
-        <div class="endpoints">
-            <h2>📋 API Endpoints</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Method</th>
-                        <th>Path</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><span class="method method-get">GET</span></td>
-                        <td><code>/health</code></td>
-                        <td>Health check endpoint</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-get">GET</span></td>
-                        <td><code>/ready</code></td>
-                        <td>Readiness check endpoint</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-get">GET</span></td>
-                        <td><code>/api/v1/users</code></td>
-                        <td>List users (paginated)</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-post">POST</span></td>
-                        <td><code>/api/v1/users</code></td>
-                        <td>Create a new user</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-get">GET</span></td>
-                        <td><code>/api/v1/users/:id</code></td>
-                        <td>Get user by ID</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-put">PUT</span></td>
-                        <td><code>/api/v1/users/:id</code></td>
-                        <td>Update user</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-delete">DELETE</span></td>
-                        <td><code>/api/v1/users/:id</code></td>
-                        <td>Delete user</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-post">POST</span></td>
-                        <td><code>/api/v1/auth/login</code></td>
-                        <td>Login with form data</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-get">GET</span></td>
-                        <td><code>/api/v1/auth/session</code></td>
-                        <td>Get current session</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-post">POST</span></td>
-                        <td><code>/api/v1/files/upload</code></td>
-                        <td>Upload files (multipart)</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-get">GET</span></td>
-                        <td><code>/api/v1/files/download/:id</code></td>
-                        <td>Download file</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-get">GET</span></td>
-                        <td><code>/api/v1/realtime/events</code></td>
-                        <td>SSE event stream</td>
-                    </tr>
-                    <tr>
-                        <td><span class="method method-get">GET</span></td>
-                        <td><code>/api/v1/realtime/ws</code></td>
-                        <td>WebSocket connection</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="feature-card">
+          <h3>📥 Extractors</h3>
+          <p>Type-safe request data extraction</p>
+          <ul>
+            <li>JSON body parsing</li>
+            <li>Form data (URL-encoded)</li>
+            <li>Path parameters</li>
+            <li>Query parameters</li>
+            <li>Headers & Cookies</li>
+            <li>Multipart file upload</li>
+          </ul>
         </div>
 
-        <footer class="footer">
-            <p>
-                <a href="/docs" style="color: white;">📚 API Documentation</a> |
-                <a href="/openapi.json" style="color: white;">📄 OpenAPI Spec</a>
-            </p>
-            <p style="margin-top: 1rem;">
-                This example demonstrates all features available in Archimedes.<br>
-                Use it as a reference when implementing language bindings.
-            </p>
-        </footer>
+        <div class="feature-card">
+          <h3>📤 Responses</h3>
+          <p>Flexible response types</p>
+          <ul>
+            <li>JSON responses</li>
+            <li>HTML templates</li>
+            <li>File downloads</li>
+            <li>Set-Cookie headers</li>
+            <li>Redirects</li>
+            <li>Streaming responses</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <h3>🛡️ Middleware</h3>
+          <p>Request/response processing pipeline</p>
+          <ul>
+            <li>CORS handling</li>
+            <li>Rate limiting</li>
+            <li>Response compression</li>
+            <li>Request logging</li>
+            <li>Request timeout</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <h3>⚡ Real-time</h3>
+          <p>Bidirectional communication</p>
+          <ul>
+            <li>WebSocket connections</li>
+            <li>Server-Sent Events</li>
+            <li>Broadcast channels</li>
+            <li>Keep-alive handling</li>
+          </ul>
+        </div>
+
+        <div class="feature-card">
+          <h3>⏰ Background Tasks</h3>
+          <p>Async task management</p>
+          <ul>
+            <li>Fire-and-forget tasks</li>
+            <li>Scheduled jobs (cron)</li>
+            <li>Task cancellation</li>
+            <li>Retry with backoff</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="endpoints">
+        <h2>📋 API Endpoints</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Path</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="method method-get">GET</span></td>
+              <td><code>/health</code></td>
+              <td>Health check endpoint</td>
+            </tr>
+            <tr>
+              <td><span class="method method-get">GET</span></td>
+              <td><code>/ready</code></td>
+              <td>Readiness check endpoint</td>
+            </tr>
+            <tr>
+              <td><span class="method method-get">GET</span></td>
+              <td><code>/api/v1/users</code></td>
+              <td>List users (paginated)</td>
+            </tr>
+            <tr>
+              <td><span class="method method-post">POST</span></td>
+              <td><code>/api/v1/users</code></td>
+              <td>Create a new user</td>
+            </tr>
+            <tr>
+              <td><span class="method method-get">GET</span></td>
+              <td><code>/api/v1/users/:id</code></td>
+              <td>Get user by ID</td>
+            </tr>
+            <tr>
+              <td><span class="method method-put">PUT</span></td>
+              <td><code>/api/v1/users/:id</code></td>
+              <td>Update user</td>
+            </tr>
+            <tr>
+              <td><span class="method method-delete">DELETE</span></td>
+              <td><code>/api/v1/users/:id</code></td>
+              <td>Delete user</td>
+            </tr>
+            <tr>
+              <td><span class="method method-post">POST</span></td>
+              <td><code>/api/v1/auth/login</code></td>
+              <td>Login with form data</td>
+            </tr>
+            <tr>
+              <td><span class="method method-get">GET</span></td>
+              <td><code>/api/v1/auth/session</code></td>
+              <td>Get current session</td>
+            </tr>
+            <tr>
+              <td><span class="method method-post">POST</span></td>
+              <td><code>/api/v1/files/upload</code></td>
+              <td>Upload files (multipart)</td>
+            </tr>
+            <tr>
+              <td><span class="method method-get">GET</span></td>
+              <td><code>/api/v1/files/download/:id</code></td>
+              <td>Download file</td>
+            </tr>
+            <tr>
+              <td><span class="method method-get">GET</span></td>
+              <td><code>/api/v1/realtime/events</code></td>
+              <td>SSE event stream</td>
+            </tr>
+            <tr>
+              <td><span class="method method-get">GET</span></td>
+              <td><code>/api/v1/realtime/ws</code></td>
+              <td>WebSocket connection</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="footer">
+        <p>
+          <a href="/docs" style="color: white">📚 API Documentation</a> |
+          <a href="/openapi.json" style="color: white">📄 OpenAPI Spec</a>
+        </p>
+        <p style="margin-top: 1rem">
+          This example demonstrates all features available in Archimedes.<br />
+          Use it as a reference when implementing language bindings.
+        </p>
+      </footer>
     </div>
-</body>
+  </body>
 </html>

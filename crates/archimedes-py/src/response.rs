@@ -199,6 +199,62 @@ impl PyResponse {
         Self::new(py, status, Some(body), Some(headers))
     }
 
+    /// Create a redirect response (302 Found)
+    #[staticmethod]
+    fn redirect(location: String) -> PyResult<Self> {
+        let mut headers = HashMap::new();
+        headers.insert("location".to_string(), location);
+        Ok(Self {
+            status: 302,
+            body: None,
+            headers,
+        })
+    }
+
+    /// Create a permanent redirect response (301 Moved Permanently)
+    #[staticmethod]
+    fn permanent_redirect(location: String) -> PyResult<Self> {
+        let mut headers = HashMap::new();
+        headers.insert("location".to_string(), location);
+        Ok(Self {
+            status: 301,
+            body: None,
+            headers,
+        })
+    }
+
+    /// Create a See Other redirect (303) - typically used after POST
+    #[staticmethod]
+    fn see_other(location: String) -> PyResult<Self> {
+        let mut headers = HashMap::new();
+        headers.insert("location".to_string(), location);
+        Ok(Self {
+            status: 303,
+            body: None,
+            headers,
+        })
+    }
+
+    /// Create a temporary redirect (307) - preserves HTTP method
+    #[staticmethod]
+    fn temporary_redirect(location: String) -> PyResult<Self> {
+        let mut headers = HashMap::new();
+        headers.insert("location".to_string(), location);
+        Ok(Self {
+            status: 307,
+            body: None,
+            headers,
+        })
+    }
+
+    /// Add a Set-Cookie to this response
+    fn set_cookie(&mut self, cookie: &crate::extractors::PySetCookie) {
+        // Multiple Set-Cookie headers need to be handled - for now store in headers map
+        // In a real implementation, we'd need a proper header map that allows duplicates
+        let key = format!("set-cookie-{}", self.headers.len());
+        self.headers.insert(key, cookie.header_value());
+    }
+
     /// String representation
     fn __repr__(&self) -> String {
         format!("Response(status={})", self.status)
@@ -224,6 +280,208 @@ impl PyResponse {
     pub fn headers_ref(&self) -> &HashMap<String, String> {
         &self.headers
     }
+}
+
+/// File download response
+///
+/// # Example (Python)
+///
+/// ```python,ignore
+/// from archimedes import FileResponse
+///
+/// @app.handler("download")
+/// def download():
+///     return FileResponse.from_path("/path/to/file.pdf")
+///
+/// @app.handler("export")
+/// def export():
+///     data = generate_csv()
+///     return FileResponse(data, filename="export.csv", content_type="text/csv")
+/// ```
+#[pyclass(name = "FileResponse")]
+#[derive(Clone, Debug)]
+pub struct PyFileResponse {
+    data: Vec<u8>,
+    filename: Option<String>,
+    content_type: String,
+    inline: bool,
+}
+
+#[pymethods]
+impl PyFileResponse {
+    /// Create a new FileResponse from bytes
+    #[new]
+    #[pyo3(signature = (data, filename = None, content_type = None, inline = false))]
+    fn new(
+        data: Vec<u8>,
+        filename: Option<String>,
+        content_type: Option<String>,
+        inline: bool,
+    ) -> Self {
+        let content_type = content_type.unwrap_or_else(|| {
+            // Try to guess from filename
+            filename
+                .as_ref()
+                .and_then(|f| guess_mime_type(f))
+                .unwrap_or_else(|| "application/octet-stream".to_string())
+        });
+
+        Self {
+            data,
+            filename,
+            content_type,
+            inline,
+        }
+    }
+
+    /// Create a FileResponse from a file path
+    #[staticmethod]
+    #[pyo3(signature = (path, filename = None, content_type = None, inline = false))]
+    fn from_path(
+        path: String,
+        filename: Option<String>,
+        content_type: Option<String>,
+        inline: bool,
+    ) -> PyResult<Self> {
+        let data = std::fs::read(&path).map_err(|e| {
+            pyo3::exceptions::PyIOError::new_err(format!("Failed to read file: {e}"))
+        })?;
+
+        let filename = filename.or_else(|| {
+            std::path::Path::new(&path)
+                .file_name()
+                .and_then(|n| n.to_str())
+                .map(String::from)
+        });
+
+        let content_type = content_type.unwrap_or_else(|| {
+            filename
+                .as_ref()
+                .and_then(|f| guess_mime_type(f))
+                .unwrap_or_else(|| "application/octet-stream".to_string())
+        });
+
+        Ok(Self {
+            data,
+            filename,
+            content_type,
+            inline,
+        })
+    }
+
+    /// Create an attachment response (forces download)
+    #[staticmethod]
+    #[pyo3(signature = (data, filename, content_type = None))]
+    fn attachment(data: Vec<u8>, filename: String, content_type: Option<String>) -> Self {
+        Self::new(data, Some(filename), content_type, false)
+    }
+
+    /// Create an inline response (displays in browser)
+    #[staticmethod]
+    #[pyo3(signature = (data, filename = None, content_type = None))]
+    fn inline(data: Vec<u8>, filename: Option<String>, content_type: Option<String>) -> Self {
+        Self::new(data, filename, content_type, true)
+    }
+
+    /// Get the filename
+    #[getter]
+    fn filename(&self) -> Option<&str> {
+        self.filename.as_deref()
+    }
+
+    /// Get the content type
+    #[getter]
+    fn content_type(&self) -> &str {
+        &self.content_type
+    }
+
+    /// Get the file size
+    #[getter]
+    fn size(&self) -> usize {
+        self.data.len()
+    }
+
+    /// Check if inline
+    #[getter]
+    fn is_inline(&self) -> bool {
+        self.inline
+    }
+
+    /// Get the Content-Disposition header value
+    fn content_disposition(&self) -> String {
+        let disposition_type = if self.inline { "inline" } else { "attachment" };
+        match &self.filename {
+            Some(name) => format!("{disposition_type}; filename=\"{name}\""),
+            None => disposition_type.to_string(),
+        }
+    }
+
+    /// Get the data as bytes
+    fn bytes<'py>(&self, py: Python<'py>) -> pyo3::Bound<'py, pyo3::types::PyBytes> {
+        pyo3::types::PyBytes::new(py, &self.data)
+    }
+
+    fn __repr__(&self) -> String {
+        match &self.filename {
+            Some(name) => format!("FileResponse({}, {} bytes)", name, self.data.len()),
+            None => format!("FileResponse({} bytes)", self.data.len()),
+        }
+    }
+}
+
+impl PyFileResponse {
+    /// Get raw data
+    pub fn data(&self) -> &[u8] {
+        &self.data
+    }
+
+    /// Get headers for HTTP response
+    pub fn headers(&self) -> HashMap<String, String> {
+        let mut headers = HashMap::new();
+        headers.insert("content-type".to_string(), self.content_type.clone());
+        headers.insert("content-disposition".to_string(), self.content_disposition());
+        headers.insert("content-length".to_string(), self.data.len().to_string());
+        headers
+    }
+}
+
+/// Guess MIME type from filename
+fn guess_mime_type(filename: &str) -> Option<String> {
+    let ext = filename.rsplit('.').next()?.to_lowercase();
+    let mime = match ext.as_str() {
+        // Text
+        "txt" => "text/plain",
+        "html" | "htm" => "text/html",
+        "css" => "text/css",
+        "csv" => "text/csv",
+        "xml" => "text/xml",
+        // JavaScript
+        "js" | "mjs" => "application/javascript",
+        "json" => "application/json",
+        // Images
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "gif" => "image/gif",
+        "svg" => "image/svg+xml",
+        "webp" => "image/webp",
+        "ico" => "image/x-icon",
+        // Documents
+        "pdf" => "application/pdf",
+        "zip" => "application/zip",
+        "tar" => "application/x-tar",
+        "gz" | "gzip" => "application/gzip",
+        // Audio/Video
+        "mp3" => "audio/mpeg",
+        "mp4" => "video/mp4",
+        "webm" => "video/webm",
+        // Fonts
+        "woff" => "font/woff",
+        "woff2" => "font/woff2",
+        "ttf" => "font/ttf",
+        "otf" => "font/otf",
+        _ => return None,
+    };
+    Some(mime.to_string())
 }
 
 /// Convert serde_json::Value to Python object
@@ -402,5 +660,111 @@ mod tests {
                 Some(&"application/json".to_string())
             );
         });
+    }
+
+    #[test]
+    fn test_redirect_responses() {
+        pyo3::prepare_freethreaded_python();
+
+        // 302 Found
+        let redirect = PyResponse::redirect("/dashboard".to_string()).unwrap();
+        assert_eq!(redirect.status, 302);
+        assert_eq!(redirect.headers_ref().get("location"), Some(&"/dashboard".to_string()));
+
+        // 301 Permanent
+        let permanent = PyResponse::permanent_redirect("/new-url".to_string()).unwrap();
+        assert_eq!(permanent.status, 301);
+        assert_eq!(permanent.headers_ref().get("location"), Some(&"/new-url".to_string()));
+
+        // 303 See Other
+        let see_other = PyResponse::see_other("/result".to_string()).unwrap();
+        assert_eq!(see_other.status, 303);
+
+        // 307 Temporary
+        let temp = PyResponse::temporary_redirect("/temp".to_string()).unwrap();
+        assert_eq!(temp.status, 307);
+    }
+
+    #[test]
+    fn test_file_response() {
+        pyo3::prepare_freethreaded_python();
+
+        let file = PyFileResponse::new(
+            b"file content".to_vec(),
+            Some("test.txt".to_string()),
+            Some("text/plain".to_string()),
+            false,
+        );
+
+        assert_eq!(file.filename(), Some("test.txt"));
+        assert_eq!(file.content_type(), "text/plain");
+        assert_eq!(file.size(), 12);
+        assert!(!file.is_inline());
+
+        let disposition = file.content_disposition();
+        assert!(disposition.contains("attachment"));
+        assert!(disposition.contains("test.txt"));
+    }
+
+    #[test]
+    fn test_file_response_inline() {
+        pyo3::prepare_freethreaded_python();
+
+        let file = PyFileResponse::inline(
+            b"image data".to_vec(),
+            Some("image.png".to_string()),
+            None,
+        );
+
+        assert!(file.is_inline());
+        assert_eq!(file.content_type(), "image/png"); // guessed from filename
+
+        let disposition = file.content_disposition();
+        assert!(disposition.contains("inline"));
+    }
+
+    #[test]
+    fn test_file_response_attachment() {
+        pyo3::prepare_freethreaded_python();
+
+        let file = PyFileResponse::attachment(
+            b"pdf content".to_vec(),
+            "report.pdf".to_string(),
+            None,
+        );
+
+        assert!(!file.is_inline());
+        assert_eq!(file.content_type(), "application/pdf"); // guessed from filename
+        assert_eq!(file.filename(), Some("report.pdf"));
+    }
+
+    #[test]
+    fn test_guess_mime_type() {
+        assert_eq!(guess_mime_type("test.txt"), Some("text/plain".to_string()));
+        assert_eq!(guess_mime_type("style.css"), Some("text/css".to_string()));
+        assert_eq!(guess_mime_type("app.js"), Some("application/javascript".to_string()));
+        assert_eq!(guess_mime_type("data.json"), Some("application/json".to_string()));
+        assert_eq!(guess_mime_type("image.png"), Some("image/png".to_string()));
+        assert_eq!(guess_mime_type("photo.jpg"), Some("image/jpeg".to_string()));
+        assert_eq!(guess_mime_type("doc.pdf"), Some("application/pdf".to_string()));
+        assert_eq!(guess_mime_type("archive.zip"), Some("application/zip".to_string()));
+        assert_eq!(guess_mime_type("unknown.xyz"), None);
+    }
+
+    #[test]
+    fn test_file_response_headers() {
+        pyo3::prepare_freethreaded_python();
+
+        let file = PyFileResponse::new(
+            b"test".to_vec(),
+            Some("test.txt".to_string()),
+            Some("text/plain".to_string()),
+            false,
+        );
+
+        let headers = file.headers();
+        assert_eq!(headers.get("content-type"), Some(&"text/plain".to_string()));
+        assert!(headers.get("content-disposition").unwrap().contains("attachment"));
+        assert_eq!(headers.get("content-length"), Some(&"4".to_string()));
     }
 }

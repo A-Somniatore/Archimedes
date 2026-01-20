@@ -40,9 +40,9 @@ WORKDIR /app
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+  ca-certificates \
+  curl \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy FFI library
 COPY --from=rust-builder /build/target/release/libarchimedes_ffi.so /usr/local/lib/

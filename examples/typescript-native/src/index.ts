@@ -1,9 +1,9 @@
 /**
  * TypeScript Native Example - User CRUD Service
- * 
+ *
  * This example demonstrates using Archimedes native bindings (@archimedes/node)
  * instead of Express or other Node.js frameworks.
- * 
+ *
  * Features:
  * - Contract-first API definition
  * - Built-in middleware (request ID, tracing, identity, authorization)
@@ -20,7 +20,7 @@ import {
   Config,
   RequestContext,
   Router,
-} from '@archimedes/node';
+} from "@archimedes/node";
 
 // =============================================================================
 // Types
@@ -59,18 +59,24 @@ interface HealthResponse {
 // =============================================================================
 
 const usersDb = new Map<string, User>([
-  ['1', {
-    id: '1',
-    name: 'Alice Smith',
-    email: 'alice@example.com',
-    created_at: '2026-01-01T00:00:00Z',
-  }],
-  ['2', {
-    id: '2',
-    name: 'Bob Johnson',
-    email: 'bob@example.com',
-    created_at: '2026-01-02T00:00:00Z',
-  }],
+  [
+    "1",
+    {
+      id: "1",
+      name: "Alice Smith",
+      email: "alice@example.com",
+      created_at: "2026-01-01T00:00:00Z",
+    },
+  ],
+  [
+    "2",
+    {
+      id: "2",
+      name: "Bob Johnson",
+      email: "bob@example.com",
+      created_at: "2026-01-02T00:00:00Z",
+    },
+  ],
 ]);
 
 let nextId = 3;
@@ -80,9 +86,9 @@ let nextId = 3;
 // =============================================================================
 
 const config = new Config({
-  contractPath: '../contract.json',
+  contractPath: "../contract.json",
   listenPort: 8004,
-  serviceName: 'typescript-native-example',
+  serviceName: "typescript-native-example",
   enableValidation: true,
   enableTracing: true,
 });
@@ -94,35 +100,47 @@ const app = new Archimedes(config);
 // =============================================================================
 
 // Startup hooks run in order when the server starts
-app.onStartup(async () => {
-  console.log('Initializing database connection...');
-  // In a real app: await db.connect();
-}, { name: 'database_connect' });
+app.onStartup(
+  async () => {
+    console.log("Initializing database connection...");
+    // In a real app: await db.connect();
+  },
+  { name: "database_connect" }
+);
 
-app.onStartup(async () => {
-  console.log('Warming up cache...');
-  // In a real app: await cache.warmup();
-}, { name: 'cache_warmup' });
+app.onStartup(
+  async () => {
+    console.log("Warming up cache...");
+    // In a real app: await cache.warmup();
+  },
+  { name: "cache_warmup" }
+);
 
 // Shutdown hooks run in reverse order when the server stops
-app.onShutdown(async () => {
-  console.log('Flushing metrics...');
-  // In a real app: await metrics.flush();
-}, { name: 'metrics_flush' });
+app.onShutdown(
+  async () => {
+    console.log("Flushing metrics...");
+    // In a real app: await metrics.flush();
+  },
+  { name: "metrics_flush" }
+);
 
-app.onShutdown(async () => {
-  console.log('Closing database connection...');
-  // In a real app: await db.close();
-}, { name: 'database_close' });
+app.onShutdown(
+  async () => {
+    console.log("Closing database connection...");
+    // In a real app: await db.close();
+  },
+  { name: "database_close" }
+);
 
 // =============================================================================
 // Health Check Handler
 // =============================================================================
 
-app.operation('healthCheck', async (request: Request): Promise<Response> => {
+app.operation("healthCheck", async (request: Request): Promise<Response> => {
   const response: HealthResponse = {
-    status: 'healthy',
-    service: 'typescript-native-example',
+    status: "healthy",
+    service: "typescript-native-example",
     timestamp: new Date().toISOString(),
   };
   return Response.json(response);
@@ -136,14 +154,14 @@ app.operation('healthCheck', async (request: Request): Promise<Response> => {
  * List all users
  * GET /users
  */
-app.operation('listUsers', async (request: Request): Promise<Response> => {
+app.operation("listUsers", async (request: Request): Promise<Response> => {
   const users = Array.from(usersDb.values());
-  
+
   const response: UsersResponse = {
     users,
     total: users.length,
   };
-  
+
   return Response.json(response);
 });
 
@@ -151,27 +169,27 @@ app.operation('listUsers', async (request: Request): Promise<Response> => {
  * Get a specific user by ID
  * GET /users/:userId
  */
-app.operation('getUser', async (request: Request): Promise<Response> => {
+app.operation("getUser", async (request: Request): Promise<Response> => {
   const userId = request.pathParams.userId;
-  
+
   if (!userId) {
     return Response.badRequest({
-      code: 'MISSING_USER_ID',
-      message: 'User ID is required',
+      code: "MISSING_USER_ID",
+      message: "User ID is required",
       request_id: request.requestId,
     });
   }
-  
+
   const user = usersDb.get(userId);
-  
+
   if (!user) {
     return Response.notFound({
-      code: 'USER_NOT_FOUND',
+      code: "USER_NOT_FOUND",
       message: `User with ID ${userId} not found`,
       request_id: request.requestId,
     });
   }
-  
+
   return Response.json(user);
 });
 
@@ -179,39 +197,39 @@ app.operation('getUser', async (request: Request): Promise<Response> => {
  * Create a new user
  * POST /users
  */
-app.operation('createUser', async (request: Request): Promise<Response> => {
+app.operation("createUser", async (request: Request): Promise<Response> => {
   const body = request.json<CreateUserRequest>();
-  
+
   // Validation is handled by Archimedes middleware via contract
   // But we can add business logic validation here
   if (!body.name || !body.email) {
     return Response.badRequest({
-      code: 'INVALID_REQUEST',
-      message: 'Name and email are required',
+      code: "INVALID_REQUEST",
+      message: "Name and email are required",
       request_id: request.requestId,
     });
   }
-  
+
   // Check for duplicate email
   for (const user of usersDb.values()) {
     if (user.email === body.email) {
       return Response.status(409).json({
-        code: 'DUPLICATE_EMAIL',
+        code: "DUPLICATE_EMAIL",
         message: `User with email ${body.email} already exists`,
         request_id: request.requestId,
       });
     }
   }
-  
+
   const newUser: User = {
     id: String(nextId++),
     name: body.name,
     email: body.email,
     created_at: new Date().toISOString(),
   };
-  
+
   usersDb.set(newUser.id, newUser);
-  
+
   return Response.created(newUser);
 });
 
@@ -219,29 +237,29 @@ app.operation('createUser', async (request: Request): Promise<Response> => {
  * Update an existing user
  * PUT /users/:userId
  */
-app.operation('updateUser', async (request: Request): Promise<Response> => {
+app.operation("updateUser", async (request: Request): Promise<Response> => {
   const userId = request.pathParams.userId;
-  
+
   if (!userId) {
     return Response.badRequest({
-      code: 'MISSING_USER_ID',
-      message: 'User ID is required',
+      code: "MISSING_USER_ID",
+      message: "User ID is required",
       request_id: request.requestId,
     });
   }
-  
+
   const user = usersDb.get(userId);
-  
+
   if (!user) {
     return Response.notFound({
-      code: 'USER_NOT_FOUND',
+      code: "USER_NOT_FOUND",
       message: `User with ID ${userId} not found`,
       request_id: request.requestId,
     });
   }
-  
+
   const body = request.json<UpdateUserRequest>();
-  
+
   // Apply partial updates
   if (body.name !== undefined) {
     user.name = body.name;
@@ -251,7 +269,7 @@ app.operation('updateUser', async (request: Request): Promise<Response> => {
     for (const [id, existingUser] of usersDb.entries()) {
       if (id !== userId && existingUser.email === body.email) {
         return Response.status(409).json({
-          code: 'DUPLICATE_EMAIL',
+          code: "DUPLICATE_EMAIL",
           message: `User with email ${body.email} already exists`,
           request_id: request.requestId,
         });
@@ -259,9 +277,9 @@ app.operation('updateUser', async (request: Request): Promise<Response> => {
     }
     user.email = body.email;
   }
-  
+
   usersDb.set(userId, user);
-  
+
   return Response.json(user);
 });
 
@@ -269,27 +287,27 @@ app.operation('updateUser', async (request: Request): Promise<Response> => {
  * Delete a user
  * DELETE /users/:userId
  */
-app.operation('deleteUser', async (request: Request): Promise<Response> => {
+app.operation("deleteUser", async (request: Request): Promise<Response> => {
   const userId = request.pathParams.userId;
-  
+
   if (!userId) {
     return Response.badRequest({
-      code: 'MISSING_USER_ID',
-      message: 'User ID is required',
+      code: "MISSING_USER_ID",
+      message: "User ID is required",
       request_id: request.requestId,
     });
   }
-  
+
   if (!usersDb.has(userId)) {
     return Response.notFound({
-      code: 'USER_NOT_FOUND',
+      code: "USER_NOT_FOUND",
       message: `User with ID ${userId} not found`,
       request_id: request.requestId,
     });
   }
-  
+
   usersDb.delete(userId);
-  
+
   return Response.noContent();
 });
 
@@ -298,19 +316,19 @@ app.operation('deleteUser', async (request: Request): Promise<Response> => {
 // =============================================================================
 
 // Create a sub-router for admin endpoints with prefix and tag
-const adminRouter = new Router()
-  .prefix('/admin')
-  .tag('admin')
-  .tag('internal');
+const adminRouter = new Router().prefix("/admin").tag("admin").tag("internal");
 
 // Admin-only operation
-adminRouter.operation('getStats', async (request: Request): Promise<Response> => {
-  return Response.json({
-    total_users: usersDb.size,
-    service_uptime: process.uptime(),
-    node_version: process.version,
-  });
-});
+adminRouter.operation(
+  "getStats",
+  async (request: Request): Promise<Response> => {
+    return Response.json({
+      total_users: usersDb.size,
+      service_uptime: process.uptime(),
+      node_version: process.version,
+    });
+  }
+);
 
 // Merge the admin router into the main app
 app.merge(adminRouter);
@@ -320,14 +338,14 @@ app.merge(adminRouter);
 // =============================================================================
 
 async function main(): Promise<void> {
-  console.log('Starting TypeScript Native Example Service...');
+  console.log("Starting TypeScript Native Example Service...");
   console.log(`Contract: ${config.contractPath}`);
   console.log(`Port: ${config.listenPort}`);
-  
+
   try {
     await app.listen(config.listenPort);
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 }

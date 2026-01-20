@@ -36,10 +36,10 @@ COPY examples/contract.json ./
 # Build the application
 RUN mkdir build && cd build && \
     cmake -DCMAKE_BUILD_TYPE=Release \
-          -DARCHIMEDES_LIBRARY=/usr/local/lib/libarchimedes_ffi.so \
-          -DARCHIMEDES_INCLUDE_DIR=/usr/local/include \
-          -DARCHIMEDES_C_HEADER_DIR=/usr/local/include \
-          .. && \
+    -DARCHIMEDES_LIBRARY=/usr/local/lib/libarchimedes_ffi.so \
+    -DARCHIMEDES_INCLUDE_DIR=/usr/local/include \
+    -DARCHIMEDES_C_HEADER_DIR=/usr/local/include \
+    .. && \
     make
 
 # =============================================================================

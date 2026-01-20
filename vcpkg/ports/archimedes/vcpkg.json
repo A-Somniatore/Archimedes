@@ -11,9 +11,7 @@
   "features": {
     "tests": {
       "description": "Build tests",
-      "dependencies": [
-        "gtest"
-      ]
+      "dependencies": ["gtest"]
     }
   }
 }

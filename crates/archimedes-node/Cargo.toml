@@ -2,7 +2,7 @@
 name = "archimedes-node"
 version.workspace = true
 edition.workspace = true
-rust-version = "1.77"  # Required for napi-rs cargo:: build script syntax
+rust-version = "1.77"                                                            # Required for napi-rs cargo:: build script syntax
 authors.workspace = true
 license.workspace = true
 repository.workspace = true
