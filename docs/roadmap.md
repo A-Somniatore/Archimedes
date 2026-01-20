@@ -2833,18 +2833,19 @@ See: `examples/feature-showcase/README.md`
 
 ---
 
-## Phase A16: V1.0 Release Preparation (Weeks 85-86) 📋 PLANNED
+## Phase A16: V1.0 Release Preparation (Weeks 85-86) � IN PROGRESS
 
 > **Goal**: Finalize V1.0 release with documentation, CI/CD, and publishing
-> **Status**: 📋 PLANNED
+> **Status**: 🔄 IN PROGRESS (A16.1 started 2026-01-20)
 > **Rationale**: All V1.0 features complete, need release preparation
 
-### Phase A16.1: Documentation Review (Week 85)
+### Phase A16.1: Documentation Review (Week 85) 🔄 IN PROGRESS
 
 > **Goal**: Ensure all documentation is accurate and complete
 
 #### Tasks
 
+- [x] Update `README.md` with V1.0 status and native bindings
 - [ ] Review and update `README.md` for each crate
 - [ ] Update `docs/design.md` with final architecture
 - [ ] Update `docs/spec.md` with V1.0 feature set

@@ -1,10 +1,11 @@
 # Archimedes
 
-**Async HTTP Server Framework for the Themis Platform**
+**Contract-First HTTP Server Framework for the Themis Platform**
 
-[![Tests](https://img.shields.io/badge/tests-969%20passing-brightgreen)](docs/roadmap.md)
+[![Tests](https://img.shields.io/badge/tests-1300%2B%20passing-brightgreen)](docs/roadmap.md)
 [![Rust](https://img.shields.io/badge/rust-1.85+-orange)](Cargo.toml)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
+[![V1.0](https://img.shields.io/badge/version-1.0.0--rc-blue)](docs/roadmap.md)
 
 Archimedes is an opinionated Rust-based server framework that provides:
 
@@ -13,7 +14,8 @@ Archimedes is an opinionated Rust-based server framework that provides:
 - 📊 **First-Class Observability** – OpenTelemetry traces, metrics, and structured logs
 - ⚡ **High Performance** – Async Rust with zero-cost abstractions
 - 🔗 **Mandatory Middleware** – Core middleware cannot be disabled or reordered
-- 🌐 **Multi-Language Support** – Sidecar proxy for Python, Go, TypeScript, C++ services
+- 🌐 **Native Language Bindings** – Python, TypeScript, C++, and Go bindings (not just sidecar!)
+- 🧪 **Built-in Testing** – TestClient for in-memory HTTP testing
 
 ---
 
@@ -21,22 +23,24 @@ Archimedes is an opinionated Rust-based server framework that provides:
 
 - [Design Document](docs/design.md) – Architecture and implementation details
 - [Specification](docs/spec.md) – Technical requirements
+- [Feature Reference](docs/features.md) – Complete feature checklist
 - [Roadmap](docs/roadmap.md) – Development progress and plans
 - [Contributing](CONTRIBUTING.md) – Development guidelines
 - [ADR-009](docs/decisions/009-archimedes-sidecar-multi-language.md) – Sidecar pattern for multi-language support
+- [ADR-011](docs/decisions/011-native-language-bindings.md) – Native language bindings design
 
 ---
 
 ## Current Status
 
-**Phase A10 Complete** – 969 tests passing across 17 crates
+**V1.0 Release Candidate** – 1,300+ tests passing across 20 crates
 
 | Crate                   | Tests | Description                                     |
 | ----------------------- | ----- | ----------------------------------------------- |
 | `archimedes-core`       | 80    | Core types, DI, handler traits                  |
-| `archimedes-server`     | 90    | HTTP server, routing, graceful shutdown         |
-| `archimedes-middleware` | 104   | 8-stage fixed middleware pipeline               |
-| `archimedes-router`     | 57    | High-performance radix tree router              |
+| `archimedes-server`     | 101   | HTTP server, routing, graceful shutdown         |
+| `archimedes-middleware` | 123   | 8-stage fixed middleware pipeline + CORS        |
+| `archimedes-router`     | 74    | High-performance radix tree router              |
 | `archimedes-extract`    | 109   | Request extractors (Path, Query, Json, Headers) |
 | `archimedes-config`     | 52    | TOML/JSON configuration with env overrides      |
 | `archimedes-telemetry`  | 25    | OpenTelemetry traces, Prometheus metrics        |
@@ -48,6 +52,12 @@ Archimedes is an opinionated Rust-based server framework that provides:
 | `archimedes-sse`        | 38    | Server-Sent Events                              |
 | `archimedes-tasks`      | 41    | Background tasks and scheduled jobs             |
 | `archimedes-sidecar`    | 39    | Multi-language sidecar proxy                    |
+| `archimedes-test`       | 30    | In-memory HTTP TestClient                       |
+| `archimedes-ffi`        | 44    | C ABI for cross-language bindings               |
+| `archimedes-py`         | 137   | Python bindings (PyO3)                          |
+| `archimedes-node`       | 120   | TypeScript/Node.js bindings (napi-rs)           |
+
+**Native Bindings:** Python, TypeScript, C++, Go – All with full V1.0 parity!
 
 ---
 
@@ -117,9 +127,77 @@ async fn create_user(
 7. **Telemetry** – Metrics and logging
 8. **Error Normalization** – Standard error envelopes
 
-### Multi-Language Support (Sidecar)
+### Multi-Language Support (Native Bindings)
 
-Services in Python, Go, TypeScript, and C++ can use Archimedes via the sidecar proxy:
+Archimedes provides **native bindings** for Python, TypeScript, C++, and Go – no sidecar needed!
+
+**Python** (replaces FastAPI/Flask):
+
+```python
+from archimedes import Archimedes, Request, Response
+
+app = Archimedes(contract="contract.json")
+
+@app.operation("getUser")
+async def get_user(request: Request) -> Response:
+    user_id = request.path_param("userId")
+    user = await db.find_user(user_id)
+    return Response.json(user)
+
+app.run(port=8080)
+```
+
+**TypeScript** (replaces Express/Fastify):
+
+```typescript
+import { Archimedes, Request, Response } from "@archimedes/node";
+
+const app = new Archimedes({ contract: "contract.json" });
+
+app.operation("getUser", async (req: Request): Promise<Response> => {
+  const userId = req.pathParam("userId");
+  const user = await db.findUser(userId);
+  return Response.json(user);
+});
+
+app.listen(8080);
+```
+
+**Go** (replaces Gin/Chi):
+
+```go
+import "github.com/themis-platform/archimedes-go"
+
+app := archimedes.New(archimedes.Config{Contract: "contract.json"})
+
+app.Operation("getUser", func(ctx *archimedes.Context) error {
+    userId := ctx.PathParam("userId")
+    user, _ := db.FindUser(userId)
+    return ctx.JSON(200, user)
+})
+
+app.Run(":8080")
+```
+
+**C++** (replaces cpp-httplib/Crow):
+
+```cpp
+#include <archimedes/archimedes.hpp>
+
+archimedes::App app{"contract.json"};
+
+app.operation("getUser", [&](const archimedes::Request& req) {
+    auto user_id = req.path_param("userId");
+    auto user = db.find_user(user_id);
+    return archimedes::Response::json(user);
+});
+
+app.run(8080);
+```
+
+### Sidecar Mode (Alternative)
+
+For services that can't use native bindings, the sidecar proxy is still available:
 
 ```yaml
 # docker-compose.yml
@@ -158,7 +236,7 @@ archimedes/
 │   ├── archimedes/              # Main facade (re-exports)
 │   ├── archimedes-core/         # Core types, DI, handlers
 │   ├── archimedes-server/       # HTTP server, routing
-│   ├── archimedes-middleware/   # 8-stage pipeline
+│   ├── archimedes-middleware/   # 8-stage pipeline + CORS
 │   ├── archimedes-router/       # Radix tree router
 │   ├── archimedes-extract/      # Request extractors
 │   ├── archimedes-config/       # Configuration
@@ -170,10 +248,23 @@ archimedes/
 │   ├── archimedes-ws/           # WebSocket
 │   ├── archimedes-sse/          # Server-Sent Events
 │   ├── archimedes-tasks/        # Background tasks
-│   └── archimedes-sidecar/      # Multi-language proxy
+│   ├── archimedes-sidecar/      # Multi-language proxy
+│   ├── archimedes-test/         # In-memory TestClient
+│   ├── archimedes-ffi/          # C ABI bindings
+│   ├── archimedes-py/           # Python bindings (PyO3)
+│   └── archimedes-node/         # TypeScript bindings (napi-rs)
+├── include/archimedes/          # C++ headers
+├── examples/
+│   ├── rust-native/             # Rust example
+│   ├── python-native/           # Python example
+│   ├── typescript-native/       # TypeScript example
+│   ├── go-native/               # Go example
+│   ├── cpp-native/              # C++ example
+│   └── feature-showcase/        # Reference implementation
 ├── docs/
 │   ├── design.md                # Implementation design
 │   ├── spec.md                  # Specification
+│   ├── features.md              # Feature reference
 │   ├── roadmap.md               # Development roadmap
 │   └── decisions/               # Architecture Decision Records
 ├── README.md
@@ -257,8 +348,12 @@ docker run -d \
 | `Path<T>`   | URL path parameters     | `Path<UserId>`            |
 | `Query<T>`  | Query string parameters | `Query<Pagination>`       |
 | `Json<T>`   | JSON request body       | `Json<CreateUserRequest>` |
+| `Form<T>`   | URL-encoded form data   | `Form<LoginForm>`         |
+| `Multipart` | File uploads            | `Multipart`               |
+| `Cookies`   | Request cookies         | `Cookies`                 |
 | `Headers`   | Request headers         | `Headers`                 |
 | `Inject<T>` | DI container service    | `Inject<Database>`        |
+| `State<T>`  | Shared application state| `State<AppConfig>`        |
 
 ---
 
@@ -296,9 +391,35 @@ service_name = "my-service"
 
 ```bash
 cargo build --workspace          # Build all crates
-cargo test --workspace           # Run all tests (969 tests)
+cargo test --workspace           # Run all tests (1,300+ tests)
 cargo clippy --workspace -- -D warnings  # Lint
 cargo doc --workspace --no-deps  # Generate docs
+```
+
+---
+
+## Testing
+
+Archimedes includes a built-in TestClient for in-memory HTTP testing:
+
+```rust
+use archimedes_test::{TestClient, TestRequestBuilder};
+
+#[tokio::test]
+async fn test_get_user() {
+    let client = TestClient::new(app);
+    
+    let response = client
+        .get("/users/123")
+        .header("Authorization", "Bearer token")
+        .send()
+        .await;
+    
+    response
+        .assert_status(200)
+        .assert_json_field("id", "123")
+        .assert_content_type("application/json");
+}
 ```
 
 ---
