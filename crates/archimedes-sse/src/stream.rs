@@ -30,6 +30,7 @@ pub struct SseSender {
 
 impl SseSender {
     /// Create a new sender.
+    #[allow(dead_code)]
     fn new(tx: mpsc::Sender<SseItem>) -> Self {
         Self {
             tx,

@@ -32,6 +32,7 @@ pub fn expand_handler(attr: TokenStream, item: TokenStream) -> syn::Result<Token
 /// Generates the complete handler code including:
 /// - The original function (preserved)
 /// - A registration function that creates the handler wrapper
+#[allow(clippy::unnecessary_wraps)]
 fn generate_handler_code(attrs: &HandlerAttrs, handler: &HandlerFn) -> syn::Result<TokenStream> {
     let fn_name = &handler.name;
     let operation_id = &attrs.operation;
