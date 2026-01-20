@@ -1,9 +1,9 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.12.0
+> **Version**: 3.13.0
 > **Created**: 2026-01-04
-> **Last Updated**: 2026-01-11
-> **Target Completion**: Week 84 (extended for binding parity)
+> **Last Updated**: 2026-01-20
+> **Target Completion**: Week 86 (V1.0 release)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
@@ -30,9 +30,11 @@
 > **📋 NEW (2026-01-12)**: Created `docs/features.md` - Comprehensive feature reference for testing and binding parity.
 > **📋 NEW (2026-01-12)**: Created `examples/feature-showcase/` - Reference implementation for all binding authors.
 > **📋 NEW (2026-01-12)**: Phase A15 (Binding Parity) PLANNED - Ensure all bindings have same features as Rust.
-> **🔥 UPDATE (2026-01-08)**: Phase A15.1 Python STARTED - Router and Lifecycle hooks added (123 tests, +10 new).
+> **🔥 UPDATE (2026-01-13)**: Phase A15.1-A15.3 COMPLETE - All binding features for V1.0 implemented.
 > **📋 NEW (2026-01-13)**: ADR-013 (Binding Parity Priorities) - TestClient V1.0, WebSocket/SSE/Tasks deferred to V1.1.
 > **🔥 UPDATE (2026-01-13)**: Phase A15.6 (TestClient) COMPLETE - All 4 bindings have TestClient support.
+> **🔥 UPDATE (2026-01-20)**: Phase A15 V1.0 COMPLETE - All V1.0 binding features done. A15.4/A15.5 deferred to V1.1.
+> **📋 NEW (2026-01-20)**: Phase A16 (V1.0 Release Preparation) ADDED - Documentation, CI/CD, publishing preparation.
 
 ---
 
@@ -2809,25 +2811,146 @@ See: `examples/feature-showcase/README.md`
 
 ### A15 Deliverables
 
-| Feature          | Python | TypeScript | C++ | Go  | Priority | Phase |
-| ---------------- | ------ | ---------- | --- | --- | -------- | ----- |
-| Sub-routers      | 📋     | 📋         | 📋  | 📋  | P1       | A15.1 |
-| Lifecycle hooks  | 📋     | 📋         | 📋  | 📋  | P1       | A15.1 |
-| Form extractor   | 📋     | 📋         | 📋  | 📋  | P1       | A15.2 |
-| Cookie extractor | 📋     | 📋         | 📋  | 📋  | P1       | A15.2 |
-| Multipart        | 📋     | 📋         | 📋  | 📋  | P1       | A15.2 |
-| FileResponse     | 📋     | 📋         | 📋  | 📋  | P1       | A15.2 |
-| SetCookie        | 📋     | 📋         | 📋  | 📋  | P1       | A15.2 |
-| Redirect         | 📋     | 📋         | 📋  | 📋  | P2       | A15.2 |
-| CORS middleware  | 📋     | 📋         | 📋  | 📋  | P1       | A15.3 |
-| Rate limiting    | 📋     | 📋         | 📋  | 📋  | P1       | A15.3 |
-| Compression      | 📋     | 📋         | 📋  | 📋  | P2       | A15.3 |
-| Static files     | 📋     | 📋         | 📋  | 📋  | P2       | A15.3 |
-| WebSocket        | 📋     | 📋         | 📋  | 📋  | P1       | A15.4 |
-| SSE              | 📋     | 📋         | 📋  | 📋  | P2       | A15.4 |
-| Task spawner     | 📋     | 📋         | 📋  | 📋  | P2       | A15.5 |
-| Job scheduler    | 📋     | 📋         | 📋  | 📋  | P2       | A15.5 |
-| TestClient       | ✅     | ✅         | ✅  | ✅  | P1       | A15.6 |
+| Feature          | Python | TypeScript | C++ | Go  | Priority | Phase | Status      |
+| ---------------- | ------ | ---------- | --- | --- | -------- | ----- | ----------- |
+| Sub-routers      | ✅     | ✅         | ✅  | ✅  | P1       | A15.1 | ✅ Complete |
+| Lifecycle hooks  | ✅     | ✅         | ✅  | ✅  | P1       | A15.1 | ✅ Complete |
+| Form extractor   | ✅     | ✅         | ✅  | ✅  | P1       | A15.2 | ✅ Complete |
+| Cookie extractor | ✅     | ✅         | ✅  | ✅  | P1       | A15.2 | ✅ Complete |
+| Multipart        | ✅     | ✅         | ✅  | ✅  | P1       | A15.2 | ✅ Complete |
+| FileResponse     | ✅     | ✅         | ✅  | ✅  | P1       | A15.2 | ✅ Complete |
+| SetCookie        | ✅     | ✅         | ✅  | ✅  | P1       | A15.2 | ✅ Complete |
+| Redirect         | ✅     | ✅         | ✅  | ✅  | P2       | A15.2 | ✅ Complete |
+| CORS middleware  | ✅     | ✅         | ✅  | ✅  | P1       | A15.3 | ✅ Complete |
+| Rate limiting    | ✅     | ✅         | ✅  | ✅  | P1       | A15.3 | ✅ Complete |
+| Compression      | ✅     | ✅         | ✅  | ✅  | P2       | A15.3 | ✅ Complete |
+| Static files     | ✅     | ✅         | ✅  | ✅  | P2       | A15.3 | ✅ Complete |
+| WebSocket        | 📋     | 📋         | 📋  | 📋  | P1       | A15.4 | ⏸️ V1.1     |
+| SSE              | 📋     | 📋         | 📋  | 📋  | P2       | A15.4 | ⏸️ V1.1     |
+| Task spawner     | 📋     | 📋         | 📋  | 📋  | P2       | A15.5 | ⏸️ V1.1     |
+| Job scheduler    | 📋     | 📋         | 📋  | 📋  | P2       | A15.5 | ⏸️ V1.1     |
+| TestClient       | ✅     | ✅         | ✅  | ✅  | P1       | A15.6 | ✅ Complete |
+
+---
+
+## Phase A16: V1.0 Release Preparation (Weeks 85-86) 📋 PLANNED
+
+> **Goal**: Finalize V1.0 release with documentation, CI/CD, and publishing
+> **Status**: 📋 PLANNED
+> **Rationale**: All V1.0 features complete, need release preparation
+
+### Phase A16.1: Documentation Review (Week 85)
+
+> **Goal**: Ensure all documentation is accurate and complete
+
+#### Tasks
+
+- [ ] Review and update `README.md` for each crate
+- [ ] Update `docs/design.md` with final architecture
+- [ ] Update `docs/spec.md` with V1.0 feature set
+- [ ] Update `docs/features.md` with binding status
+- [ ] Create migration guides from FastAPI, Express, Gin, cpp-httplib
+- [ ] Add API documentation links (docs.rs for Rust crates)
+- [ ] Review all example READMEs for accuracy
+
+### Phase A16.2: Example Cleanup (Week 85)
+
+> **Goal**: Ensure all examples are working and documented
+
+#### Tasks
+
+- [ ] Verify `rust-native` example builds and tests pass
+- [ ] Verify `python-native` example works with `archimedes-py`
+- [ ] Verify `typescript-native` example works with `@archimedes/node`
+- [ ] Verify `cpp-native` example builds with `libarchimedes`
+- [ ] Verify `go-native` example works with `archimedes-go`
+- [ ] Update `docker-compose.yml` for all examples
+- [ ] Test all Dockerfiles build correctly
+- [ ] Add E2E integration test script
+
+### Phase A16.3: CI/CD Pipeline (Week 85)
+
+> **Goal**: Automated testing and release pipeline
+
+#### Tasks
+
+- [ ] Set up GitHub Actions for Rust crates (cargo test, clippy, fmt)
+- [ ] Add cross-platform CI (Linux, macOS, Windows)
+- [ ] Add Python binding CI (pytest, mypy)
+- [ ] Add TypeScript binding CI (jest, eslint)
+- [ ] Add C++ binding CI (cmake, ctest)
+- [ ] Add Go binding CI (go test, go vet)
+- [ ] Set up code coverage reporting
+- [ ] Add security scanning (cargo audit, npm audit)
+- [ ] Set up release automation
+
+### Phase A16.4: Publishing Preparation (Week 86)
+
+> **Goal**: Prepare packages for publishing to registries
+
+#### Rust Crates (crates.io)
+
+- [ ] Review `Cargo.toml` metadata for all crates
+- [ ] Add proper `license`, `repository`, `documentation` fields
+- [ ] Verify crate dependency versions are published
+- [ ] Test `cargo publish --dry-run` for each crate
+- [ ] Determine publish order (dependencies first)
+
+#### Python Package (PyPI)
+
+- [ ] Update `pyproject.toml` with final metadata
+- [ ] Build wheels for Linux, macOS, Windows (maturin)
+- [ ] Test installation from wheel: `pip install archimedes`
+- [ ] Set up PyPI publishing workflow
+
+#### TypeScript Package (npm)
+
+- [ ] Update `package.json` with final metadata
+- [ ] Build native bindings (napi-rs prebuild)
+- [ ] Test installation: `npm install @archimedes/node`
+- [ ] Set up npm publishing workflow
+
+#### C++ Package (vcpkg)
+
+- [ ] Update `vcpkg.json` port file
+- [ ] Test vcpkg installation
+- [ ] Submit PR to vcpkg registry (or self-host)
+
+#### Go Module (GitHub)
+
+- [ ] Tag release version: `v1.0.0`
+- [ ] Ensure `go.mod` has correct module path
+- [ ] Test: `go get github.com/themis-platform/archimedes-go@v1.0.0`
+- [ ] Document cgo requirements
+
+### Phase A16.5: V1.0 Release (Week 86)
+
+> **Goal**: Official V1.0 release
+
+#### Tasks
+
+- [ ] Create GitHub release with changelog
+- [ ] Publish Rust crates to crates.io
+- [ ] Publish Python package to PyPI
+- [ ] Publish TypeScript package to npm
+- [ ] Update vcpkg port
+- [ ] Tag Go module release
+- [ ] Announce release (blog post, social media)
+- [ ] Update documentation site
+
+### A16 Deliverables
+
+| Deliverable       | Target     | Priority | Status   |
+| ----------------- | ---------- | -------- | -------- |
+| Documentation     | Week 85    | P0       | 📋 TODO  |
+| Example cleanup   | Week 85    | P0       | 📋 TODO  |
+| CI/CD pipeline    | Week 85    | P0       | 📋 TODO  |
+| Rust crates       | crates.io  | P0       | 📋 TODO  |
+| Python package    | PyPI       | P0       | 📋 TODO  |
+| TypeScript pkg    | npm        | P0       | 📋 TODO  |
+| C++ package       | vcpkg      | P1       | 📋 TODO  |
+| Go module         | GitHub     | P1       | 📋 TODO  |
+| V1.0 release      | Week 86    | P0       | 📋 TODO  |
 
 ---
 
@@ -3349,36 +3472,48 @@ See: `examples/feature-showcase/README.md`
 
 ## Milestones Summary
 
-| Milestone             | Target  | Criteria                          | Dependencies            |
-| --------------------- | ------- | --------------------------------- | ----------------------- |
-| **MVP Release**       |         |                                   |                         |
-| A0: Shared Types      | Week 1  | Using `themis-platform-types`     | Themis creates crate    |
-| A1: Foundation        | Week 4  | Core types, mock contracts        | `themis-platform-types` |
-| A2: Server            | Week 8  | HTTP server, routing, handlers    | None                    |
-| A3: Middleware        | Week 12 | Full pipeline with mocks          | None                    |
-| A4: Observability     | Week 16 | Metrics, traces, logs, config     | None                    |
-| A5: Integrated        | Week 20 | Themis + Eunomia integration      | Themis, Eunomia         |
-| **Framework Release** |         |                                   |                         |
-| A6: Core Framework    | Week 24 | Router, extractors (Axum parity)  | MVP                     |
-| A7: FastAPI Parity    | Week 28 | Handler macros, auto-docs         | A6                      |
-| A8: Extended Features | Week 32 | WebSocket, SSE, background tasks  | A7                      |
-| A9: Developer Exp     | Week 36 | CLI, hot reload, templates        | A8                      |
-| **Multi-Language**    |         |                                   |                         |
-| A10: Sidecar          | Week 39 | Sidecar for non-Rust services     | A9                      |
-| A11: Type Generation  | Week 42 | Python, Go, TypeScript, C++       | Themis codegen          |
-| A12: Integration      | Week 46 | Multi-language E2E tests          | A10, A11                |
-| **Native Bindings**   |         |                                   |                         |
-| A13.1: Core FFI       | Week 50 | Stable C ABI for Archimedes       | A12                     |
-| A13.2: Python         | Week 58 | archimedes PyPI (full parity)     | A13.1                   |
-| A13.3: TypeScript     | Week 62 | @archimedes/node npm package      | A13.1                   |
-| A13.4: C++            | Week 65 | libarchimedes headers             | A13.1                   |
-| A13.5: Go             | Week 69 | archimedes-go module              | A13.1                   |
-| **Framework Parity**  |         |                                   |                         |
-| A14.1: Critical       | Week 73 | CORS, TestClient, lifecycle hooks | A13                     |
-| A14.2: File Handling  | Week 75 | Uploads, downloads, cookies       | A14.1                   |
-| A14.3: Security       | Week 77 | Rate limit, compression, static   | A14.2                   |
-| A14.4: Router         | Week 78 | Sub-routers, prefixes, tags       | A14.3                   |
-| **V1.0 Release**      | Week 78 | All features, production ready    | A14.4                   |
+| Milestone             | Target  | Criteria                          | Dependencies            | Status      |
+| --------------------- | ------- | --------------------------------- | ----------------------- | ----------- |
+| **MVP Release**       |         |                                   |                         |             |
+| A0: Shared Types      | Week 1  | Using `themis-platform-types`     | Themis creates crate    | ✅ Complete |
+| A1: Foundation        | Week 4  | Core types, mock contracts        | `themis-platform-types` | ✅ Complete |
+| A2: Server            | Week 8  | HTTP server, routing, handlers    | None                    | ✅ Complete |
+| A3: Middleware        | Week 12 | Full pipeline with mocks          | None                    | ✅ Complete |
+| A4: Observability     | Week 16 | Metrics, traces, logs, config     | None                    | ✅ Complete |
+| A5: Integrated        | Week 20 | Themis + Eunomia integration      | Themis, Eunomia         | ✅ Complete |
+| **Framework Release** |         |                                   |                         |             |
+| A6: Core Framework    | Week 24 | Router, extractors (Axum parity)  | MVP                     | ✅ Complete |
+| A7: FastAPI Parity    | Week 28 | Handler macros, auto-docs         | A6                      | ✅ Complete |
+| A8: Extended Features | Week 32 | WebSocket, SSE, background tasks  | A7                      | ✅ Complete |
+| A9: Developer Exp     | Week 36 | CLI, hot reload, templates        | A8                      | ✅ Complete |
+| **Multi-Language**    |         |                                   |                         |             |
+| A10: Sidecar          | Week 39 | Sidecar for non-Rust services     | A9                      | ✅ Complete |
+| A11: Type Generation  | Week 42 | Python, Go, TypeScript, C++       | Themis codegen          | ✅ Complete |
+| A12: Integration      | Week 46 | Multi-language E2E tests          | A10, A11                | ✅ Complete |
+| **Native Bindings**   |         |                                   |                         |             |
+| A13.1: Core FFI       | Week 50 | Stable C ABI for Archimedes       | A12                     | ✅ Complete |
+| A13.2: Python         | Week 58 | archimedes PyPI (full parity)     | A13.1                   | ✅ Complete |
+| A13.3: TypeScript     | Week 62 | @archimedes/node npm package      | A13.1                   | ✅ Complete |
+| A13.4: C++            | Week 65 | libarchimedes headers             | A13.1                   | ✅ Complete |
+| A13.5: Go             | Week 69 | archimedes-go module              | A13.1                   | ✅ Complete |
+| **Framework Parity**  |         |                                   |                         |             |
+| A14.1: Critical       | Week 73 | CORS, TestClient, lifecycle hooks | A13                     | ✅ Complete |
+| A14.2: File Handling  | Week 75 | Uploads, downloads, cookies       | A14.1                   | ✅ Complete |
+| A14.3: Security       | Week 77 | Rate limit, compression, static   | A14.2                   | ✅ Complete |
+| A14.4: Router         | Week 78 | Sub-routers, prefixes, tags       | A14.3                   | ✅ Complete |
+| **Binding Parity**    |         |                                   |                         |             |
+| A15.1: Core Features  | Week 79 | Router, lifecycle for bindings    | A14                     | ✅ Complete |
+| A15.2: Extractors     | Week 80 | Form, Cookie, Multipart           | A15.1                   | ✅ Complete |
+| A15.3: Middleware     | Week 82 | CORS, Rate limit, Compression     | A15.2                   | ✅ Complete |
+| A15.4: Real-time      | Week 83 | WebSocket, SSE for bindings       | A15.3                   | ⏸️ V1.1     |
+| A15.5: Tasks          | Week 84 | Task spawner, scheduler           | A15.3                   | ⏸️ V1.1     |
+| A15.6: TestClient     | Week 84 | TestClient for all bindings       | A15.3                   | ✅ Complete |
+| **V1.0 Release**      |         |                                   |                         |             |
+| A16.1: Documentation  | Week 85 | Docs review, migration guides     | A15                     | 📋 TODO     |
+| A16.2: Examples       | Week 85 | All examples working              | A15                     | 📋 TODO     |
+| A16.3: CI/CD          | Week 85 | Automated testing, releases       | A15                     | 📋 TODO     |
+| A16.4: Publishing     | Week 86 | crates.io, PyPI, npm, vcpkg, Go   | A16.1-3                 | 📋 TODO     |
+| A16.5: Release        | Week 86 | V1.0 official release             | A16.4                   | 📋 TODO     |
 
 ---
 

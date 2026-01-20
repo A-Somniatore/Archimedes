@@ -1,7 +1,7 @@
 # Archimedes Feature Reference
 
-> **Version**: 1.2.0
-> **Last Updated**: 2026-01-13
+> **Version**: 1.3.0
+> **Last Updated**: 2026-01-20
 > **Purpose**: Comprehensive feature checklist for testing and language binding parity
 
 This document lists all features available in Archimedes. It serves as:
@@ -14,19 +14,19 @@ This document lists all features available in Archimedes. It serves as:
 
 ## Quick Reference
 
-| Category              | Features | Rust | Python | TypeScript | C++ | Go  |
-| --------------------- | -------- | ---- | ------ | ---------- | --- | --- |
-| **Core**              | 12       | ✅   | ✅     | ✅         | ✅  | ✅  |
-| **Extractors**        | 10       | ✅   | ✅     | ✅         | ✅  | ✅  |
-| **Response Builders** | 6        | ✅   | ✅     | ✅         | ✅  | ✅  |
-| **Middleware**        | 10       | ✅   | ✅     | ✅         | ✅  | ✅  |
-| **Real-Time**         | 2        | ✅   | 🔄     | 🔄         | 🔄  | 🔄  |
-| **Background Tasks**  | 2        | ✅   | 🔄     | 🔄         | 🔄  | 🔄  |
-| **Documentation**     | 3        | ✅   | 🔄     | 🔄         | 🔄  | 🔄  |
-| **Testing**           | 3        | ✅   | 🔄     | 🔄         | 🔄  | 🔄  |
-| **Server**            | 6        | ✅   | 🔄     | 🔄         | 🔄  | 🔄  |
+| Category              | Features | Rust | Python | TypeScript | C++ | Go  | V1.0 Status    |
+| --------------------- | -------- | ---- | ------ | ---------- | --- | --- | -------------- |
+| **Core**              | 12       | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| **Extractors**        | 10       | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| **Response Builders** | 6        | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| **Middleware**        | 10       | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| **Real-Time**         | 2        | ✅   | ⏸️     | ⏸️         | ⏸️  | ⏸️  | ⏸️ V1.1        |
+| **Background Tasks**  | 2        | ✅   | ⏸️     | ⏸️         | ⏸️  | ⏸️  | ⏸️ V1.1        |
+| **Documentation**     | 3        | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| **Testing**           | 3        | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| **Server**            | 6        | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
 
-Legend: ✅ Complete | 🔄 Partial | ❌ Not Started
+Legend: ✅ Complete | ⏸️ Deferred to V1.1 | 🔄 Partial | ❌ Not Started
 
 ---
 

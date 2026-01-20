@@ -4,28 +4,41 @@ This directory contains example services demonstrating how to use Archimedes wit
 
 ## Overview
 
-Archimedes supports three deployment patterns:
+Archimedes supports two deployment patterns:
 
-1. **Native Rust**: Use the Archimedes framework directly for maximum performance
-2. **Native Bindings**: Use language-specific bindings (Python, Go, TypeScript, C++) for in-process middleware
-3. **Sidecar (Legacy)**: Deploy Archimedes as a reverse proxy sidecar for gradual migration
+1. **Native Bindings (Recommended)**: Use language-specific bindings for in-process middleware with full Rust performance
+2. **Sidecar (Legacy)**: Deploy Archimedes as a reverse proxy sidecar for gradual migration
 
-## Services
+## Native Binding Services (Recommended)
 
-| Language   | Framework     | Pattern        | Port | Description                          |
-| ---------- | ------------- | -------------- | ---- | ------------------------------------ |
-| Rust       | Archimedes    | Native         | 8001 | Direct framework usage               |
-| Python     | archimedes-py | Native Binding | 8002 | **NEW** Python with native bindings  |
-| Go         | net/http      | Sidecar        | 8003 | Go service with sidecar (migration)  |
-| TypeScript | Express       | Sidecar        | 8004 | Node.js with sidecar (migration)     |
-| C++        | cpp-httplib   | Sidecar        | 8005 | C++ service with sidecar (migration) |
+All native bindings provide the same middleware pipeline as Rust, with no network hop overhead.
 
-> **Note**: Python now uses native bindings (`archimedes-py`). Go, TypeScript, and C++ bindings are planned.
-> The sidecar pattern remains available for gradual migration.
+| Language       | Package           | Directory            | Port | Status      |
+| -------------- | ----------------- | -------------------- | ---- | ----------- |
+| **Rust**       | archimedes        | `rust-native/`       | 8001 | ✅ Complete |
+| **Python**     | archimedes (PyPI) | `python-native/`     | 8002 | ✅ Complete |
+| **Go**         | archimedes-go     | `go-native/`         | 8003 | ✅ Complete |
+| **TypeScript** | @archimedes/node  | `typescript-native/` | 8004 | ✅ Complete |
+| **C++**        | libarchimedes     | `cpp-native/`        | 8005 | ✅ Complete |
+
+## Sidecar Services (Legacy/Migration)
+
+The sidecar pattern is available for gradual migration from existing frameworks.
+
+| Language       | Directory            | Port | Description                |
+| -------------- | -------------------- | ---- | -------------------------- |
+| Python         | `python-sidecar/`    | -    | FastAPI + sidecar          |
+| Go             | `go-sidecar/`        | -    | net/http + sidecar         |
+| TypeScript     | `typescript-sidecar/`| -    | Express + sidecar          |
+| C++            | `cpp-sidecar/`       | -    | cpp-httplib + sidecar      |
+
+## Feature Showcase
+
+The `feature-showcase/` directory contains a comprehensive Rust example demonstrating ALL Archimedes features. Use this as the reference implementation.
 
 ## Quick Start
 
-### Run All Services with Docker Compose
+### Run All Native Services with Docker Compose
 
 ```bash
 cd examples
@@ -34,8 +47,7 @@ docker-compose up --build
 
 This starts:
 
-- All 5 example services
-- An Archimedes sidecar for each non-Rust service
+- All 5 native example services (Rust, Python, Go, TypeScript, C++)
 - A Jaeger instance for distributed tracing
 - A Prometheus instance for metrics
 
@@ -61,7 +73,31 @@ curl -X POST http://localhost:8001/users \
 
 ## Architecture
 
-### Sidecar Pattern
+### Native Bindings (Recommended)
+
+```
+    Request         ┌─────────────────────────────────────────┐
+   ─────────────────▶│          Your Application               │
+                    │                                         │
+                    │  ┌─────────────────────────────────────┐│
+                    │  │      Archimedes Native Binding      ││
+                    │  │                                     ││
+                    │  │  • Request ID generation            ││
+                    │  │  • Identity extraction              ││
+                    │  │  • Authorization (OPA)              ││
+                    │  │  • Contract validation              ││
+                    │  │  • Telemetry (traces, metrics)      ││
+                    │  │  • Error normalization              ││
+                    │  └─────────────────────────────────────┘│
+                    │                                         │
+                    │  ┌─────────────────────────────────────┐│
+                    │  │        Your Business Logic          ││
+                    │  │     (handlers, services, etc.)      ││
+                    │  └─────────────────────────────────────┘│
+                    └─────────────────────────────────────────┘
+```
+
+### Sidecar Pattern (Legacy)
 
 ```
                     ┌─────────────────────────────────────────┐
@@ -86,25 +122,20 @@ curl -X POST http://localhost:8001/users \
                     └─────────────────────────────────────────┘
 ```
 
-### What the Sidecar Provides
+## What Archimedes Provides
+
+All binding languages get the same features:
 
 1. **Contract Validation**: Request/response validation against Themis contracts
 2. **Authorization**: OPA policy evaluation via Eunomia bundles
-3. **Identity Propagation**: Caller identity extracted and forwarded
+3. **Identity Extraction**: Caller identity from mTLS/JWT/API keys
 4. **Observability**: Automatic tracing, metrics, and structured logging
 5. **Request ID**: Correlation ID generation and propagation
-
-## Headers Your Service Receives
-
-When using the sidecar, your service receives these headers:
-
-| Header              | Description                                  | Example                                 |
-| ------------------- | -------------------------------------------- | --------------------------------------- |
-| `X-Request-Id`      | Unique request correlation ID                | `01234567-89ab-cdef-0123-456789abcdef`  |
-| `X-Caller-Identity` | JSON-encoded caller identity                 | `{"type":"spiffe","id":"spiffe://..."}` |
-| `traceparent`       | W3C Trace Context parent                     | `00-abc123...-def456...-01`             |
-| `tracestate`        | W3C Trace Context state                      | `archimedes=...`                        |
-| `X-Operation-Id`    | Matched operation from contract (if matched) | `getUser`                               |
+6. **CORS**: Cross-origin resource sharing middleware
+7. **Rate Limiting**: Per-IP/user/key rate limiting
+8. **Compression**: gzip, brotli, deflate, zstd
+9. **Static Files**: Serve static assets with caching
+10. **TestClient**: In-memory testing without network
 
 ## Directory Structure
 
@@ -113,58 +144,98 @@ examples/
 ├── README.md              # This file
 ├── docker-compose.yml     # Run all services
 ├── contract.json          # Shared Themis contract
-├── policy.tar.gz          # Shared OPA policy bundle
+│
+├── feature-showcase/      # Reference implementation (all features)
+│   ├── Cargo.toml
+│   ├── README.md
+│   └── src/main.rs
 │
 ├── rust-native/           # Native Rust service
 │   ├── Cargo.toml
 │   ├── Dockerfile
 │   └── src/main.rs
 │
-├── python-native/         # Python with Native Bindings (NEW)
+├── python-native/         # Python with Native Bindings
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   ├── archimedes.yaml    # Native config (no sidecar)
+│   ├── archimedes.yaml
 │   └── main.py
 │
-├── python-sidecar/        # Python + Sidecar (Legacy)
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   └── main.py
-│
-├── go-sidecar/            # Go + Sidecar
+├── go-native/             # Go with Native Bindings
 │   ├── Dockerfile
 │   ├── go.mod
-│   └── main.go
+│   ├── main.go
+│   └── archimedes/        # Go bindings package
 │
-├── typescript-sidecar/    # TypeScript + Sidecar
+├── typescript-native/     # TypeScript with Native Bindings
 │   ├── Dockerfile
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── src/index.ts
 │
-└── cpp-sidecar/           # C++ + Sidecar
-    ├── Dockerfile
-    ├── CMakeLists.txt
-    └── main.cpp
+├── cpp-native/            # C++ with Native Bindings
+│   ├── Dockerfile
+│   ├── CMakeLists.txt
+│   └── src/main.cpp
+│
+└── *-sidecar/             # Legacy sidecar examples
 ```
 
-## Performance Expectations
+## Performance Comparison
 
-| Metric        | Native Rust | With Sidecar |
-| ------------- | ----------- | ------------ |
-| Latency (p50) | ~0.5ms      | ~1.5ms       |
-| Latency (p99) | ~2ms        | ~4ms         |
-| Throughput    | ~50k rps    | ~30k rps     |
+| Pattern         | Latency (p50) | Latency (p99) | Throughput |
+| --------------- | ------------- | ------------- | ---------- |
+| Native Rust     | ~0.5ms        | ~2ms          | ~50k rps   |
+| Native Bindings | ~0.8ms        | ~3ms          | ~40k rps   |
+| Sidecar         | ~1.5ms        | ~5ms          | ~30k rps   |
 
-The sidecar adds approximately 1-2ms of latency for the benefits of:
+Native bindings add minimal overhead (~0.3ms) compared to pure Rust, while the sidecar adds ~1-2ms network latency.
 
-- Language-agnostic deployment
-- Zero changes to existing services
-- Consistent observability across all services
+## Migration Guide
+
+### From FastAPI to archimedes-py
+
+```python
+# Before (FastAPI)
+from fastapi import FastAPI
+app = FastAPI()
+
+@app.get("/users")
+async def list_users():
+    return {"users": []}
+
+# After (Archimedes)
+from archimedes import Archimedes
+app = Archimedes(contract="contract.json")
+
+@app.operation("listUsers")
+async def list_users(request):
+    return Response.json({"users": []})
+```
+
+### From Express to @archimedes/node
+
+```typescript
+// Before (Express)
+import express from 'express';
+const app = express();
+
+app.get('/users', (req, res) => {
+  res.json({ users: [] });
+});
+
+// After (Archimedes)
+import { Archimedes } from '@archimedes/node';
+const app = new Archimedes({ contract: 'contract.json' });
+
+app.operation('listUsers', async (request) => {
+  return Response.json({ users: [] });
+});
+```
 
 ## Next Steps
 
-1. Choose a language and explore the example
+1. Choose a language and explore the native example
 2. Copy the pattern to your own service
 3. Deploy with Kubernetes using the provided manifests
 4. Monitor with Jaeger and Prometheus

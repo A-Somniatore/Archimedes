@@ -1,8 +1,8 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 3.8.0
-> **Status**: Implementation Phase (Phase A14 In Progress)
-> **Last Updated**: 2026-01-12
+> **Version**: 3.9.0
+> **Status**: Implementation Phase (Phase A15 Complete, Phase A16 In Progress)
+> **Last Updated**: 2026-01-20
 > **Component**: archimedes
 
 ---
@@ -17,7 +17,7 @@
 | `archimedes-middleware` | ✅ Complete | 123   | All 8 middleware stages + pipeline + CORS middleware                                                      |
 | `archimedes-telemetry`  | ✅ Complete | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
 | `archimedes-config`     | ✅ Complete | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
-| `archimedes-router`     | ✅ Complete | 57    | High-performance radix tree router with method merging                                                    |
+| `archimedes-router`     | ✅ Complete | 74    | High-performance radix tree router with method merging, nest, prefix, merge, tag                          |
 | `archimedes-extract`    | ✅ Complete | 109   | Request extractors, response builders, DI injection                                                       |
 | `archimedes-macros`     | ✅ Complete | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
 | `archimedes-sentinel`   | ✅ Complete | 38    | Themis contract integration                                                                               |
@@ -28,13 +28,50 @@
 | `archimedes-tasks`      | ✅ Complete | 41    | Background task spawner and job scheduler                                                                 |
 | `archimedes-sidecar`    | ✅ Complete | 39    | Multi-language sidecar proxy (Phase A10)                                                                  |
 | `archimedes-ffi`        | ✅ Complete | 44    | C ABI for cross-language FFI (Phase A13.1)                                                                |
-| `archimedes-py`         | ✅ Complete | 111   | Python bindings via PyO3 - Full Rust parity (Phase A13.2)                                                 |
-| `archimedes-node`       | ✅ Complete | 95    | Node.js/TypeScript bindings via napi-rs (Phase A13.3)                                                     |
-| `include/archimedes/`   | ✅ Complete | -     | C++ headers with C ABI (Phase A13.4)                                                                      |
-| `examples/go-native/`   | ✅ Complete | 9     | Go bindings via cgo (Phase A13.5)                                                                         |
+| `archimedes-py`         | ✅ Complete | 137   | Python bindings via PyO3 - Full V1.0 parity (Phase A13.2 + A15)                                           |
+| `archimedes-node`       | ✅ Complete | 120   | Node.js/TypeScript bindings via napi-rs (Phase A13.3 + A15)                                               |
+| `include/archimedes/`   | ✅ Complete | 67    | C++ headers with C ABI (Phase A13.4 + A15)                                                                |
+| `examples/go-native/`   | ✅ Complete | 27    | Go bindings via cgo (Phase A13.5 + A15)                                                                   |
 | `archimedes-test`       | ✅ Complete | 30    | In-memory HTTP testing (TestClient, TestRequest, TestResponse)                                            |
 
-**Total Tests**: 1160+ passing across all Rust crates + 259 binding tests
+**Total Tests**: 1,300+ passing across all Rust crates + 350+ binding tests
+
+---
+
+## ✅ Phase A15: Binding Feature Parity (V1.0 COMPLETE)
+
+All V1.0 binding features have been implemented across Python, TypeScript, C++, and Go:
+
+### Phase A15.1: Core Binding Features ✅ Complete
+
+- Router: `nest()`, `prefix()`, `tag()`, `merge()` for all bindings
+- Lifecycle: `on_startup`, `on_shutdown` hooks for all bindings
+
+### Phase A15.2: Extractors & Responses ✅ Complete
+
+- Form extractor for URL-encoded form data
+- Cookies extractor with SetCookie builder
+- Multipart extractor for file uploads
+- FileResponse for file downloads
+- Redirect responses (301, 302, 303, 307)
+
+### Phase A15.3: Middleware Config ✅ Complete
+
+- CORS configuration (origins, methods, headers, credentials)
+- Rate limiting configuration (requests/second, burst, key extraction)
+- Compression configuration (gzip, brotli, deflate, zstd)
+- Static files configuration (directory, prefix, caching)
+
+### Phase A15.6: TestClient ✅ Complete
+
+- TestClient for all 4 bindings (Python, TypeScript, C++, Go)
+- TestResponse with assertion helpers
+
+### Phase A15.4/A15.5: Deferred to V1.1
+
+- WebSocket bindings (complex async models differ by language)
+- SSE bindings (complex async models differ by language)
+- Background task bindings (each language has native solutions)
 
 ---
 
