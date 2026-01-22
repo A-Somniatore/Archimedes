@@ -1,7 +1,7 @@
 # Archimedes Feature Reference
 
-> **Version**: 1.3.0
-> **Last Updated**: 2026-01-20
+> **Version**: 1.4.0
+> **Last Updated**: 2026-01-21
 > **Purpose**: Comprehensive feature checklist for testing and language binding parity
 
 This document lists all features available in Archimedes. It serves as:
@@ -27,6 +27,8 @@ This document lists all features available in Archimedes. It serves as:
 | **Server**            | 6        | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
 
 Legend: ✅ Complete | ⏸️ Deferred to V1.1 | 🔄 Partial | ❌ Not Started
+
+**Test Summary**: 1,300+ tests across all Rust crates (1,279 unit tests + doc tests)
 
 ---
 
