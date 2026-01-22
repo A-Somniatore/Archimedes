@@ -2870,7 +2870,7 @@ See: `examples/feature-showcase/README.md`
 - [ ] Test all Dockerfiles build correctly
 - [ ] Add E2E integration test script
 
-### Phase A16.3: CI/CD Pipeline (Week 85) 🔄 IN PROGRESS
+### Phase A16.3: CI/CD Pipeline (Week 85) ✅ COMPLETE
 
 > **Goal**: Automated testing and release pipeline
 
@@ -2885,9 +2885,9 @@ See: `examples/feature-showcase/README.md`
 - [x] Add Go binding CI (go test, go vet)
 - [x] Set up code coverage reporting (cargo-llvm-cov + Codecov)
 - [x] Add security scanning (cargo audit)
-- [ ] Set up release automation
+- [x] Set up release automation (.github/workflows/release.yml)
 
-### Phase A16.4: Publishing Preparation (Week 86)
+### Phase A16.4: Publishing Preparation (Week 86) 🔄 IN PROGRESS
 
 > **Goal**: Prepare packages for publishing to registries
 
