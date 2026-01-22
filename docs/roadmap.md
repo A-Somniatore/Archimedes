@@ -2979,15 +2979,19 @@ Round 11: archimedes (main facade crate - needs all above)
 
 | Deliverable       | Target     | Priority | Status       |
 | ----------------- | ---------- | -------- | ------------ |
-| Documentation     | Week 85    | P0       | 🔄 In Progress |
+| Documentation     | Week 85    | P0       | ✅ Complete  |
 | Example cleanup   | Week 85    | P0       | 📋 TODO      |
-| CI/CD pipeline    | Week 85    | P0       | 🔄 In Progress |
-| Rust crates       | crates.io  | P0       | 📋 TODO      |
-| Python package    | PyPI       | P0       | 📋 TODO      |
+| CI/CD pipeline    | Week 85    | P0       | ✅ Complete  |
+| Rust crates       | crates.io  | P0       | ⏸️ Blocked   |
+| Python package    | PyPI       | P0       | ⏸️ Blocked   |
 | TypeScript pkg    | npm        | P0       | 📋 TODO      |
 | C++ package       | vcpkg      | P1       | 📋 TODO      |
 | Go module         | GitHub     | P1       | 📋 TODO      |
-| V1.0 release      | Week 86    | P0       | 📋 TODO      |
+| V1.0 release      | Week 86    | P0       | ⏸️ Blocked   |
+
+**Note**: Publishing to crates.io is blocked by external dependencies:
+- `themis-platform-types` not yet on crates.io
+- `themis-artifact`, `themis-core`, `themis-registry` not yet published
 
 ---
 
