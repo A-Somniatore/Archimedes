@@ -36,28 +36,30 @@ categories = ["web-programming::http-server", "asynchronous"]
 
 [workspace.dependencies]
 # Shared platform types (from themis-platform-types crate)
+# NOTE: For crates.io publishing, this must be published first or replaced with a version
 themis-platform-types = { git = "https://github.com/A-Somniatore/themis-platform-types", branch = "main" }
 
-# Internal crates
-archimedes = { path = "crates/archimedes" }
-archimedes-core = { path = "crates/archimedes-core" }
-archimedes-server = { path = "crates/archimedes-server" }
-archimedes-middleware = { path = "crates/archimedes-middleware" }
-archimedes-telemetry = { path = "crates/archimedes-telemetry" }
-archimedes-config = { path = "crates/archimedes-config" }
-archimedes-router = { path = "crates/archimedes-router" }
-archimedes-extract = { path = "crates/archimedes-extract" }
-archimedes-macros = { path = "crates/archimedes-macros" }
-archimedes-sentinel = { path = "crates/archimedes-sentinel" }
-archimedes-authz = { path = "crates/archimedes-authz" }
-archimedes-ws = { path = "crates/archimedes-ws" }
-archimedes-sse = { path = "crates/archimedes-sse" }
-archimedes-tasks = { path = "crates/archimedes-tasks" }
-archimedes-sidecar = { path = "crates/archimedes-sidecar" }
-archimedes-ffi = { path = "crates/archimedes-ffi" }
-archimedes-py = { path = "crates/archimedes-py" }
-archimedes-node = { path = "crates/archimedes-node" }
-archimedes-test = { path = "crates/archimedes-test" }
+# Internal crates (version matches workspace.package.version for publishing)
+archimedes = { path = "crates/archimedes", version = "0.1.0" }
+archimedes-core = { path = "crates/archimedes-core", version = "0.1.0" }
+archimedes-server = { path = "crates/archimedes-server", version = "0.1.0" }
+archimedes-middleware = { path = "crates/archimedes-middleware", version = "0.1.0" }
+archimedes-telemetry = { path = "crates/archimedes-telemetry", version = "0.1.0" }
+archimedes-config = { path = "crates/archimedes-config", version = "0.1.0" }
+archimedes-router = { path = "crates/archimedes-router", version = "0.1.0" }
+archimedes-extract = { path = "crates/archimedes-extract", version = "0.1.0" }
+archimedes-macros = { path = "crates/archimedes-macros", version = "0.1.0" }
+archimedes-sentinel = { path = "crates/archimedes-sentinel", version = "0.1.0" }
+archimedes-authz = { path = "crates/archimedes-authz", version = "0.1.0" }
+archimedes-docs = { path = "crates/archimedes-docs", version = "0.1.0" }
+archimedes-ws = { path = "crates/archimedes-ws", version = "0.1.0" }
+archimedes-sse = { path = "crates/archimedes-sse", version = "0.1.0" }
+archimedes-tasks = { path = "crates/archimedes-tasks", version = "0.1.0" }
+archimedes-sidecar = { path = "crates/archimedes-sidecar", version = "0.1.0" }
+archimedes-ffi = { path = "crates/archimedes-ffi", version = "0.1.0" }
+archimedes-py = { path = "crates/archimedes-py", version = "0.1.0" }
+archimedes-node = { path = "crates/archimedes-node", version = "0.1.0" }
+archimedes-test = { path = "crates/archimedes-test", version = "0.1.0" }
 
 # Themis crates for contract integration
 themis-artifact = { path = "../themis/crates/themis-artifact" }

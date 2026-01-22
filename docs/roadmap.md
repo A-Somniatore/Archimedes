@@ -2891,13 +2891,35 @@ See: `examples/feature-showcase/README.md`
 
 > **Goal**: Prepare packages for publishing to registries
 
+#### ⚠️ BLOCKING ISSUE: External Dependencies
+
+The following external dependencies are not yet on crates.io and **block** publishing:
+
+1. **`themis-platform-types`** - Used by `archimedes-core`, `archimedes-authz`
+   - Currently: Git dependency from `https://github.com/A-Somniatore/themis-platform-types`
+   - **Resolution**: Publish `themis-platform-types` to crates.io first, then update version
+
+2. **`themis-artifact`, `themis-core`, `themis-registry`** - Used by `archimedes-sentinel`
+   - Currently: Path dependencies from `../themis/crates/`
+   - **Resolution**: Publish Themis crates to crates.io first
+
+**Recommended Approach**:
+- Publish `archimedes-router`, `archimedes-telemetry`, `archimedes-config` first (no external blockers)
+- Coordinate with Themis team to publish shared dependencies
+- Update workspace Cargo.toml with crates.io versions when available
+
 #### Rust Crates (crates.io)
 
-- [ ] Review `Cargo.toml` metadata for all crates
-- [ ] Add proper `license`, `repository`, `documentation` fields
-- [ ] Verify crate dependency versions are published
-- [ ] Test `cargo publish --dry-run` for each crate
-- [ ] Determine publish order (dependencies first)
+- [x] Review `Cargo.toml` metadata for all crates
+- [x] Add proper `license`, `repository`, `documentation` fields (inherited from workspace)
+- [x] Add version specifiers to internal dependencies (v0.1.0)
+- [x] Test `cargo publish --dry-run` for independent crates (archimedes-router ✅)
+- [ ] Test `cargo publish --dry-run` for dependent crates (blocked by external deps)
+- [ ] Determine publish order (dependencies first):
+  1. `archimedes-router` (no internal deps)
+  2. `archimedes-telemetry`, `archimedes-config` (no internal deps)
+  3. `archimedes-core` (blocked: themis-platform-types)
+  4. ... remaining crates in dependency order
 
 #### Python Package (PyPI)
 
