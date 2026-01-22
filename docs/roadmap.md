@@ -1,9 +1,9 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.4.0
+> **Version**: 3.5.0
 > **Created**: 2026-01-04
 > **Last Updated**: 2026-01-21
-> **Target Completion**: Week 78 (extended for framework parity features)
+> **Target Completion**: Week 48 (MVP complete with sidecar pattern)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
@@ -11,45 +11,49 @@
 > **UPDATE (2026-01-09)**: Phase A10.5 COMPLETE - P1 items addressed. 1019 tests passing (964 executed, 55 ignored).
 > **UPDATE (2026-01-10)**: Phase A12 (Example Services) STARTED - Created example services for Rust, Python, Go, TypeScript, and C++.
 > **UPDATE (2026-01-10)**: Phase A13.1 (Core FFI Layer) COMPLETE - 44 tests, archimedes-ffi crate with C ABI.
-> **UPDATE (2026-01-11)**: Phase A13.2 (Python Bindings) IN PROGRESS - Basic HTTP server working, middleware integration pending.
-> **UPDATE (2026-01-11)**: Phase A13 ordering finalized: Python (FULL Rust parity) → TypeScript → C++ → Go.
-> **UPDATE (2026-01-11)**: Phase A14 (Framework Parity) ADDED - CORS, TestClient, file uploads, rate limiting, static files to match FastAPI/Axum.
-> **🔥 UPDATE (2026-01-08)**: Phase A13.6 (Performance Benchmarking) ADDED as **PRIORITY #1** - Prove Archimedes is 5-20x faster than FastAPI/Flask.
-> **🔥 UPDATE (2026-01-08)**: rust-native example rewritten to use Archimedes directly (not Axum) - 14 unit tests added.
+> **📋 UPDATE (2026-01-21)**: Phase A13.2-A13.5 (Native Bindings) moved to POST-MVP. Sidecar pattern is sufficient for MVP.
+> **📋 UPDATE (2026-01-21)**: Benchmarking (A13.6) deprioritized - not required for MVP.
+> **✅ UPDATE (2026-01-21)**: **MVP SCOPE FINALIZED** - Sidecar pattern provides multi-language support. All pieces working together.
 > **📊 UPDATE (2026-01-21)**: All 4 components building and passing tests. Themis build fixed (8 errors in themis-sdk resolved).
 
 ---
 
 ## 🎉 Recent Progress (Phase A12 In Progress → Phase A13 Planned)
 
-### 🚨 ARCHITECTURE DECISION: Native Language Bindings (v3.0.0)
+### 🚨 ARCHITECTURE DECISION: Multi-Language Support (v3.5.0)
 
-**Decision**: Archimedes will provide **native bindings** for Python, Go, TypeScript, and C++ via FFI/foreign function interfaces. This means:
+**MVP Decision**: Archimedes Sidecar pattern provides multi-language support for MVP. Native bindings are POST-MVP.
 
-- **No more FastAPI, Flask, Express, Gin, etc.** for internal services
-- **Archimedes IS the framework** for all languages
-- **Consistent behavior** across all languages (same middleware, validation, auth)
-- **Single codebase** to maintain (Rust core + language bindings)
+**MVP (Sidecar Pattern)**:
+- ✅ **Any language** can use Archimedes via sidecar reverse proxy
+- ✅ **Teams keep existing frameworks** (FastAPI, Express, Gin, etc.)
+- ✅ **Full middleware pipeline** (auth, validation, telemetry) handled by sidecar
+- ✅ **39 tests passing**, Docker deployment ready
 
-| Language       | Binding Technology | Phase | Status         | Replaces           |
-| -------------- | ------------------ | ----- | -------------- | ------------------ |
-| **Rust**       | Native             | -     | ✅ Complete    | -                  |
-| **Python**     | PyO3               | A13.2 | 🔄 In Progress | FastAPI, Flask     |
-| **TypeScript** | napi-rs            | A13.3 | 📋 Planned     | Express, Fastify   |
-| **C++**        | C ABI              | A13.4 | 📋 Planned     | cpp-httplib, Crow  |
-| **Go**         | cgo                | A13.5 | 📋 Planned     | Gin, Chi, net/http |
+**POST-MVP (Native Bindings)** - Optional performance optimization:
+- Native bindings for Python, Go, TypeScript, C++ via FFI
+- Eliminates ~1-2ms sidecar latency overhead
+- Only needed for ultra-low-latency services
 
-### Multi-Language Example Services (v2.16.0) - 🔄 TRANSITIONAL
+| Language       | MVP (Sidecar)      | Post-MVP (Native) | Status              |
+| -------------- | ------------------ | ----------------- | ------------------- |
+| **Rust**       | N/A (native)       | N/A               | ✅ Complete         |
+| **Python**     | ✅ FastAPI+Sidecar | PyO3 bindings     | 📋 Post-MVP         |
+| **TypeScript** | ✅ Express+Sidecar | napi-rs bindings  | 📋 Post-MVP         |
+| **C++**        | ✅ httplib+Sidecar | C ABI bindings    | 📋 Post-MVP         |
+| **Go**         | ✅ net/http+Sidecar| cgo bindings      | 📋 Post-MVP         |
 
-> **Note**: These examples currently use language-native frameworks (FastAPI, Express, etc.) with the sidecar pattern. They will be migrated to native Archimedes bindings in Phase A13.
+### Multi-Language Example Services (v2.16.0) - ✅ MVP COMPLETE
 
-| Language       | Directory                     | Current Framework | Future           | Phase | Port |
-| -------------- | ----------------------------- | ----------------- | ---------------- | ----- | ---- |
-| **Rust**       | `examples/rust-native`        | Archimedes        | ✅ Done          | -     | 8001 |
-| **Python**     | `examples/python-native`      | archimedes-py     | ✅ Basic Done    | A13.2 | 8002 |
-| **TypeScript** | `examples/typescript-sidecar` | Express           | @archimedes/node | A13.3 | 8004 |
-| **C++**        | `examples/cpp-sidecar`        | cpp-httplib       | libarchimedes    | A13.4 | 8005 |
-| **Go**         | `examples/go-sidecar`         | net/http          | archimedes-go    | A13.5 | 8003 |
+> **MVP Complete**: These examples use language-native frameworks with the sidecar pattern. This is the recommended approach for MVP. Native bindings are POST-MVP.
+
+| Language       | Directory                     | Framework         | Status           | Port |
+| -------------- | ----------------------------- | ----------------- | ---------------- | ---- |
+| **Rust**       | `examples/rust-native`        | Archimedes        | ✅ MVP Complete  | 8001 |
+| **Python**     | `examples/python-sidecar`     | FastAPI + Sidecar | ✅ MVP Complete  | 8002 |
+| **TypeScript** | `examples/typescript-sidecar` | Express + Sidecar | ✅ MVP Complete  | 8004 |
+| **C++**        | `examples/cpp-sidecar`        | cpp-httplib + Sidecar | ✅ MVP Complete | 8005 |
+| **Go**         | `examples/go-sidecar`         | net/http + Sidecar| ✅ MVP Complete  | 8003 |
 
 **Each example includes:**
 
@@ -445,23 +449,24 @@ Week 17-20: Integration (AFTER Themis/Eunomia ready)
 | A10.5: Pre-Production Hardening   | 1 week                               | 40    | P1 backlog, hot-reload, testing      | A10 ✅ **COMPLETE**     |
 | A11: Type Generation              | 2 weeks                              | 41-42 | Python, Go, TypeScript generators    | **Themis-owned**        |
 | A12: Multi-Language Integration   | 4 weeks                              | 43-46 | Integration tests, deployment guides | A10.5, A11              |
-| **Native Bindings (Weeks 47-64)** | 🚨 **NEW: Native language support**  |       |                                      |                         |
-| A13.1: Core FFI Layer             | 4 weeks                              | 47-50 | C ABI, memory-safe bindings          | A12                     |
-| A13.2: Python Bindings (PyO3)     | 4 weeks                              | 51-54 | archimedes-py package                | A13.1                   |
-| A13.3: Go Bindings (cgo)          | 3 weeks                              | 55-57 | archimedes-go module                 | A13.1                   |
-| A13.4: TypeScript Bindings        | 3 weeks                              | 58-60 | @archimedes/node package             | A13.1                   |
-| A13.5: C++ Bindings               | 2 weeks                              | 61-62 | libarchimedes headers                | A13.1                   |
-| **Buffer (Weeks 63-64)**          |                                      |       |                                      |                         |
-| Hardening & Buffer                | 2 weeks                              | 63-64 | Performance tuning, contingency      | All                     |
+| **Buffer & Hardening**            |                                      |       |                                      |                         |
+| Hardening & Buffer                | 2 weeks                              | 47-48 | Performance tuning, contingency      | All                     |
+| **POST-MVP: Native Bindings**     | 📋 **Optional: Native language support** |   |                                      |                         |
+| A13.1: Core FFI Layer             | 4 weeks                              | -     | C ABI, memory-safe bindings          | Post-MVP                |
+| A13.2: Python Bindings (PyO3)     | 4 weeks                              | -     | archimedes-py package                | Post-MVP                |
+| A13.3: Go Bindings (cgo)          | 3 weeks                              | -     | archimedes-go module                 | Post-MVP                |
+| A13.4: TypeScript Bindings        | 3 weeks                              | -     | @archimedes/node package             | Post-MVP                |
+| A13.5: C++ Bindings               | 2 weeks                              | -     | libarchimedes headers                | Post-MVP                |
 
-**Total**: 52 weeks (13 months) - **Extended by 4 weeks for multi-language support**
+**Total**: 48 weeks (12 months) - **MVP complete with sidecar pattern**
 
 - MVP: Weeks 1-20 (Rust-only services)
 - Full Framework: Weeks 21-36 (Rust framework complete)
-- Multi-Language Support: Weeks 37-48 (Python, Go, TypeScript, C++ services)
-- Buffer: Weeks 47-52
+- Multi-Language Support: Weeks 37-46 (Sidecar pattern - **MVP COMPLETE**)
+- Buffer: Weeks 47-48
+- Post-MVP: Native bindings (optional performance optimization)
 
-**🚨 CRITICAL CHANGE**: Multi-language support is NO LONGER post-MVP. It is now required for V1.0 release because services in Python, C++, Go, and TypeScript must be able to use Archimedes.
+**✅ MVP SCOPE FINALIZED**: Multi-language support via sidecar pattern is complete. Services in Python, C++, Go, and TypeScript can use Archimedes middleware via the sidecar. Native bindings are POST-MVP for teams needing ultra-low-latency.
 
 **✅ Phase A10 COMPLETE**: Sidecar binary enables non-Rust services (Python, Go, TypeScript, C++) to use Archimedes middleware via reverse proxy pattern. 39 tests, Docker deployment ready.
 
