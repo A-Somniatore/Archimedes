@@ -1,9 +1,9 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.13.0
+> **Version**: 3.14.0
 > **Created**: 2026-01-04
-> **Last Updated**: 2026-01-20
-> **Target Completion**: Week 86 (V1.0 release)
+> **Last Updated**: 2026-01-21
+> **Target Completion**: Week 86 (V1.0 release), Week 92 (V1.1 release)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
 > **RESOLVED (2026-01-06)**: Local type definitions migrated to `themis-platform-types`. See Phase A0 completion.
@@ -35,6 +35,7 @@
 > **🔥 UPDATE (2026-01-13)**: Phase A15.6 (TestClient) COMPLETE - All 4 bindings have TestClient support.
 > **🔥 UPDATE (2026-01-20)**: Phase A15 V1.0 COMPLETE - All V1.0 binding features done. A15.4/A15.5 deferred to V1.1.
 > **📋 NEW (2026-01-20)**: Phase A16 (V1.0 Release Preparation) ADDED - Documentation, CI/CD, publishing preparation.
+> **📋 NEW (2026-01-21)**: Phase A17 (V1.1 Planning) ADDED - WebSocket/SSE bindings, background tasks, error unification.
 
 ---
 
@@ -2942,17 +2943,83 @@ See: `examples/feature-showcase/README.md`
 
 ### A16 Deliverables
 
-| Deliverable       | Target     | Priority | Status   |
-| ----------------- | ---------- | -------- | -------- |
-| Documentation     | Week 85    | P0       | 📋 TODO  |
-| Example cleanup   | Week 85    | P0       | 📋 TODO  |
-| CI/CD pipeline    | Week 85    | P0       | 📋 TODO  |
-| Rust crates       | crates.io  | P0       | 📋 TODO  |
-| Python package    | PyPI       | P0       | 📋 TODO  |
-| TypeScript pkg    | npm        | P0       | 📋 TODO  |
-| C++ package       | vcpkg      | P1       | 📋 TODO  |
-| Go module         | GitHub     | P1       | 📋 TODO  |
-| V1.0 release      | Week 86    | P0       | 📋 TODO  |
+| Deliverable       | Target     | Priority | Status       |
+| ----------------- | ---------- | -------- | ------------ |
+| Documentation     | Week 85    | P0       | 🔄 In Progress |
+| Example cleanup   | Week 85    | P0       | 📋 TODO      |
+| CI/CD pipeline    | Week 85    | P0       | 🔄 In Progress |
+| Rust crates       | crates.io  | P0       | 📋 TODO      |
+| Python package    | PyPI       | P0       | 📋 TODO      |
+| TypeScript pkg    | npm        | P0       | 📋 TODO      |
+| C++ package       | vcpkg      | P1       | 📋 TODO      |
+| Go module         | GitHub     | P1       | 📋 TODO      |
+| V1.0 release      | Week 86    | P0       | 📋 TODO      |
+
+---
+
+## Phase A17: V1.1 Planning (Post-V1.0) 📋 PLANNED
+
+> **Goal**: Implement deferred features for V1.1 release
+> **Status**: 📋 PLANNED (After V1.0 release)
+> **Rationale**: WebSocket/SSE bindings, background tasks, and error code unification deferred from V1.0
+
+### Phase A17.1: Real-time Bindings (Weeks 87-88)
+
+> **Goal**: WebSocket and SSE support for all language bindings
+
+#### Python Bindings
+
+- [ ] `WebSocketHandler` class with async context manager
+- [ ] `SseStream` for server-sent events
+- [ ] Connection lifecycle hooks
+
+#### TypeScript Bindings
+
+- [ ] `WebSocket` handler support
+- [ ] `SSE` streaming support
+- [ ] Event emitter pattern
+
+#### C++ / Go Bindings
+
+- [ ] WebSocket callback interface
+- [ ] SSE streaming support
+
+### Phase A17.2: Background Task Bindings (Weeks 89-90)
+
+> **Goal**: Task spawner and scheduler for all language bindings
+
+#### All Bindings
+
+- [ ] `spawn_task()` for fire-and-forget tasks
+- [ ] `schedule()` for cron-based tasks
+- [ ] Task cancellation support
+- [ ] Task status monitoring
+
+### Phase A17.3: Error Code Unification (Week 91)
+
+> **Goal**: Unify `ErrorCategory` with platform `ErrorCode`
+
+- [ ] Migrate Archimedes from `ErrorCategory` to `ErrorCode`
+- [ ] Update all error handling code
+- [ ] Update documentation
+
+### Phase A17.4: Enhanced Telemetry (Week 92)
+
+> **Goal**: Advanced observability features
+
+- [ ] Custom span attributes
+- [ ] Metric dimensions
+- [ ] Log correlation improvements
+
+### A17 Deliverables
+
+| Deliverable         | Target     | Priority | Status      |
+| ------------------- | ---------- | -------- | ----------- |
+| WebSocket bindings  | Week 88    | P1       | 📋 PLANNED  |
+| SSE bindings        | Week 88    | P2       | 📋 PLANNED  |
+| Task bindings       | Week 90    | P2       | 📋 PLANNED  |
+| Error unification   | Week 91    | P1       | 📋 PLANNED  |
+| Enhanced telemetry  | Week 92    | P2       | 📋 PLANNED  |
 
 ---
 
@@ -3511,11 +3578,16 @@ See: `examples/feature-showcase/README.md`
 | A15.5: Tasks          | Week 84 | Task spawner, scheduler           | A15.3                   | ⏸️ V1.1     |
 | A15.6: TestClient     | Week 84 | TestClient for all bindings       | A15.3                   | ✅ Complete |
 | **V1.0 Release**      |         |                                   |                         |             |
-| A16.1: Documentation  | Week 85 | Docs review, migration guides     | A15                     | 📋 TODO     |
+| A16.1: Documentation  | Week 85 | Docs review, migration guides     | A15                     | � Progress |
 | A16.2: Examples       | Week 85 | All examples working              | A15                     | 📋 TODO     |
-| A16.3: CI/CD          | Week 85 | Automated testing, releases       | A15                     | 📋 TODO     |
+| A16.3: CI/CD          | Week 85 | Automated testing, releases       | A15                     | 🔄 Progress |
 | A16.4: Publishing     | Week 86 | crates.io, PyPI, npm, vcpkg, Go   | A16.1-3                 | 📋 TODO     |
 | A16.5: Release        | Week 86 | V1.0 official release             | A16.4                   | 📋 TODO     |
+| **V1.1 Release**      |         |                                   |                         |             |
+| A17.1: Real-time      | Week 88 | WebSocket, SSE for bindings       | V1.0                    | 📋 PLANNED  |
+| A17.2: Tasks          | Week 90 | Task bindings for all languages   | A17.1                   | 📋 PLANNED  |
+| A17.3: Errors         | Week 91 | Error code unification            | A17.2                   | 📋 PLANNED  |
+| A17.4: Telemetry      | Week 92 | Enhanced observability            | A17.3                   | 📋 PLANNED  |
 
 ---
 
