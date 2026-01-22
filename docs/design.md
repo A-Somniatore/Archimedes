@@ -1,8 +1,8 @@
 # Archimedes – Implementation Design Document
 
-> **Version**: 3.9.0
-> **Status**: Implementation Phase (Phase A15 Complete, Phase A16 In Progress)
-> **Last Updated**: 2026-01-20
+> **Version**: 3.10.0
+> **Status**: V1.0 Release Preparation (Phase A16 In Progress)
+> **Last Updated**: 2026-01-21
 > **Component**: archimedes
 
 ---
@@ -12,13 +12,13 @@
 | Crate                   | Status      | Tests | Description                                                                                               |
 | ----------------------- | ----------- | ----- | --------------------------------------------------------------------------------------------------------- |
 | `archimedes`            | ✅ Complete | -     | Main facade crate (re-exports all crates)                                                                 |
-| `archimedes-core`       | ✅ Complete | 80    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
-| `archimedes-server`     | ✅ Complete | 101   | HTTP server, routing, handler registry, graceful shutdown, lifecycle hooks                                |
-| `archimedes-middleware` | ✅ Complete | 123   | All 8 middleware stages + pipeline + CORS middleware                                                      |
+| `archimedes-core`       | ✅ Complete | 81    | Core types: RequestContext, Handler, ThemisError, CallerIdentity, Contract, DI, InvocationContext, Binder |
+| `archimedes-server`     | ✅ Complete | 131   | HTTP server, routing, handler registry, graceful shutdown, lifecycle hooks                                |
+| `archimedes-middleware` | ✅ Complete | 131   | All 8 middleware stages + pipeline + CORS middleware                                                      |
 | `archimedes-telemetry`  | ✅ Complete | 25    | Prometheus metrics, OpenTelemetry tracing, structured logging                                             |
-| `archimedes-config`     | ✅ Complete | 52    | Typed configuration with TOML/JSON, env overrides                                                         |
+| `archimedes-config`     | ✅ Complete | 67    | Typed configuration with TOML/JSON, env overrides, file watcher                                           |
 | `archimedes-router`     | ✅ Complete | 74    | High-performance radix tree router with method merging, nest, prefix, merge, tag                          |
-| `archimedes-extract`    | ✅ Complete | 109   | Request extractors, response builders, DI injection                                                       |
+| `archimedes-extract`    | ✅ Complete | 152   | Request extractors (Json, Form, Multipart, Cookies), response builders, DI injection                      |
 | `archimedes-macros`     | ✅ Complete | 14    | Handler macros for FastAPI-style definition (wiring complete)                                             |
 | `archimedes-sentinel`   | ✅ Complete | 38    | Themis contract integration                                                                               |
 | `archimedes-authz`      | ✅ Complete | 26    | Eunomia/OPA integration                                                                                   |

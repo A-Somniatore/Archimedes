@@ -2878,10 +2878,10 @@ See: `examples/feature-showcase/README.md`
 
 - [x] Set up GitHub Actions for Rust crates (cargo test, clippy, fmt)
 - [x] Exclude archimedes-node from CI tests (requires Node.js runtime)
-- [ ] Add cross-platform CI (Linux, macOS, Windows)
+- [x] Add cross-platform CI (Linux, macOS, Windows)
 - [x] Add Python binding CI (maturin build)
 - [x] Add TypeScript binding CI (napi-rs build)
-- [ ] Add C++ binding CI (cmake, ctest)
+- [x] Add C++ binding CI (cmake, ctest)
 - [x] Add Go binding CI (go test, go vet)
 - [x] Set up code coverage reporting (cargo-llvm-cov + Codecov)
 - [x] Add security scanning (cargo audit)
