@@ -2915,18 +2915,30 @@ The following external dependencies are not yet on crates.io and **block** publi
 - [x] Add version specifiers to internal dependencies (v0.1.0)
 - [x] Test `cargo publish --dry-run` for independent crates (archimedes-router ✅)
 - [ ] Test `cargo publish --dry-run` for dependent crates (blocked by external deps)
-- [ ] Determine publish order (dependencies first):
-  1. `archimedes-router` (no internal deps)
-  2. `archimedes-telemetry`, `archimedes-config` (no internal deps)
-  3. `archimedes-core` (blocked: themis-platform-types)
-  4. ... remaining crates in dependency order
+- [x] Determine publish order (dependencies first):
+
+**Publish Order (once external deps are available):**
+
+```
+Round 1: archimedes-router (no internal deps) ✅ Ready
+Round 2: archimedes-core (needs themis-platform-types on crates.io)
+Round 3: archimedes-telemetry (needs archimedes-core)
+Round 4: archimedes-config (needs archimedes-core, archimedes-telemetry)
+Round 5: archimedes-extract, archimedes-middleware (need archimedes-core, archimedes-router)
+Round 6: archimedes-macros, archimedes-sentinel, archimedes-authz (need above)
+Round 7: archimedes-docs, archimedes-ws, archimedes-sse, archimedes-tasks
+Round 8: archimedes-server (needs most crates)
+Round 9: archimedes-sidecar, archimedes-ffi
+Round 10: archimedes-test
+Round 11: archimedes (main facade crate - needs all above)
+```
 
 #### Python Package (PyPI)
 
 - [ ] Update `pyproject.toml` with final metadata
 - [ ] Build wheels for Linux, macOS, Windows (maturin)
 - [ ] Test installation from wheel: `pip install archimedes`
-- [ ] Set up PyPI publishing workflow
+- [x] Set up PyPI publishing workflow (in release.yml)
 
 #### TypeScript Package (npm)
 
