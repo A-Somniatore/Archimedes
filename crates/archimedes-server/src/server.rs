@@ -484,12 +484,12 @@ impl Server {
         // Create request context with operation ID
         let ctx = RequestContext::new().with_operation_id(operation_id);
 
-        // Store path params in a way handlers can access them
-        // For now, we'll pass them via the body if needed, or handlers can extract from path
-        // TODO: Consider adding path_params to RequestContext in Phase A3
+        // Merge path parameters into the request body
+        // This allows handlers to receive path params (e.g., userId) as part of their request type
+        let merged_body = self.merge_path_params_into_body(route_match.params(), body);
 
         // Invoke the handler
-        match self.handlers.invoke(operation_id, ctx, body).await {
+        match self.handlers.invoke(operation_id, ctx, merged_body).await {
             Ok(response_body) => Response::builder()
                 .status(StatusCode::OK)
                 .header("Content-Type", "application/json")
@@ -585,6 +585,63 @@ impl Server {
             .body(Full::new(Bytes::from(body.to_string())))
             .unwrap_or_else(|_| Response::new(Full::new(Bytes::new())))
     }
+
+    /// Merges path parameters into the request body.
+    ///
+    /// This allows handlers to receive path parameters (e.g., `userId` from `/users/{userId}`)
+    /// as part of their typed request struct. Path params are converted from camelCase to snake_case
+    /// to match Rust naming conventions (e.g., `userId` -> `user_id`).
+    fn merge_path_params_into_body(
+        &self,
+        params: &std::collections::HashMap<String, String>,
+        body: Bytes,
+    ) -> Bytes {
+        if params.is_empty() {
+            return body;
+        }
+
+        tracing::debug!("Merging path params into body: {:?}", params);
+
+        // Parse existing body as JSON, or create empty object
+        let mut json: serde_json::Value = if body.is_empty() {
+            serde_json::json!({})
+        } else {
+            match serde_json::from_slice(&body) {
+                Ok(v) => v,
+                Err(_) => return body, // Can't merge into non-JSON body
+            }
+        };
+
+        // Merge path params into the JSON object
+        if let serde_json::Value::Object(ref mut map) = json {
+            for (key, value) in params {
+                // Convert camelCase to snake_case for Rust compatibility
+                let snake_key = camel_to_snake(key);
+                tracing::debug!("  {} -> {} = {}", key, snake_key, value);
+                map.insert(snake_key, serde_json::Value::String(value.clone()));
+            }
+        }
+
+        let result = Bytes::from(serde_json::to_vec(&json).unwrap_or_default());
+        tracing::debug!("Merged body: {:?}", String::from_utf8_lossy(&result));
+        result
+    }
+}
+
+/// Converts camelCase to snake_case.
+fn camel_to_snake(s: &str) -> String {
+    let mut result = String::with_capacity(s.len() + 4);
+    for (i, c) in s.chars().enumerate() {
+        if c.is_uppercase() {
+            if i > 0 {
+                result.push('_');
+            }
+            result.push(c.to_ascii_lowercase());
+        } else {
+            result.push(c);
+        }
+    }
+    result
 }
 
 /// Builder for configuring and creating a [`Server`].

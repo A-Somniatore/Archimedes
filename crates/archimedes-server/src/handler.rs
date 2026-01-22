@@ -186,8 +186,10 @@ impl HandlerRegistry {
         let erased: ErasedHandler = Arc::new(move |ctx: RequestContext, body: Bytes| {
             let handler = Arc::clone(&handler);
             Box::pin(async move {
-                // Deserialize request
-                let request: Req = serde_json::from_slice(&body)
+                // Deserialize request - treat empty body as empty JSON object
+                // This allows GET requests with empty bodies to work with Default types
+                let body_slice = if body.is_empty() { b"{}" as &[u8] } else { &body };
+                let request: Req = serde_json::from_slice(body_slice)
                     .map_err(|e| HandlerError::DeserializationError(e.to_string()))?;
 
                 // Invoke handler
