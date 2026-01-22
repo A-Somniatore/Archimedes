@@ -2882,7 +2882,7 @@ See: `examples/feature-showcase/README.md`
 - [x] Add Python binding CI (maturin build)
 - [x] Add TypeScript binding CI (napi-rs build)
 - [ ] Add C++ binding CI (cmake, ctest)
-- [ ] Add Go binding CI (go test, go vet)
+- [x] Add Go binding CI (go test, go vet)
 - [x] Set up code coverage reporting (cargo-llvm-cov + Codecov)
 - [x] Add security scanning (cargo audit)
 - [ ] Set up release automation
