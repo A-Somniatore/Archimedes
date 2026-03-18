@@ -1,0 +1,14 @@
+maturity: internal
+type: service
+display_name: "Archimedes"
+description: "Contract-first HTTP server framework for the Themis Platform — validates requests/responses against contracts with built-in OPA authorization and observability"
+owners:
+  - platform-engineering
+systems:
+  - themis
+tags:
+  - rust
+  - framework
+  - contract-first
+  - opa
+  - observability
