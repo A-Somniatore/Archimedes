@@ -19,10 +19,8 @@ members = [
     "crates/archimedes-sidecar",
     "crates/archimedes-ffi",
     "crates/archimedes-py",
-    "crates/archimedes-node",
-    "crates/archimedes-test",
 ]
-exclude = ["examples/rust-native", "examples/feature-showcase"]
+exclude = ["examples/rust-native"]
 
 [workspace.package]
 version = "0.1.0"
@@ -35,31 +33,27 @@ keywords = ["server", "http", "grpc", "middleware", "themis"]
 categories = ["web-programming::http-server", "asynchronous"]
 
 [workspace.dependencies]
-# Shared platform types (from themis-platform-types crate)
-# NOTE: For crates.io publishing, this must be published first or replaced with a version
-themis-platform-types = { git = "https://github.com/A-Somniatore/themis-platform-types", branch = "main" }
+# Shared platform types (from private somniatore registry)
+themis-platform-types = { version = "0.2.0", registry = "somniatore" }
 
-# Internal crates (version matches workspace.package.version for publishing)
-archimedes = { path = "crates/archimedes", version = "0.1.0" }
-archimedes-core = { path = "crates/archimedes-core", version = "0.1.0" }
-archimedes-server = { path = "crates/archimedes-server", version = "0.1.0" }
-archimedes-middleware = { path = "crates/archimedes-middleware", version = "0.1.0" }
-archimedes-telemetry = { path = "crates/archimedes-telemetry", version = "0.1.0" }
-archimedes-config = { path = "crates/archimedes-config", version = "0.1.0" }
-archimedes-router = { path = "crates/archimedes-router", version = "0.1.0" }
-archimedes-extract = { path = "crates/archimedes-extract", version = "0.1.0" }
-archimedes-macros = { path = "crates/archimedes-macros", version = "0.1.0" }
-archimedes-sentinel = { path = "crates/archimedes-sentinel", version = "0.1.0" }
-archimedes-authz = { path = "crates/archimedes-authz", version = "0.1.0" }
-archimedes-docs = { path = "crates/archimedes-docs", version = "0.1.0" }
-archimedes-ws = { path = "crates/archimedes-ws", version = "0.1.0" }
-archimedes-sse = { path = "crates/archimedes-sse", version = "0.1.0" }
-archimedes-tasks = { path = "crates/archimedes-tasks", version = "0.1.0" }
-archimedes-sidecar = { path = "crates/archimedes-sidecar", version = "0.1.0" }
-archimedes-ffi = { path = "crates/archimedes-ffi", version = "0.1.0" }
-archimedes-py = { path = "crates/archimedes-py", version = "0.1.0" }
-archimedes-node = { path = "crates/archimedes-node", version = "0.1.0" }
-archimedes-test = { path = "crates/archimedes-test", version = "0.1.0" }
+# Internal crates
+archimedes = { path = "crates/archimedes" }
+archimedes-core = { path = "crates/archimedes-core" }
+archimedes-server = { path = "crates/archimedes-server" }
+archimedes-middleware = { path = "crates/archimedes-middleware" }
+archimedes-telemetry = { path = "crates/archimedes-telemetry" }
+archimedes-config = { path = "crates/archimedes-config" }
+archimedes-router = { path = "crates/archimedes-router" }
+archimedes-extract = { path = "crates/archimedes-extract" }
+archimedes-macros = { path = "crates/archimedes-macros" }
+archimedes-sentinel = { path = "crates/archimedes-sentinel" }
+archimedes-authz = { path = "crates/archimedes-authz" }
+archimedes-ws = { path = "crates/archimedes-ws" }
+archimedes-sse = { path = "crates/archimedes-sse" }
+archimedes-tasks = { path = "crates/archimedes-tasks" }
+archimedes-sidecar = { path = "crates/archimedes-sidecar" }
+archimedes-ffi = { path = "crates/archimedes-ffi" }
+archimedes-py = { path = "crates/archimedes-py" }
 
 # Themis crates for contract integration
 themis-artifact = { path = "../themis/crates/themis-artifact" }
@@ -140,32 +134,28 @@ all = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
 nursery = { level = "warn", priority = -1 }
 # Allow certain lints that are intentional design choices or require extensive refactoring
-must_use_candidate = { level = "allow", priority = 1 }
-return_self_not_must_use = { level = "allow", priority = 1 }
-missing_errors_doc = { level = "allow", priority = 1 }
-missing_panics_doc = { level = "allow", priority = 1 }
-module_name_repetitions = { level = "allow", priority = 1 }
-struct_field_names = { level = "allow", priority = 1 }
-too_many_lines = { level = "allow", priority = 1 }
-type_complexity = { level = "allow", priority = 1 }
-struct_excessive_bools = { level = "allow", priority = 1 }
-needless_pass_by_value = { level = "allow", priority = 1 }
-cast_precision_loss = { level = "allow", priority = 1 }
-option_if_let_else = { level = "allow", priority = 1 }
-missing_const_for_fn = { level = "allow", priority = 1 }
-use_self = { level = "allow", priority = 1 }
-unused_self = { level = "allow", priority = 1 }
-redundant_clone = { level = "allow", priority = 1 }
-assigning_clones = { level = "allow", priority = 1 }
-map_unwrap_or = { level = "allow", priority = 1 }
-manual_string_new = { level = "allow", priority = 1 }
-manual_let_else = { level = "allow", priority = 1 }
-let_and_return = { level = "allow", priority = 1 }
-unwrap_or_default = { level = "allow", priority = 1 }
-uninlined_format_args = { level = "allow", priority = 1 }
-match_wildcard_for_single_variants = { level = "allow", priority = 1 }
-ignored_unit_patterns = { level = "allow", priority = 1 }
-single_match_else = { level = "allow", priority = 1 }
-unused_async = { level = "allow", priority = 1 }
-doc_markdown = { level = "allow", priority = 1 }
-option_option = { level = "allow", priority = 1 }
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+struct_field_names = "allow"
+too_many_lines = "allow"
+type_complexity = "allow"
+struct_excessive_bools = "allow"
+needless_pass_by_value = "allow"
+cast_precision_loss = "allow"
+option_if_let_else = "allow"
+missing_const_for_fn = "allow"
+use_self = "allow"
+unused_self = "allow"
+redundant_clone = "allow"
+assigning_clones = "allow"
+map_unwrap_or = "allow"
+manual_string_new = "allow"
+manual_let_else = "allow"
+let_and_return = "allow"
+unwrap_or_default = "allow"
+uninlined_format_args = "allow"
+match_wildcard_for_single_variants = "allow"
+ignored_unit_patterns = "allow"
+single_match_else = "allow"

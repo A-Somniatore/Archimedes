@@ -1,7 +1,7 @@
 # Archimedes Feature Reference
 
-> **Version**: 1.4.0
-> **Last Updated**: 2026-01-21
+> **Version**: 1.5.0
+> **Last Updated**: 2026-01-22
 > **Purpose**: Comprehensive feature checklist for testing and language binding parity
 
 This document lists all features available in Archimedes. It serves as:
@@ -24,7 +24,7 @@ This document lists all features available in Archimedes. It serves as:
 | **Background Tasks**  | 2        | ✅   | ⏸️     | ⏸️         | ⏸️  | ⏸️  | ⏸️ V1.1        |
 | **Documentation**     | 3        | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
 | **Testing**           | 3        | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
-| **Server**            | 6        | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
+| **Server**            | 14       | ✅   | ✅     | ✅         | ✅  | ✅  | ✅ Complete    |
 
 Legend: ✅ Complete | ⏸️ Deferred to V1.1 | 🔄 Partial | ❌ Not Started
 
@@ -321,6 +321,41 @@ All extractors implement the `FromRequest` trait and can be used as handler para
 | **FileWatcher**   | Cross-platform file monitoring   | archimedes-config | ✅    | P1               |
 | **Debouncing**    | Prevent reload storms            | archimedes-config | ✅    | P1               |
 
+### 12.4 Server Middleware Integration
+
+Native server middleware configuration for identity extraction and authorization without the sidecar.
+
+| Feature                        | Description                              | Rust Crate        | Tests | Binding Priority |
+| ------------------------------ | ---------------------------------------- | ----------------- | ----- | ---------------- |
+| **MiddlewareConfig**           | Middleware pipeline configuration        | archimedes-server | ✅ 5  | P0               |
+| **MiddlewareConfigBuilder**    | Builder pattern for middleware config    | archimedes-server | ✅    | P0               |
+| **ServerBuilder::middleware()** | Configure middleware on server           | archimedes-server | ✅    | P0               |
+| **Identity Extraction**        | Extract identity from HTTP headers       | archimedes-server | ✅    | P0               |
+| **JWT Token Support**          | Authorization: Bearer token parsing      | archimedes-server | ✅    | P1               |
+| **X-Caller-Identity**          | JSON identity header from proxies        | archimedes-server | ✅    | P0               |
+| **X-User-Id/Roles Headers**    | Simple user identity headers             | archimedes-server | ✅    | P0               |
+| **Anonymous Fallback**         | Default anonymous identity when no auth  | archimedes-server | ✅    | P0               |
+
+**Supported Identity Headers** (checked in order):
+1. Trusted Identity Header (configurable, e.g., `X-Archimedes-Identity`)
+2. `X-Caller-Identity` - JSON-encoded identity object from sidecar/proxy
+3. `Authorization: Bearer <jwt>` - JWT token (extracts claims without crypto verification)
+4. `X-User-Id` + `X-User-Roles` - Simple identity headers
+
+**Usage Example:**
+```rust
+use archimedes_server::{Server, MiddlewareConfig};
+
+let server = Server::builder()
+    .http_addr("0.0.0.0:8080")
+    .middleware(MiddlewareConfig::builder()
+        .enable_identity()           // Extract identity from headers
+        .enable_authorization()      // Enable OPA policy evaluation
+        .service_name("my-service")
+        .build())
+    .build();
+```
+
 ---
 
 ## 13. Dependency Injection
@@ -435,7 +470,7 @@ These features MUST be implemented in all language bindings before release:
 | Crate                 | Unit Tests | Doc Tests | E2E Tests | Total    |
 | --------------------- | ---------- | --------- | --------- | -------- |
 | archimedes-core       | 80         | -         | -         | 80       |
-| archimedes-server     | 131        | 53        | -         | 184      |
+| archimedes-server     | 141        | 53        | -         | 194      |
 | archimedes-middleware | 131        | -         | 26        | 157      |
 | archimedes-extract    | 152        | 36        | -         | 188      |
 | archimedes-router     | 57         | -         | -         | 57       |
@@ -455,7 +490,7 @@ These features MUST be implemented in all language bindings before release:
 | archimedes-test       | 30         | -         | -         | 30       |
 | examples/rust-native  | 14         | -         | -         | 14       |
 | examples/go-native    | 9          | -         | -         | 9        |
-| **TOTAL**             | **1244**   | **89**    | **26**    | **1359** |
+| **TOTAL**             | **1254**   | **89**    | **26**    | **1369** |
 
 ---
 
@@ -492,12 +527,15 @@ These features MUST be implemented in all language bindings before release:
 
 ## Appendix: Feature Flags
 
-| Feature Flag | Crate                 | Description                       |
-| ------------ | --------------------- | --------------------------------- |
-| `sentinel`   | archimedes-middleware | Enable Themis contract validation |
-| `opa`        | archimedes-middleware | Enable OPA authorization          |
-| `full`       | archimedes            | Enable all features               |
-| `ws`         | archimedes            | Enable WebSocket support          |
-| `sse`        | archimedes            | Enable SSE support                |
-| `tasks`      | archimedes            | Enable background tasks           |
-| `docs`       | archimedes            | Enable API documentation          |
+| Feature Flag | Crate                 | Description                            |
+| ------------ | --------------------- | -------------------------------------- |
+| `sentinel`   | archimedes-middleware | Enable Themis contract validation      |
+| `opa`        | archimedes-middleware | Enable OPA authorization               |
+| `authz`      | archimedes-server     | Enable OPA authorization in server     |
+| `sentinel`   | archimedes-server     | Enable contract validation in server   |
+| `full`       | archimedes-server     | Enable all server middleware features  |
+| `full`       | archimedes            | Enable all features                    |
+| `ws`         | archimedes            | Enable WebSocket support               |
+| `sse`        | archimedes            | Enable SSE support                     |
+| `tasks`      | archimedes            | Enable background tasks                |
+| `docs`       | archimedes            | Enable API documentation               |

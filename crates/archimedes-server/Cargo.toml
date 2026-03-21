@@ -8,11 +8,19 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[features]
+default = []
+authz = ["archimedes-authz"]
+sentinel = ["archimedes-sentinel"]
+full = ["authz", "sentinel"]
+
 [dependencies]
 archimedes-core.workspace = true
 archimedes-middleware.workspace = true
 archimedes-router.workspace = true
 archimedes-extract.workspace = true
+archimedes-authz = { workspace = true, optional = true }
+archimedes-sentinel = { workspace = true, optional = true }
 tokio.workspace = true
 hyper.workspace = true
 hyper-util.workspace = true
@@ -23,6 +31,8 @@ serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 thiserror.workspace = true
+base64.workspace = true
+parking_lot.workspace = true
 httpdate = "1.0"
 
 [dev-dependencies]

@@ -1,0 +1,51 @@
+[package]
+name = "integrated-example"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["Themis Platform Team"]
+description = "Integrated example demonstrating Archimedes + Themis + Eunomia"
+publish = false
+
+# Standalone package (not part of main workspace)
+[workspace]
+
+[dependencies]
+# Archimedes framework with full integrations
+archimedes-server = { path = "../../crates/archimedes-server" }
+archimedes-core = { path = "../../crates/archimedes-core" }
+archimedes-middleware = { path = "../../crates/archimedes-middleware", features = ["sentinel", "opa", "full"] }
+archimedes-router = { path = "../../crates/archimedes-router" }
+
+# Themis integration (contract validation)
+archimedes-sentinel = { path = "../../crates/archimedes-sentinel" }
+
+# Eunomia integration (authorization)
+archimedes-authz = { path = "../../crates/archimedes-authz" }
+
+# Shared platform types
+themis-platform-types = { git = "https://github.com/A-Somniatore/themis-platform-types", branch = "main" }
+
+# Async runtime
+tokio = { version = "1.43", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+
+# UUID
+uuid = { version = "1.11", features = ["v7", "serde"] }
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# HTTP types
+http = "1.0"
+
+[[bin]]
+name = "integrated-server"
+path = "src/main.rs"

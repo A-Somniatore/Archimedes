@@ -359,6 +359,8 @@ impl RateLimitMiddleware {
                     CallerIdentity::ApiKey(api_key) => Some(api_key.key_id.clone()),
                     CallerIdentity::Spiffe(spiffe) => Some(spiffe.spiffe_id.clone()),
                     CallerIdentity::Anonymous => None,
+                    // Handle future variants (CallerIdentity is non-exhaustive)
+                    _ => None,
                 }
             }
             KeyExtractor::Custom(f) => f(request),

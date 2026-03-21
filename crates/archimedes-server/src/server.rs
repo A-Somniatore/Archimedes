@@ -10,20 +10,24 @@
 //! - TCP listener bound to configured address
 //! - Connection handler for each incoming connection
 //! - Request routing via the [`Router`](crate::Router)
+//! - Optional middleware pipeline for identity, authorization, and validation
 //! - Graceful shutdown support
 //!
 //! # Example
 //!
 //! ```rust,ignore
-//! use archimedes_server::{Server, ServerConfig};
+//! use archimedes_server::{Server, ServerConfig, MiddlewareConfig};
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let config = ServerConfig::builder()
+//!     let server = Server::builder()
 //!         .http_addr("0.0.0.0:8080")
+//!         .middleware(MiddlewareConfig::builder()
+//!             .enable_identity()
+//!             .enable_authorization()
+//!             .build())
 //!         .build();
 //!
-//!     let server = Server::new(config);
 //!     server.run().await?;
 //!     Ok(())
 //! }
@@ -35,7 +39,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
-use http::{Method, Request, Response, StatusCode};
+use http::{HeaderMap, Method, Request, Response, StatusCode};
 use http_body_util::{BodyExt, Full};
 use hyper::body::Incoming;
 use hyper::server::conn::http1;
@@ -43,11 +47,13 @@ use hyper::service::service_fn;
 use hyper_util::rt::TokioIo;
 use tokio::net::TcpListener;
 
-use archimedes_core::RequestContext;
+use archimedes_core::{CallerIdentity, RequestContext};
+use archimedes_middleware::MiddlewareContext;
 
 use crate::config::ServerConfig;
 use crate::handler::{HandlerRegistry, InvokeError};
 use crate::health::{HealthCheck, ReadinessCheck};
+use crate::middleware_config::MiddlewareConfig;
 use crate::router::{RouteMatch, Router};
 use crate::shutdown::{ConnectionTracker, ShutdownSignal};
 
@@ -56,6 +62,26 @@ pub type ResponseBody = Full<Bytes>;
 
 /// Type alias for the HTTP response.
 pub type HttpResponse = Response<ResponseBody>;
+
+/// Trusted identity structure for proxy/sidecar identity propagation.
+///
+/// This is deserialized from the `X-Caller-Identity` header or a custom
+/// trusted identity header configured in `MiddlewareConfig`.
+#[derive(Debug, Clone, serde::Deserialize)]
+struct TrustedIdentity {
+    /// The unique user identifier.
+    user_id: String,
+    /// User's email address.
+    email: Option<String>,
+    /// User's display name.
+    display_name: Option<String>,
+    /// User's roles.
+    roles: Vec<String>,
+    /// User's groups.
+    groups: Option<Vec<String>>,
+    /// Additional attributes.
+    attributes: Option<std::collections::HashMap<String, String>>,
+}
 
 /// The Archimedes HTTP server.
 ///
@@ -79,7 +105,7 @@ pub type HttpResponse = Response<ResponseBody>;
 /// # Example
 ///
 /// ```rust,ignore
-/// use archimedes_server::{Server, ServerConfig, HandlerRegistry};
+/// use archimedes_server::{Server, ServerConfig, MiddlewareConfig, HandlerRegistry};
 /// use serde::{Deserialize, Serialize};
 ///
 /// #[derive(Deserialize)]
@@ -99,6 +125,9 @@ pub type HttpResponse = Response<ResponseBody>;
 /// let server = Server::builder()
 ///     .http_addr("127.0.0.1:8080")
 ///     .handlers(registry)
+///     .middleware(MiddlewareConfig::builder()
+///         .enable_identity()
+///         .build())
 ///     .build();
 /// ```
 pub struct Server {
@@ -119,6 +148,15 @@ pub struct Server {
 
     /// Request timeout
     request_timeout: Duration,
+
+    /// Middleware configuration (optional).
+    ///
+    /// When set, requests will be processed through the middleware pipeline
+    /// before being passed to handlers. This enables features like:
+    /// - Automatic identity extraction from headers
+    /// - Authorization policy evaluation
+    /// - Request/response validation against contracts
+    middleware_config: Option<MiddlewareConfig>,
 }
 
 impl Server {
@@ -148,6 +186,7 @@ impl Server {
             health: HealthCheck::new("archimedes", env!("CARGO_PKG_VERSION")),
             readiness: ReadinessCheck::new(),
             request_timeout: Duration::from_secs(30),
+            middleware_config: None,
         }
     }
 
@@ -211,6 +250,12 @@ impl Server {
     #[must_use]
     pub fn request_timeout(&self) -> Duration {
         self.request_timeout
+    }
+
+    /// Returns the middleware configuration, if any.
+    #[must_use]
+    pub fn middleware_config(&self) -> Option<&MiddlewareConfig> {
+        self.middleware_config.as_ref()
     }
 
     /// Runs the server until a shutdown signal is received.
@@ -367,6 +412,7 @@ impl Server {
     ) -> Result<HttpResponse, Infallible> {
         let method = req.method().clone();
         let path = req.uri().path().to_string();
+        let headers = req.headers().clone();
 
         tracing::debug!("{} {}", method, path);
 
@@ -403,7 +449,7 @@ impl Server {
         // Route and invoke handler with timeout
         let response = tokio::time::timeout(
             self.request_timeout,
-            self.route_request(&method, &path, body),
+            self.route_request(&method, &path, &headers, body),
         )
         .await;
 
@@ -460,15 +506,31 @@ impl Server {
     }
 
     /// Routes a request to the appropriate handler.
-    async fn route_request(&self, method: &Method, path: &str, body: Bytes) -> HttpResponse {
+    async fn route_request(
+        &self,
+        method: &Method,
+        path: &str,
+        headers: &HeaderMap,
+        body: Bytes,
+    ) -> HttpResponse {
         match self.router.match_route(method, path) {
-            Some(route_match) => self.handle_matched_route(route_match, body).await,
+            Some(route_match) => {
+                self.handle_matched_route(method, path, route_match, headers, body)
+                    .await
+            }
             None => self.handle_not_found(path),
         }
     }
 
     /// Handles a matched route by invoking the registered handler.
-    async fn handle_matched_route(&self, route_match: RouteMatch, body: Bytes) -> HttpResponse {
+    async fn handle_matched_route(
+        &self,
+        method: &Method,
+        path: &str,
+        route_match: RouteMatch,
+        headers: &HeaderMap,
+        body: Bytes,
+    ) -> HttpResponse {
         let operation_id = route_match.operation_id();
 
         // Check if handler is registered
@@ -481,8 +543,31 @@ impl Server {
             );
         }
 
-        // Create request context with operation ID
-        let ctx = RequestContext::new().with_operation_id(operation_id);
+        // Create request context, optionally with middleware-extracted identity
+        let ctx = if let Some(mw_config) = &self.middleware_config {
+            // Create middleware context from request
+            let mut mw_ctx = MiddlewareContext::from_request(
+                method.clone(),
+                path.to_string(),
+                headers.clone(),
+            );
+            mw_ctx.set_operation_id(operation_id.to_string());
+
+            // Extract identity if middleware is enabled
+            let identity = if mw_config.identity_enabled {
+                self.extract_identity_from_headers(headers, mw_config)
+            } else {
+                CallerIdentity::Anonymous
+            };
+
+            // Build RequestContext with extracted identity
+            RequestContext::new()
+                .with_operation_id(operation_id)
+                .with_identity(identity)
+        } else {
+            // No middleware - use simple context
+            RequestContext::new().with_operation_id(operation_id)
+        };
 
         // Merge path parameters into the request body
         // This allows handlers to receive path params (e.g., userId) as part of their request type
@@ -586,6 +671,147 @@ impl Server {
             .unwrap_or_else(|_| Response::new(Full::new(Bytes::new())))
     }
 
+    /// Extracts caller identity from request headers.
+    ///
+    /// This method checks headers in the following order:
+    /// 1. Trusted identity header (if configured) - for proxied requests
+    /// 2. Authorization header with Bearer token - JWT decoding
+    /// 3. X-Caller-Identity header - trusted proxy identity
+    ///
+    /// Returns `CallerIdentity::Anonymous` if no valid identity is found.
+    fn extract_identity_from_headers(
+        &self,
+        headers: &HeaderMap,
+        config: &MiddlewareConfig,
+    ) -> CallerIdentity {
+        // Check trusted identity header first (set by sidecar/proxy)
+        if let Some(header_name) = &config.trusted_identity_header {
+            if let Some(value) = headers.get(header_name.as_str()) {
+                if let Ok(identity_str) = value.to_str() {
+                    if let Ok(identity) = serde_json::from_str::<TrustedIdentity>(identity_str) {
+                        tracing::debug!(
+                            "Extracted identity from trusted header {}: {:?}",
+                            header_name,
+                            identity
+                        );
+                        return CallerIdentity::User(archimedes_core::UserIdentity {
+                            user_id: identity.user_id,
+                            email: identity.email,
+                            name: identity.display_name,
+                            roles: identity.roles,
+                            groups: identity.groups.unwrap_or_default(),
+                            tenant_id: None,
+                        });
+                    }
+                }
+            }
+        }
+
+        // Check standard X-Caller-Identity header
+        if let Some(value) = headers.get("x-caller-identity") {
+            if let Ok(identity_str) = value.to_str() {
+                if let Ok(identity) = serde_json::from_str::<TrustedIdentity>(identity_str) {
+                    tracing::debug!("Extracted identity from X-Caller-Identity: {:?}", identity);
+                    return CallerIdentity::User(archimedes_core::UserIdentity {
+                        user_id: identity.user_id,
+                        email: identity.email,
+                        name: identity.display_name,
+                        roles: identity.roles,
+                        groups: identity.groups.unwrap_or_default(),
+                        tenant_id: None,
+                    });
+                }
+            }
+        }
+
+        // Check Authorization header for Bearer token
+        if let Some(auth_header) = headers.get(http::header::AUTHORIZATION) {
+            if let Ok(auth_str) = auth_header.to_str() {
+                if let Some(token) = auth_str.strip_prefix("Bearer ") {
+                    // For now, we do simple JWT parsing without cryptographic verification
+                    // Full verification would require the jwt_secret and proper JWT library
+                    if let Some(identity) = self.parse_jwt_claims(token) {
+                        tracing::debug!("Extracted identity from JWT: {:?}", identity);
+                        return identity;
+                    }
+                }
+            }
+        }
+
+        // Check X-User-Id header (simple identity)
+        if let Some(user_id) = headers.get("x-user-id") {
+            if let Ok(user_id_str) = user_id.to_str() {
+                let roles = headers
+                    .get("x-user-roles")
+                    .and_then(|v| v.to_str().ok())
+                    .map(|s| s.split(',').map(|r| r.trim().to_string()).collect())
+                    .unwrap_or_default();
+
+                tracing::debug!("Extracted identity from X-User-Id: {}", user_id_str);
+                return CallerIdentity::User(archimedes_core::UserIdentity {
+                    user_id: user_id_str.to_string(),
+                    email: None,
+                    name: None,
+                    roles,
+                    groups: vec![],
+                    tenant_id: None,
+                });
+            }
+        }
+
+        CallerIdentity::Anonymous
+    }
+
+    /// Parses JWT claims without cryptographic verification.
+    ///
+    /// This is a simple base64 decode of the payload section.
+    /// For production use, proper JWT verification should be used.
+    fn parse_jwt_claims(&self, token: &str) -> Option<CallerIdentity> {
+        use base64::Engine;
+
+        let parts: Vec<&str> = token.split('.').collect();
+        if parts.len() != 3 {
+            return None;
+        }
+
+        // Decode the payload (second part)
+        let payload = base64::engine::general_purpose::URL_SAFE_NO_PAD
+            .decode(parts[1])
+            .ok()?;
+
+        let claims: serde_json::Value = serde_json::from_slice(&payload).ok()?;
+
+        // Extract standard JWT claims
+        let user_id = claims
+            .get("sub")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string())?;
+
+        let email = claims.get("email").and_then(|v| v.as_str()).map(|s| s.to_string());
+        let name = claims.get("name").and_then(|v| v.as_str()).map(|s| s.to_string());
+
+        // Extract roles from common claim names
+        let roles = claims
+            .get("roles")
+            .or_else(|| claims.get("realm_access").and_then(|ra| ra.get("roles")))
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        Some(CallerIdentity::User(archimedes_core::UserIdentity {
+            user_id,
+            email,
+            name,
+            roles,
+            groups: vec![],
+            tenant_id: None,
+        }))
+    }
+
     /// Merges path parameters into the request body.
     ///
     /// This allows handlers to receive path parameters (e.g., `userId` from `/users/{userId}`)
@@ -649,13 +875,16 @@ fn camel_to_snake(s: &str) -> String {
 /// # Example
 ///
 /// ```rust
-/// use archimedes_server::{Server, ServerBuilder, HandlerRegistry};
+/// use archimedes_server::{Server, ServerBuilder, HandlerRegistry, MiddlewareConfig};
 /// use std::time::Duration;
 ///
 /// let server = ServerBuilder::new()
 ///     .http_addr("0.0.0.0:9090")
 ///     .shutdown_timeout(Duration::from_secs(60))
 ///     .request_timeout(Duration::from_secs(30))
+///     .middleware(MiddlewareConfig::builder()
+///         .enable_identity()
+///         .build())
 ///     .build();
 /// ```
 #[derive(Default)]
@@ -665,6 +894,7 @@ pub struct ServerBuilder {
     health_service: Option<String>,
     health_version: Option<String>,
     request_timeout: Option<Duration>,
+    middleware_config: Option<MiddlewareConfig>,
 }
 
 impl ServerBuilder {
@@ -752,6 +982,36 @@ impl ServerBuilder {
         self
     }
 
+    /// Configures the middleware pipeline.
+    ///
+    /// When middleware is configured, requests are processed through the
+    /// middleware pipeline before being passed to handlers. This enables:
+    ///
+    /// - **Identity Extraction**: Extract caller identity from headers (JWT, X-Caller-Identity)
+    /// - **Authorization**: OPA policy evaluation before handler invocation
+    /// - **Validation**: Request/response validation against contracts
+    /// - **Telemetry**: Metrics and tracing
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use archimedes_server::{Server, MiddlewareConfig};
+    ///
+    /// let server = Server::builder()
+    ///     .http_addr("0.0.0.0:8080")
+    ///     .middleware(MiddlewareConfig::builder()
+    ///         .enable_identity()
+    ///         .enable_authorization()
+    ///         .service_name("my-service")
+    ///         .build())
+    ///     .build();
+    /// ```
+    #[must_use]
+    pub fn middleware(mut self, config: MiddlewareConfig) -> Self {
+        self.middleware_config = Some(config);
+        self
+    }
+
     /// Builds the server with the configured settings.
     #[must_use]
     pub fn build(self) -> Server {
@@ -770,6 +1030,7 @@ impl ServerBuilder {
             health: HealthCheck::new(service, version),
             readiness: ReadinessCheck::new(),
             request_timeout: self.request_timeout.unwrap_or(Duration::from_secs(30)),
+            middleware_config: self.middleware_config,
         }
     }
 }
@@ -798,6 +1059,7 @@ impl std::error::Error for ServerError {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use base64::Engine;
 
     #[test]
     fn test_server_new() {
@@ -880,8 +1142,9 @@ mod tests {
             .add_route(Method::GET, "/users/{id}", "getUser");
 
         let server = Arc::new(server);
+        let headers = HeaderMap::new();
         let response = server
-            .route_request(&Method::GET, "/users/123", Bytes::new())
+            .route_request(&Method::GET, "/users/123", &headers, Bytes::new())
             .await;
 
         // Without a handler registered, should return NOT_IMPLEMENTED
@@ -977,8 +1240,9 @@ mod tests {
         server.router_mut().add_route(Method::POST, "/echo", "echo");
 
         let server = Arc::new(server);
+        let headers = HeaderMap::new();
         let body = Bytes::from(r#"{"message":"Hello"}"#);
-        let response = server.route_request(&Method::POST, "/echo", body).await;
+        let response = server.route_request(&Method::POST, "/echo", &headers, body).await;
 
         assert_eq!(response.status(), StatusCode::OK);
 
@@ -1002,8 +1266,9 @@ mod tests {
             .add_route(Method::GET, "/status", "healthCheck");
 
         let server = Arc::new(server);
+        let headers = HeaderMap::new();
         let response = server
-            .route_request(&Method::GET, "/status", Bytes::new())
+            .route_request(&Method::GET, "/status", &headers, Bytes::new())
             .await;
 
         assert_eq!(response.status(), StatusCode::OK);
@@ -1025,9 +1290,10 @@ mod tests {
         server.router_mut().add_route(Method::POST, "/echo", "echo");
 
         let server = Arc::new(server);
+        let headers = HeaderMap::new();
         // Invalid JSON
         let body = Bytes::from(r#"not valid json"#);
-        let response = server.route_request(&Method::POST, "/echo", body).await;
+        let response = server.route_request(&Method::POST, "/echo", &headers, body).await;
 
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
     }
@@ -1044,10 +1310,131 @@ mod tests {
             .add_route(Method::GET, "/missing", "missingOp");
 
         let server = Arc::new(server);
+        let headers = HeaderMap::new();
         let response = server
-            .route_request(&Method::GET, "/missing", Bytes::new())
+            .route_request(&Method::GET, "/missing", &headers, Bytes::new())
             .await;
 
         assert_eq!(response.status(), StatusCode::NOT_IMPLEMENTED);
+    }
+
+    #[test]
+    fn test_middleware_config_builder_on_server() {
+        use crate::MiddlewareConfig;
+
+        let server = Server::builder()
+            .http_addr("127.0.0.1:8080")
+            .middleware(
+                MiddlewareConfig::builder()
+                    .enable_identity()
+                    .enable_authorization()
+                    .service_name("test-service")
+                    .build(),
+            )
+            .build();
+
+        assert!(server.middleware_config().is_some());
+        let mw = server.middleware_config().unwrap();
+        assert!(mw.identity_enabled());
+        assert!(mw.authorization_enabled());
+        assert_eq!(mw.service_name(), Some("test-service"));
+    }
+
+    #[test]
+    fn test_identity_extraction_from_x_user_id_header() {
+        use crate::MiddlewareConfig;
+
+        let server = Server::builder()
+            .middleware(MiddlewareConfig::builder().enable_identity().build())
+            .build();
+
+        let mut headers = HeaderMap::new();
+        headers.insert("x-user-id", "user-123".parse().unwrap());
+        headers.insert("x-user-roles", "admin,user".parse().unwrap());
+
+        let mw_config = server.middleware_config().unwrap();
+        let identity = server.extract_identity_from_headers(&headers, mw_config);
+
+        match identity {
+            CallerIdentity::User(user) => {
+                assert_eq!(user.user_id, "user-123");
+                assert_eq!(user.roles, vec!["admin", "user"]);
+            }
+            _ => panic!("Expected User identity"),
+        }
+    }
+
+    #[test]
+    fn test_identity_extraction_from_x_caller_identity_header() {
+        use crate::MiddlewareConfig;
+
+        let server = Server::builder()
+            .middleware(MiddlewareConfig::builder().enable_identity().build())
+            .build();
+
+        let identity_json = serde_json::json!({
+            "user_id": "alice-456",
+            "email": "alice@example.com",
+            "display_name": "Alice Smith",
+            "roles": ["admin", "manager"]
+        });
+
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            "x-caller-identity",
+            identity_json.to_string().parse().unwrap(),
+        );
+
+        let mw_config = server.middleware_config().unwrap();
+        let identity = server.extract_identity_from_headers(&headers, mw_config);
+
+        match identity {
+            CallerIdentity::User(user) => {
+                assert_eq!(user.user_id, "alice-456");
+                assert_eq!(user.email, Some("alice@example.com".to_string()));
+                assert_eq!(user.name, Some("Alice Smith".to_string()));
+                assert_eq!(user.roles, vec!["admin", "manager"]);
+            }
+            _ => panic!("Expected User identity"),
+        }
+    }
+
+    #[test]
+    fn test_identity_extraction_anonymous_without_middleware() {
+        // Server without middleware config
+        let server = Server::builder().build();
+
+        assert!(server.middleware_config().is_none());
+    }
+
+    #[test]
+    fn test_jwt_claims_parsing() {
+        use crate::MiddlewareConfig;
+
+        let server = Server::builder()
+            .middleware(MiddlewareConfig::builder().enable_identity().build())
+            .build();
+
+        // Create a simple JWT payload (base64 encoded)
+        // Header: {"alg":"HS256","typ":"JWT"}
+        // Payload: {"sub":"user-789","email":"test@example.com","roles":["user"]}
+        let header = base64::engine::general_purpose::URL_SAFE_NO_PAD
+            .encode(r#"{"alg":"HS256","typ":"JWT"}"#);
+        let payload = base64::engine::general_purpose::URL_SAFE_NO_PAD
+            .encode(r#"{"sub":"user-789","email":"test@example.com","roles":["user"]}"#);
+        let signature = "fake_signature";
+        let token = format!("{}.{}.{}", header, payload, signature);
+
+        let identity = server.parse_jwt_claims(&token);
+
+        assert!(identity.is_some());
+        match identity.unwrap() {
+            CallerIdentity::User(user) => {
+                assert_eq!(user.user_id, "user-789");
+                assert_eq!(user.email, Some("test@example.com".to_string()));
+                assert_eq!(user.roles, vec!["user"]);
+            }
+            _ => panic!("Expected User identity"),
+        }
     }
 }

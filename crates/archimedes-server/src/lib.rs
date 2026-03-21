@@ -51,6 +51,7 @@ mod config;
 pub mod handler;
 mod health;
 mod lifecycle;
+mod middleware_config;
 mod router;
 mod server;
 pub mod shutdown;
@@ -60,7 +61,11 @@ pub use config::{ServerConfig, ServerConfigBuilder};
 pub use handler::{HandlerError, HandlerRegistry, InvokeError};
 pub use health::{HealthCheck, HealthStatus, ReadinessCheck, ReadinessStatus};
 pub use lifecycle::{Lifecycle, LifecycleError, LifecycleHook, LifecycleResult};
+pub use middleware_config::{MiddlewareConfig, MiddlewareConfigBuilder};
 pub use router::{RouteMatch, Router};
 pub use server::{Server, ServerBuilder, ServerError};
 pub use shutdown::ShutdownSignal;
 pub use static_files::{StaticFileError, StaticFiles, StaticFilesBuilder};
+
+// Re-export middleware types for convenience
+pub use archimedes_middleware::{MiddlewareContext, Pipeline, PipelineBuilder};

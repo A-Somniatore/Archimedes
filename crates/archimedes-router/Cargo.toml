@@ -6,6 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 description = "High-performance radix tree router for Archimedes"
 repository.workspace = true
+readme = "README.md"
 keywords = ["router", "radix-tree", "http", "routing", "web"]
 categories = ["web-programming", "network-programming"]
 

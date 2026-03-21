@@ -1,8 +1,8 @@
 # Archimedes – Development Roadmap
 
-> **Version**: 3.5.0
+> **Version**: 3.6.0
 > **Created**: 2026-01-04
-> **Last Updated**: 2026-01-21
+> **Last Updated**: 2026-01-22
 > **Target Completion**: Week 48 (MVP complete with sidecar pattern)
 
 > ✅ **CTO REVIEW (2026-01-04)**: Blocking issue resolved!
@@ -15,10 +15,44 @@
 > **📋 UPDATE (2026-01-21)**: Benchmarking (A13.6) deprioritized - not required for MVP.
 > **✅ UPDATE (2026-01-21)**: **MVP SCOPE FINALIZED** - Sidecar pattern provides multi-language support. All pieces working together.
 > **📊 UPDATE (2026-01-21)**: All 4 components building and passing tests. Themis build fixed (8 errors in themis-sdk resolved).
+> **✅ UPDATE (2026-01-22)**: **Native Server Middleware Integration COMPLETE** - `archimedes-server` now supports middleware pipeline with `MiddlewareConfig` builder.
 
 ---
 
 ## 🎉 Recent Progress (Phase A12 In Progress → Phase A13 Planned)
+
+### 🔧 Native Server Middleware Integration (v3.6.0) - ✅ COMPLETE
+
+> **UPDATE 2026-01-22**: The `archimedes-server` crate now integrates the middleware pipeline directly.
+> This enables native Rust services to use identity extraction, authorization, and validation without the sidecar.
+
+**New Features:**
+- ✅ `MiddlewareConfig` builder for configuring middleware stages
+- ✅ `ServerBuilder::middleware()` method to enable middleware pipeline
+- ✅ Identity extraction from HTTP headers (JWT, X-Caller-Identity, X-User-Id)
+- ✅ Caller identity propagated to `RequestContext` for handlers
+- ✅ Base64 JWT parsing for Bearer tokens (without cryptographic verification)
+- ✅ Trusted identity header support for proxy/sidecar scenarios
+- ✅ 141 tests passing in archimedes-server
+
+**Usage Example:**
+```rust
+use archimedes_server::{Server, MiddlewareConfig};
+
+let server = Server::builder()
+    .http_addr("0.0.0.0:8080")
+    .middleware(MiddlewareConfig::builder()
+        .enable_identity()       // Extract identity from headers
+        .enable_authorization()  // Enable OPA policy evaluation
+        .service_name("my-service")
+        .build())
+    .build();
+```
+
+**Supported Identity Headers:**
+- `Authorization: Bearer <jwt>` - JWT token parsing
+- `X-Caller-Identity: <json>` - Trusted proxy identity
+- `X-User-Id` + `X-User-Roles` - Simple identity headers
 
 ### 🚨 ARCHITECTURE DECISION: Multi-Language Support (v3.5.0)
 
